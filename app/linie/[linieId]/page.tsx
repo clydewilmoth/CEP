@@ -1,16 +1,21 @@
-import Link from 'next/link';
+"use client";
 
-export default function Home() {
-  const linien = ['Linie 1', 'Linie 2', 'Linie 3', 'Linie 4'];
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+
+
+const LiniePage = () =>{
+  const station = ['Station 1', 'Station 2', 'Station 3', 'Station 4'];
+  const { linieId } = useParams();
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50">
       <h1 className="text-4xl font-bold mb-8">cep</h1>
       <div className="flex flex-wrap gap-4">
-        {linien.map((linie, index) => (
-          <Link key={index} href={`/linie/${index + 1}`}>
+        {station.map((station, index) => (
+          <Link key={index} href={`/linie/${linieId}/station/${index + 1}`}>
             <div className="w-40 h-24 flex items-center justify-center border rounded-lg shadow-md hover:shadow-lg transition">
-              {linie}
+              {station}
             </div>
           </Link>
         ))}
@@ -21,3 +26,5 @@ export default function Home() {
     </main>
   );
 }
+
+export default LiniePage;
