@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 
 type FormProps = {
-  id: string;           // ID (kann Linie, Station, Tool oder Operation sein)
-  onClose: () => void;  // Funktion zum Schließen des Formulars
+  id: string;
+  onClose: () => void;
 };
 
 export default function LinieForm({ id, onClose }: FormProps) {

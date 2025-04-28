@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { use, useState } from 'react';
 import OperationForm from '@/app/components/OperationForm';
 
-export default function ToolsPage({ params }: { params: Promise<{ toolId: string }> }) {
-  const { toolId } = use(params); // Promise auflösen
+export default function ToolsPage({ params }: { params: Promise<{ toolsId: string }> }) {
+  const { toolsId } = use(params);
 
   const operationen = [
     { id: "1", name: 'Operation 1' },
@@ -28,7 +28,7 @@ export default function ToolsPage({ params }: { params: Promise<{ toolId: string
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50">
-      <h1 className="text-4xl font-bold mb-8">Operationen des Tools {toolId}</h1>
+      <h1 className="text-4xl font-bold mb-8">cep - Operationen des Tools {toolsId}</h1>
       <div className="flex flex-wrap gap-4">
         {operationen.map((operation) => (
           <div key={operation.id}>

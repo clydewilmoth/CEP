@@ -7,7 +7,7 @@ import Form from '@/app/components/LinieForm';
 import StationForm from '@/app/components/StationForm';
 
 export default function LiniePage({ params }: { params: Promise<{ linieId: string }> }) {
-  const { linieId } = use(params); // ⬅️ use() auf das Promise aufrufen!
+  const { linieId } = use(params);
 
   const stationen = [
     { id: "1", name: 'Station 1' },
@@ -30,7 +30,7 @@ export default function LiniePage({ params }: { params: Promise<{ linieId: strin
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50">
-      <h1 className="text-4xl font-bold mb-8">Stationen der Linie {linieId}</h1>
+      <h1 className="text-4xl font-bold mb-8">cep - Stationen der Linie {linieId}</h1>
       <div className="flex flex-wrap gap-4">
         {stationen.map((station) => (
           <div key={station.id}>

@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { use, useState } from 'react';
 import ToolsForm from '@/app/components/ToolsForm';
-export default function StationPage({ params }: { params: Promise<{ linieId: string,stationId: string }> }) {
-  const { linieId, stationId } = use(params); // Promise auflösen
+export default function StationPage({ params }: { params: Promise<{ linieId: string, stationId: string }> }) {
+  const { linieId, stationId } = use(params);
 
   const tools = [
     { id: "1", name: 'Tool 1' },
@@ -28,7 +28,7 @@ export default function StationPage({ params }: { params: Promise<{ linieId: str
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50">
-      <h1 className="text-4xl font-bold mb-8">Tools der Station {stationId}</h1>
+      <h1 className="text-4xl font-bold mb-8">cep - Tools der Station {stationId}</h1>
       <div className="flex flex-wrap gap-4">
         {tools.map((tool) => (
           <div key={tool.id}>
