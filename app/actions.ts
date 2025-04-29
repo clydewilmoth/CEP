@@ -46,16 +46,16 @@ export async function getEntityDetails(entity: string, id: number) {
 
     switch (entity) {
         case "line":
-            entityDetails = await db.prepare("SELECT * FROM lines WHERE id = (?)").all(id);
+            entityDetails = await db.prepare("SELECT * FROM lines WHERE id = (?)").get(id);
             break;
         case "station":
-            entityDetails = await db.prepare("SELECT * FROM stations WHERE id = (?)").all(id);
+            entityDetails = await db.prepare("SELECT * FROM stations WHERE id = (?)").get(id);
             break;
         case "tool":
-            entityDetails = await db.prepare("SELECT * FROM tools WHERE id = (?)").all(id);
+            entityDetails = await db.prepare("SELECT * FROM tools WHERE id = (?)").get(id);
             break;
         case "operation":
-            entityDetails = await db.prepare("SELECT * FROM operations WHERE id = (?)").all(id);
+            entityDetails = await db.prepare("SELECT * FROM operations WHERE id = (?)").get(id);
             break;
         default:
             throw new Error("Invalid entity type");
@@ -106,11 +106,11 @@ export async function deleteEntity(entity: string, id: number) {
     return true;
 }
 
-export async function updateEntity(entity: string, id: number, field: string, value: any) {
+export async function updateEntity(entity: string, id: number, field: string, value: string | number) {
 
     switch (entity) {
         case "line":
-            await db.prepare("UPDATE lines SET (?) = (?) WHERE id = (?)").run(field, value, id);
+            await db.prepare(`UPDATE lines SET ${field} = (?) WHERE id = (?)`).run(value, id);
             break;
         case "station":
             await db.prepare("UPDATE stations SET (?) = (?) WHERE id = (?)").run(field, value, id);

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -8,9 +8,8 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
-import { Textarea } from '@/components/ui/textarea';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
+} from "@/components/ui/pagination";
+import { Textarea } from "@/components/ui/textarea";
 
 type FormProps = {
   id: string;
@@ -22,22 +21,28 @@ export default function OperationForm({ id, onClose }: FormProps) {
 
   const [operationID, setOperationID] = useState<number | null>(null);
   const [toolID, setToolID] = useState<number | null>(null);
-  const [operationShortName, setOperationShortName] = useState<string>('');
-  const [operationDescription, setOperationDescription] = useState<string>('');
-  const [operationDecisionCriteria, setOperationDecisionCriteria] = useState<string>('');
-  const [operationSequenceGroup, setOperationSequenceGroup] = useState<string>('');
+  const [operationShortName, setOperationShortName] = useState<string>("");
+  const [operationDescription, setOperationDescription] = useState<string>("");
+  const [operationDecisionCriteria, setOperationDecisionCriteria] =
+    useState<string>("");
+  const [operationSequenceGroup, setOperationSequenceGroup] =
+    useState<string>("");
   const [alwaysPerform, setAlwaysPerform] = useState<boolean>(false);
   const [serialOrParallel, setSerialOrParallel] = useState<boolean>(false);
-  const [ipAdressEKS_IP, setIpAdressEKS_IP] = useState<string>('');
-  const [modifiedDate, setModifiedDate] = useState<string>('');
-  const [comment, setComment] = useState<string>('');
-  const [lastUser, setLastUser] = useState<string>('');
+  const [ipAdressEKS_IP, setIpAdressEKS_IP] = useState<string>("");
+  const [modifiedDate, setModifiedDate] = useState<string>("");
+  const [comment, setComment] = useState<string>("");
+  const [lastUser, setLastUser] = useState<string>("");
   const [templateID, setTemplateID] = useState<number | null>(null);
   const [qGateRelevantID, setQGateRelevantID] = useState<number | null>(null);
   const [decisionClassID, setDecisionClassID] = useState<number | null>(null);
   const [savingClassID, setSavingClassID] = useState<number | null>(null);
-  const [verificationClassID, setVerificationClassID] = useState<number | null>(null);
-  const [generationClassID, setGenerationClassID] = useState<number | null>(null);
+  const [verificationClassID, setVerificationClassID] = useState<number | null>(
+    null
+  );
+  const [generationClassID, setGenerationClassID] = useState<number | null>(
+    null
+  );
 
   const draftKey = `OperationDraft-${id}`;
   const savedKey = `OperationSaved-${id}`;
@@ -48,16 +53,16 @@ export default function OperationForm({ id, onClose }: FormProps) {
       const data = JSON.parse(saved);
       setOperationID(data.operationID || null);
       setToolID(data.toolID || null);
-      setOperationShortName(data.operationShortName || '');
-      setOperationDescription(data.operationDescription || '');
-      setOperationDecisionCriteria(data.operationDecisionCriteria || '');
-      setOperationSequenceGroup(data.operationSequenceGroup || '');
+      setOperationShortName(data.operationShortName || "");
+      setOperationDescription(data.operationDescription || "");
+      setOperationDecisionCriteria(data.operationDecisionCriteria || "");
+      setOperationSequenceGroup(data.operationSequenceGroup || "");
       setAlwaysPerform(data.alwaysPerform || false);
       setSerialOrParallel(data.serialOrParallel || false);
-      setIpAdressEKS_IP(data.ipAdressEKS_IP || '');
-      setModifiedDate(data.modifiedDate || '');
-      setComment(data.comment || '');
-      setLastUser(data.lastUser || '');
+      setIpAdressEKS_IP(data.ipAdressEKS_IP || "");
+      setModifiedDate(data.modifiedDate || "");
+      setComment(data.comment || "");
+      setLastUser(data.lastUser || "");
       setTemplateID(data.templateID || null);
       setQGateRelevantID(data.qGateRelevantID || null);
       setDecisionClassID(data.decisionClassID || null);
@@ -69,19 +74,33 @@ export default function OperationForm({ id, onClose }: FormProps) {
 
   const handleSave = () => {
     const savedData = {
-      operationID, toolID, operationShortName, operationDescription, operationDecisionCriteria,
-      operationSequenceGroup, alwaysPerform, serialOrParallel, ipAdressEKS_IP, modifiedDate,
-      comment, lastUser, templateID, qGateRelevantID, decisionClassID, savingClassID,
-      verificationClassID, generationClassID,
+      operationID,
+      toolID,
+      operationShortName,
+      operationDescription,
+      operationDecisionCriteria,
+      operationSequenceGroup,
+      alwaysPerform,
+      serialOrParallel,
+      ipAdressEKS_IP,
+      modifiedDate,
+      comment,
+      lastUser,
+      templateID,
+      qGateRelevantID,
+      decisionClassID,
+      savingClassID,
+      verificationClassID,
+      generationClassID,
     };
     localStorage.setItem(savedKey, JSON.stringify(savedData));
     localStorage.removeItem(draftKey);
-    console.log('Gespeichert:', savedData);
+    console.log("Gespeichert:", savedData);
     onClose();
   };
 
   const handleCancel = () => {
-    console.log('Abgebrochen.');
+    console.log("Abgebrochen.");
     onClose();
   };
 
@@ -98,7 +117,7 @@ export default function OperationForm({ id, onClose }: FormProps) {
           <input
             type="number"
             min={0}
-            value={operationID !== null ? operationID.toString() : ''}
+            value={operationID !== null ? operationID.toString() : ""}
             onChange={(e) => setOperationID(Number(e.target.value))}
             className="border p-2 w-full rounded mb-4"
             placeholder="Operation ID eingeben"
@@ -106,7 +125,7 @@ export default function OperationForm({ id, onClose }: FormProps) {
           <input
             type="number"
             min={0}
-            value={toolID !== null ? toolID.toString() : ''}
+            value={toolID !== null ? toolID.toString() : ""}
             onChange={(e) => setToolID(Number(e.target.value))}
             className="border p-2 w-full rounded mb-4"
             placeholder="Tool ID eingeben"
@@ -145,15 +164,15 @@ export default function OperationForm({ id, onClose }: FormProps) {
           />
           <input
             type="text"
-            value={alwaysPerform ? 'true' : 'false'}
-            onChange={(e) => setAlwaysPerform(e.target.value === 'true')}
+            value={alwaysPerform ? "true" : "false"}
+            onChange={(e) => setAlwaysPerform(e.target.value === "true")}
             className="border p-2 w-full rounded mb-4"
             placeholder="Immer ausführen (true/false)"
           />
           <input
             type="text"
-            value={serialOrParallel ? 'true' : 'false'}
-            onChange={(e) => setSerialOrParallel(e.target.value === 'true')}
+            value={serialOrParallel ? "true" : "false"}
+            onChange={(e) => setSerialOrParallel(e.target.value === "true")}
             className="border p-2 w-full rounded mb-4"
             placeholder="Seriell oder Parallel (true/false)"
           />
@@ -194,7 +213,7 @@ export default function OperationForm({ id, onClose }: FormProps) {
           <input
             type="number"
             min={0}
-            value={templateID !== null ? templateID.toString() : ''}
+            value={templateID !== null ? templateID.toString() : ""}
             onChange={(e) => setTemplateID(Number(e.target.value))}
             className="border p-2 w-full rounded mb-4"
             placeholder="Template ID"
@@ -202,7 +221,7 @@ export default function OperationForm({ id, onClose }: FormProps) {
           <input
             type="number"
             min={0}
-            value={qGateRelevantID !== null ? qGateRelevantID.toString() : ''}
+            value={qGateRelevantID !== null ? qGateRelevantID.toString() : ""}
             onChange={(e) => setQGateRelevantID(Number(e.target.value))}
             className="border p-2 w-full rounded mb-4"
             placeholder="Q-Gate Relevant ID"
@@ -210,7 +229,7 @@ export default function OperationForm({ id, onClose }: FormProps) {
           <input
             type="number"
             min={0}
-            value={decisionClassID !== null ? decisionClassID.toString() : ''}
+            value={decisionClassID !== null ? decisionClassID.toString() : ""}
             onChange={(e) => setDecisionClassID(Number(e.target.value))}
             className="border p-2 w-full rounded mb-4"
             placeholder="Entscheidungsklasse ID"
@@ -223,21 +242,44 @@ export default function OperationForm({ id, onClose }: FormProps) {
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious onClick={prevPage} 
-                className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}/>
+              <PaginationPrevious
+                onClick={prevPage}
+                className={
+                  currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                }
+              />
             </PaginationItem>
             <PaginationItem>
-              <PaginationLink onClick={() => setCurrentPage(1)} isActive={currentPage === 1}>1</PaginationLink>
+              <PaginationLink
+                onClick={() => setCurrentPage(1)}
+                isActive={currentPage === 1}
+              >
+                1
+              </PaginationLink>
             </PaginationItem>
             <PaginationItem>
-              <PaginationLink onClick={() => setCurrentPage(2)} isActive={currentPage === 2}>2</PaginationLink>
+              <PaginationLink
+                onClick={() => setCurrentPage(2)}
+                isActive={currentPage === 2}
+              >
+                2
+              </PaginationLink>
             </PaginationItem>
             <PaginationItem>
-              <PaginationLink onClick={() => setCurrentPage(3)} isActive={currentPage === 3}>3</PaginationLink>
+              <PaginationLink
+                onClick={() => setCurrentPage(3)}
+                isActive={currentPage === 3}
+              >
+                3
+              </PaginationLink>
             </PaginationItem>
             <PaginationItem>
-              <PaginationNext onClick={nextPage} 
-                className={currentPage === 3 ? 'pointer-events-none opacity-50' : ''}/>
+              <PaginationNext
+                onClick={nextPage}
+                className={
+                  currentPage === 3 ? "pointer-events-none opacity-50" : ""
+                }
+              />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
@@ -245,8 +287,15 @@ export default function OperationForm({ id, onClose }: FormProps) {
 
       {/* Buttons */}
       <div className="flex justify-end gap-4 mt-6">
-        <button onClick={handleCancel} className="px-4 py-2 border rounded">cancel</button>
-        <button onClick={handleSave} className="px-4 py-2 bg-blue-500 text-white rounded">save</button>
+        <button onClick={handleCancel} className="px-4 py-2 border rounded">
+          cancel
+        </button>
+        <button
+          onClick={handleSave}
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          save
+        </button>
       </div>
     </div>
   );
