@@ -1,8 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { use, useState } from "react";
-import OperationForm from "@/app/components/OperationForm";
+import { use, useEffect, useState, useTransition } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,6 +11,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Progress } from "@/components/ui/progress";
 import { BookText } from "lucide-react";
+import { createEntity, getEntities, init } from "@/app/actions";
+import EntityForm from "@/app/components/EntityForm";
 
 export default function ToolsPage({
   params,
@@ -20,16 +21,45 @@ export default function ToolsPage({
 }) {
   const { linieId, stationId, toolsId } = use(params);
 
-  const operationen = [
-    { id: "1", name: "Operation 1" },
-    { id: "2", name: "Operation 2" },
-    { id: "3", name: "Operation 3" },
-  ];
+  interface operation {
+    id: number;
+    name?: string;
+    comment?: string;
+    create_state?: string;
+    shortname?: string;
+    description?: string;
+    decision_criteria?: string;
+    sequence_group?: string;
+    always_perform?: string;
+    serial_or_paralel?: string;
+    eks_ip?: string;
+    template_id?: string;
+    q_gate_relevant?: string;
+    decision_class_id?: string;
+    saving_class_id?: string;
+    verification_class_id?: string;
+    general_class_id?: string;
+  }
+  const [operations, setOperations] = useState<operation[]>([]);
+  const [observer, setObserver] = useState(0);
+  const [, startTransition] = useTransition();
+
+  useEffect(() => {
+    init();
+  }, []);
+
+  async function fetchAndUpdateOperation() {
+    setOperations(await getEntities("operation", parseInt(toolsId)));
+  }
+
+  useEffect(() => {
+    fetchAndUpdateOperation();
+  }, [observer]);
 
   const [showForm, setShowForm] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const openForm = (id: string) => {
+  const openForm = (id: number) => {
     setSelectedId(id);
     setShowForm(true);
   };
@@ -40,8 +70,9 @@ export default function ToolsPage({
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center pt-15 p-8 bg-gray-50">
-      <Progress value={100} className="w-60" />
+    <main className="flex flex-col items-center pt-15 p-8 ">
+      <h1 className="text-3xl font-black">Operationen</h1>
+      <Progress value={100} className="w-60 mt-7" />
       <h1 className="text-4xl font-bold mb-6 mt-2">
         <Breadcrumb>
           <BreadcrumbList>
@@ -64,29 +95,50 @@ export default function ToolsPage({
           </BreadcrumbList>
         </Breadcrumb>
       </h1>
-      <div className="flex flex-wrap gap-4">
-        {operationen.map((operation) => (
-          <div key={operation.id}>
-            <div className="w-40 h-24 flex items-center justify-center border rounded-lg shadow-md hover:shadow-lg transition relative">
-              {operation.name}
-              <Button
-                className="p-4 absolute right-2"
-                variant="ghost"
-                onClick={(e) => {
-                  e.preventDefault();
-                  openForm(operation.id);
-                }}
-              >
-                <BookText />
-              </Button>
-            </div>
-            {showForm && selectedId === operation.id && (
-              <div className="fixed inset-0 bg-opacity-40 flex items-center justify-center z-50 border-10">
-                <OperationForm id={operation.id} onClose={closeForm} />
+      <div className="flex flex-wrap gap-4 pt-13">
+        {operations.map(({ id, name }) => {
+          return (
+            <div key={id}>
+              <div className="w-fit h-fit p-10 flex items-center justify-center border rounded-lg shadow-md hover:shadow-lg transition relative">
+                {(name || "") + " (ID: " + id + ")"}
+                <Button
+                  className="p-4 absolute right-2 cursor-pointer"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openForm(id);
+                  }}
+                >
+                  <BookText />
+                </Button>
               </div>
-            )}
-          </div>
-        ))}
+
+              {showForm && selectedId === id && (
+                <div className="fixed inset-0 bg-opacity-40 flex items-center justify-center z-50 border-10">
+                  <EntityForm
+                    id={id}
+                    entity={"operation"}
+                    onClose={() => {
+                      closeForm();
+                      setObserver(observer + 1);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+        <div
+          className="w-24 h-24 flex items-center justify-center border rounded-lg shadow-md hover:shadow-lg hover:cursor-pointer transition relative"
+          onClick={() => {
+            startTransition(async () => {
+              createEntity("operation", parseInt(toolsId));
+              setObserver(observer + 1);
+            });
+          }}
+        >
+          +
+        </div>
       </div>
     </main>
   );

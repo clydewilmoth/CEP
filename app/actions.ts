@@ -65,24 +65,24 @@ export async function getEntityDetails(entity: string, id: number) {
 }
 
 export async function createEntity(entity: string, parent_id: number){    
-
+    let result;
     switch (entity) {
         case "line":
-            await db.prepare("INSERT INTO lines DEFAULT VALUES").run();
+            result = await db.prepare("INSERT INTO lines DEFAULT VALUES").run();
             break;
         case "station":
-            await db.prepare("INSERT INTO stations (line_id) VALUES (?)").run(parent_id);
+            result = await db.prepare("INSERT INTO stations (line_id) VALUES (?)").run(parent_id);
             break;
         case "tool":
-            await db.prepare("INSERT INTO tools (station_id) VALUES (?)").run(parent_id);
+            result = await db.prepare("INSERT INTO tools (station_id) VALUES (?)").run(parent_id);
             break;
         case "operation":
-            await db.prepare("INSERT INTO operations (tool_id) VALUES (?)").run(parent_id);
+            result = await db.prepare("INSERT INTO operations (tool_id) VALUES (?)").run(parent_id);
             break;
         default:
             throw new Error("Invalid entity type");
     }
-    return true;
+    return result.id;
 }
 
 export async function deleteEntity(entity: string, id: number) { 
@@ -113,13 +113,13 @@ export async function updateEntity(entity: string, id: number, field: string, va
             await db.prepare(`UPDATE lines SET ${field} = (?) WHERE id = (?)`).run(value, id);
             break;
         case "station":
-            await db.prepare("UPDATE stations SET (?) = (?) WHERE id = (?)").run(field, value, id);
+            await db.prepare(`UPDATE stations SET ${field} = (?) WHERE id = (?)`).run(value, id);
             break;
         case "tool":
-            await db.prepare("UPDATE tools SET (?) = (?) WHERE id = (?)").run(field, value, id);
+            await db.prepare(`UPDATE tools SET ${field} = (?) WHERE id = (?)`).run(value, id);
             break;
         case "operation":
-            await db.prepare("UPDATE operations SET (?) = (?) WHERE id = (?)").run(field, value, id);
+            await db.prepare(`UPDATE operations SET ${field} = (?) WHERE id = (?)`).run(value, id);
             break;
         default:
             throw new Error("Invalid entity type");

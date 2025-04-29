@@ -107,8 +107,16 @@ export default function EntityForm({ id, entity, onClose }: FormProps) {
   });
 
   return (
-    <div className="w-96 relative bg-white p-6 rounded-lg shadow-lg">
+    <div className="w-96 max-h-[80vh] overflow-auto relative bg-white p-6 rounded-lg shadow-lg">
       <h2 className="text-2xl mb-4">{(name || "") + " (ID: " + id + ")"}</h2>
+      <div className="flex justify-end gap-4 mt-4">
+        <button
+          onClick={handleCancel}
+          className="px-4 py-2 border rounded cursor-pointer"
+        >
+          X
+        </button>
+      </div>
       Name
       <input
         type="text"
@@ -156,6 +164,7 @@ export default function EntityForm({ id, entity, onClose }: FormProps) {
             }}
             className="border p-2 w-full rounded mb-4"
             placeholder={`...`}
+            disabled
           />
           Aktiv
           <input
@@ -192,6 +201,7 @@ export default function EntityForm({ id, entity, onClose }: FormProps) {
             }}
             className="border p-2 w-full rounded mb-4"
             placeholder={`...`}
+            disabled
           />
           Kurzname
           <input
@@ -272,6 +282,7 @@ export default function EntityForm({ id, entity, onClose }: FormProps) {
             }}
             className="border p-2 w-full rounded mb-4"
             placeholder={`...`}
+            disabled
           />
           Kurzname
           <input
@@ -418,11 +429,6 @@ export default function EntityForm({ id, entity, onClose }: FormProps) {
           />
         </>
       )}
-      <div className="flex justify-end gap-4 mt-4">
-        <button onClick={handleCancel} className="px-4 py-2 border rounded">
-          X
-        </button>
-      </div>
     </div>
   );
 }

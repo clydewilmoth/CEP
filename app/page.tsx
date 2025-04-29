@@ -47,7 +47,8 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center p-8 bg-gray-50">
+    <main className="flex flex-col items-center pt-15 p-8 ">
+      <h1 className="text-3xl font-black">Linien</h1>
       <Progress value={0} className="w-60 mt-7" />
       <div className="flex flex-wrap gap-4 pt-13">
         {lines.map(({ id, name }) => {
@@ -57,7 +58,7 @@ export default function Home() {
                 <div className="w-fit h-fit p-10 flex items-center justify-center border rounded-lg shadow-md hover:shadow-lg transition relative">
                   {(name || "") + " (ID: " + id + ")"}
                   <Button
-                    className="p-4 absolute right-2"
+                    className="p-4 absolute right-2 cursor-pointer"
                     variant="ghost"
                     onClick={(e) => {
                       e.preventDefault();
