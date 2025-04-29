@@ -3,9 +3,19 @@
 import { Button } from '@/components/ui/button';
 import { use, useState } from 'react';
 import OperationForm from '@/app/components/OperationForm';
+import Link from 'next/link';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Progress } from "@/components/ui/progress"
+import { BookText } from 'lucide-react';
 
-export default function ToolsPage({ params }: { params: Promise<{ toolsId: string }> }) {
-  const { toolsId } = use(params);
+export default function ToolsPage({ params }: { params: Promise<{ linieId: string, stationId: string, toolsId: string }> }) {
+  const { linieId, stationId, toolsId } = use(params);
 
   const operationen = [
     { id: "1", name: 'Operation 1' },
@@ -27,29 +37,45 @@ export default function ToolsPage({ params }: { params: Promise<{ toolsId: strin
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50">
-      <h1 className="text-4xl font-bold mb-8">cep - Operationen des Tools {toolsId}</h1>
+    <main className="min-h-screen flex flex-col items-center pt-15 p-8 bg-gray-50">
+      <Progress value={100} className='w-60' />
+      <h1 className="text-4xl font-bold mb-6 mt-2">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Linie {linieId}</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href={`/linie/${linieId}`}>Station {stationId}</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href={`/linie/${linieId}/station/${stationId}`}>Tool {toolsId}</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+        </BreadcrumbList>
+      </Breadcrumb>
+      </h1>
       <div className="flex flex-wrap gap-4">
         {operationen.map((operation) => (
           <div key={operation.id}>
             <div className="w-40 h-24 flex items-center justify-center border rounded-lg shadow-md hover:shadow-lg transition relative">
               {operation.name}
               <Button
-                className="p-4 absolute bottom-2 right-2"
+                className="p-4 absolute right-2"
                 variant="ghost"
                 onClick={(e) => {
                   e.preventDefault();
                   openForm(operation.id);
                 }}
               >
-                +
+                <BookText />
               </Button>
             </div>
             {showForm && selectedId === operation.id && (
-              <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                <div className="bg-white p-8 rounded-lg shadow-lg relative">
-                  <OperationForm id={operation.id} onClose={closeForm} />
-                </div>
+              <div className="fixed inset-0 bg-opacity-40 flex items-center justify-center z-50 border-10">
+                <OperationForm id={operation.id} onClose={closeForm} />
               </div>
             )}
           </div>
