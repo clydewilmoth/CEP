@@ -9,6 +9,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Textarea } from '@/components/ui/textarea';
 
 type FormProps = {
   id: string;
@@ -51,7 +52,7 @@ export default function ToolsForm({ id, onClose }: FormProps) {
     }
   }, [savedKey]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
     const value = e.target.value;
 
     switch (field) {
@@ -117,20 +118,21 @@ export default function ToolsForm({ id, onClose }: FormProps) {
 
   return (
     <div className="w-96 relative bg-white p-6 rounded-lg shadow-lg">
-      <button onClick={handleCancel} className="absolute top-2 right-2 text-gray-600 hover:text-gray-900">X</button>
-      <h2 className="text-2xl mb-4">Tool bearbeiten (ID: {id})</h2>
+      <h2 className="text-2xl mb-4">Tool {id} bearbeiten</h2>
 
       {page === 1 && (
         <>
           <input
-            type="text"
+            type="number"
+            min={0}
             value={toolID !== null ? toolID.toString() : ''}
             onChange={(e) => handleChange(e, 'toolID')}
             className="border p-2 w-full rounded mb-4"
             placeholder="Tool ID eingeben"
           />
           <input
-            type="text"
+            type="number"
+            min={0}
             value={stationID !== null ? stationID.toString() : ''}
             onChange={(e) => handleChange(e, 'stationID')}
             className="border p-2 w-full rounded mb-4"
@@ -143,22 +145,22 @@ export default function ToolsForm({ id, onClose }: FormProps) {
             className="border p-2 w-full rounded mb-4"
             placeholder="Tool Kurzname eingeben"
           />
-          <input
-            type="text"
+          <Textarea
             value={toolDescription}
             onChange={(e) => handleChange(e, 'toolDescription')}
             className="border p-2 w-full rounded mb-4"
-            placeholder="Tool Beschreibung eingeben"
+            placeholder="Beschreibung eingeben"
           />
           <input
-            type="text"
+            type="number"
+            min={0}
             value={ipAdressDevice}
             onChange={(e) => handleChange(e, 'ipAdressDevice')}
             className="border p-2 w-full rounded mb-4"
             placeholder="IP Adresse eingeben"
           />
           <input
-            type="text"
+            type="date"
             value={modifiedDate}
             onChange={(e) => handleChange(e, 'modifiedDate')}
             className="border p-2 w-full rounded mb-4"
@@ -169,12 +171,11 @@ export default function ToolsForm({ id, onClose }: FormProps) {
 
       {page === 2 && (
         <>
-          <input
-            type="text"
+          <Textarea
             value={comment}
             onChange={(e) => handleChange(e, 'comment')}
             className="border p-2 w-full rounded mb-4"
-            placeholder="Kommentar eingeben"
+            placeholder="Beschreibung eingeben"
           />
           <input
             type="text"
@@ -184,21 +185,24 @@ export default function ToolsForm({ id, onClose }: FormProps) {
             placeholder="Letzter Benutzer eingeben"
           />
           <input
-            type="text"
+            type="number"
+            min={0}
             value={toolClassID !== null ? toolClassID.toString() : ''}
             onChange={(e) => handleChange(e, 'toolClassID')}
             className="border p-2 w-full rounded mb-4"
             placeholder="Tool Klasse ID eingeben"
           />
           <input
-            type="text"
+            type="number"
+            min={0}
             value={toolWithSPSID !== null ? toolWithSPSID.toString() : ''}
             onChange={(e) => handleChange(e, 'toolWithSPSID')}
             className="border p-2 w-full rounded mb-4"
             placeholder="Tool mit SPS ID eingeben"
           />
           <input
-            type="text"
+            type="number"
+            min={0}
             value={toolTypeID !== null ? toolTypeID.toString() : ''}
             onChange={(e) => handleChange(e, 'toolTypeID')}
             className="border p-2 w-full rounded mb-4"

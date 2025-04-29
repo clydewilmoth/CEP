@@ -9,6 +9,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { Textarea } from '@/components/ui/textarea';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 
 type FormProps = {
   id: string;
@@ -88,21 +90,22 @@ export default function OperationForm({ id, onClose }: FormProps) {
 
   return (
     <div className="w-96 relative bg-white p-6 rounded-lg shadow-lg">
-      <button onClick={handleCancel} className="absolute top-2 right-2 text-gray-600 hover:text-gray-900">X</button>
-      <h2 className="text-2xl mb-4">Operation bearbeiten (ID: {id})</h2>
+      <h2 className="text-2xl mb-4">Operation {id} bearbeiten</h2>
 
       {/* Seite 1 */}
       {currentPage === 1 && (
         <>
           <input
-            type="text"
+            type="number"
+            min={0}
             value={operationID !== null ? operationID.toString() : ''}
             onChange={(e) => setOperationID(Number(e.target.value))}
             className="border p-2 w-full rounded mb-4"
             placeholder="Operation ID eingeben"
           />
           <input
-            type="text"
+            type="number"
+            min={0}
             value={toolID !== null ? toolID.toString() : ''}
             onChange={(e) => setToolID(Number(e.target.value))}
             className="border p-2 w-full rounded mb-4"
@@ -115,19 +118,17 @@ export default function OperationForm({ id, onClose }: FormProps) {
             className="border p-2 w-full rounded mb-4"
             placeholder="Operation Kurzname eingeben"
           />
-          <input
-            type="text"
+          <Textarea
             value={operationDescription}
             onChange={(e) => setOperationDescription(e.target.value)}
             className="border p-2 w-full rounded mb-4"
-            placeholder="Operation Beschreibung eingeben"
+            placeholder="Beschreibung eingeben"
           />
-          <input
-            type="text"
+          <Textarea
             value={operationDecisionCriteria}
             onChange={(e) => setOperationDecisionCriteria(e.target.value)}
             className="border p-2 w-full rounded mb-4"
-            placeholder="Entscheidungskriterien eingeben"
+            placeholder="Beschreibung eingeben"
           />
         </>
       )}
@@ -157,14 +158,15 @@ export default function OperationForm({ id, onClose }: FormProps) {
             placeholder="Seriell oder Parallel (true/false)"
           />
           <input
-            type="text"
+            type="number"
+            min={0}
             value={ipAdressEKS_IP}
             onChange={(e) => setIpAdressEKS_IP(e.target.value)}
             className="border p-2 w-full rounded mb-4"
             placeholder="IP Adresse EKS"
           />
           <input
-            type="text"
+            type="date"
             value={modifiedDate}
             onChange={(e) => setModifiedDate(e.target.value)}
             className="border p-2 w-full rounded mb-4"
@@ -176,12 +178,11 @@ export default function OperationForm({ id, onClose }: FormProps) {
       {/* Seite 3 */}
       {currentPage === 3 && (
         <>
-          <input
-            type="text"
+          <Textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             className="border p-2 w-full rounded mb-4"
-            placeholder="Kommentar eingeben"
+            placeholder="Beschreibung eingeben"
           />
           <input
             type="text"
@@ -191,21 +192,24 @@ export default function OperationForm({ id, onClose }: FormProps) {
             placeholder="Letzter Benutzer"
           />
           <input
-            type="text"
+            type="number"
+            min={0}
             value={templateID !== null ? templateID.toString() : ''}
             onChange={(e) => setTemplateID(Number(e.target.value))}
             className="border p-2 w-full rounded mb-4"
             placeholder="Template ID"
           />
           <input
-            type="text"
+            type="number"
+            min={0}
             value={qGateRelevantID !== null ? qGateRelevantID.toString() : ''}
             onChange={(e) => setQGateRelevantID(Number(e.target.value))}
             className="border p-2 w-full rounded mb-4"
             placeholder="Q-Gate Relevant ID"
           />
           <input
-            type="text"
+            type="number"
+            min={0}
             value={decisionClassID !== null ? decisionClassID.toString() : ''}
             onChange={(e) => setDecisionClassID(Number(e.target.value))}
             className="border p-2 w-full rounded mb-4"
