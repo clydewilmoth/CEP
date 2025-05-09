@@ -4,6 +4,7 @@ import Stations from "./pages/Stations";
 import Tools from "./pages/Tools";
 import Operations from "./pages/Operations";
 import GreetForm from "./components/logic/GreetForm";
+import LanguageForm from "./components/logic/LanguageForm";
 
 function App() {
   return (
@@ -21,6 +22,9 @@ function App() {
       <br />
       <br />
       <GreetForm />
+      <br />
+      <br />
+      <LanguageForm />
     </>
   );
 }
