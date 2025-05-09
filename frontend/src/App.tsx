@@ -1,32 +1,27 @@
-import "./App.css";
-import { Greet } from "../wailsjs/go/main/App";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Route } from "wouter";
+import Lines from "./pages/Lines";
+import Stations from "./pages/Stations";
+import Tools from "./pages/Tools";
+import Operations from "./pages/Operations";
+import GreetForm from "./components/logic/GreetForm";
 
 function App() {
-  const [name, setName] = useState("");
-  const [i, setI] = useState("");
-
-  async function greet(name: string) {
-    const greeted = await Greet(name);
-    setName(greeted);
-  }
-
   return (
-    <div className="min-h-screen bg-white grid grid-cols-1 place-items-center justify-items-center mx-auto py-8">
-      <div className="text-blue-900 text-2xl font-bold font-mono">
-        <input
-          className="border-2 border-blue-900 rounded-md p-2 mr-2"
-          type="text"
-          value={i}
-          onChange={(e) => {
-            setI(e.target.value);
-          }}
-        />
-        <Button onClick={() => greet(i)}>Greet</Button>
-        <h1 className="content-center">{name}</h1>
-      </div>
-    </div>
+    <>
+      <h1>{"[Login Window]"}</h1>
+      <h1>{"[Header]"}</h1>
+      <br />
+      <Route path={"/"} component={Lines} />
+      <Route path={"/line/:luuid"} component={Stations} />
+      <Route path={"/line/:luuid/station/:suuid"} component={Tools} />
+      <Route
+        path={"/line/:luuid/station/:suuid/tool/:tuuid"}
+        component={Operations}
+      />
+      <br />
+      <br />
+      <GreetForm />
+    </>
   );
 }
 
