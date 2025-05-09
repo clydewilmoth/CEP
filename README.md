@@ -3,22 +3,24 @@
 ## Requirements
 
 - Go 1.21+ (macOS 15+ requires Go 1.23.3+)
-- NPM or PNPM (Node 15+)
+- PNPM (Node 15+)
 - Wails CLI
 
 ## Getting Started
 
 ### Setup
-
-1. `git clone https://github.com/clydewilmoth/cep.git`
-2. `cd frontend`
-3. `npm install` or `pnpm install`
-4. `cd ..`
+Step 1. and 2. only needed if contributing to the project 
+1. `git config --global core.autocrlf false`
+2. `git config --global core.eol crlf`
+3. `git clone https://github.com/clydewilmoth/cep.git`
+4. `cd frontend`
+5. `pnpm install`
+6. `cd ..`
 
 ### Build
 
 1. `wails build`
-2. Portable Build in build/bin/. after completion
+2. Portable Build: build/bin/. after completion
 
 ### Developer Mode
 
