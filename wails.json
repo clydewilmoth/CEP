@@ -1,0 +1,12 @@
+{
+  "name": "CEP",
+  "outputfilename": "CEP",
+  "frontend:install": "pnpm install",
+  "frontend:build": "pnpm build",
+  "frontend:dev:watcher": "pnpm dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "selim",
+    "email": "selimyag.eser@gmail.com"
+  }
+}
