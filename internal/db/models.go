@@ -4,25 +4,74 @@
 
 package db
 
+import (
+	"database/sql"
+)
+
 type Line struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
+	ID            string         `json:"id"`
+	ParentID      sql.NullString `json:"parent_id"`
+	EntityType    sql.NullString `json:"entity_type"`
+	Name          sql.NullString `json:"name"`
+	Comment       sql.NullString `json:"comment"`
+	LastUser      sql.NullString `json:"last_user"`
+	ModifiedDate  sql.NullString `json:"modified_date"`
+	StatusColorID sql.NullString `json:"status_color_id"`
 }
 
 type Operation struct {
-	ID     int64  `json:"id"`
-	Name   string `json:"name"`
-	ToolID int64  `json:"tool_id"`
+	ID                  string         `json:"id"`
+	ParentID            sql.NullString `json:"parent_id"`
+	EntityType          sql.NullString `json:"entity_type"`
+	ShortName           sql.NullString `json:"short_name"`
+	Description         sql.NullString `json:"description"`
+	DecisionCriteria    sql.NullString `json:"decision_criteria"`
+	SequenceGroup       sql.NullString `json:"sequence_group"`
+	Sequence            sql.NullString `json:"sequence"`
+	AlwaysPerform       sql.NullString `json:"always_perform"`
+	Comment             sql.NullString `json:"comment"`
+	LastUser            sql.NullString `json:"last_user"`
+	ModifiedDate        sql.NullString `json:"modified_date"`
+	QGateRelevantID     sql.NullString `json:"q_gate_relevant_id"`
+	DecisionClassID     sql.NullString `json:"decision_class_id"`
+	SavingClassID       sql.NullString `json:"saving_class_id"`
+	VerificationClassID sql.NullString `json:"verification_class_id"`
+	GenerationClassID   sql.NullString `json:"generation_class_id"`
+	SerialOrParallelID  sql.NullString `json:"serial_or_parallel_id"`
+	StatusColorID       sql.NullString `json:"status_color_id"`
 }
 
 type Station struct {
-	ID     int64  `json:"id"`
-	Name   string `json:"name"`
-	LineID int64  `json:"line_id"`
+	ID              string         `json:"id"`
+	ParentID        sql.NullString `json:"parent_id"`
+	EntityType      sql.NullString `json:"entity_type"`
+	Number          sql.NullString `json:"number"`
+	NameDescription sql.NullString `json:"name_description"`
+	Comment         sql.NullString `json:"comment"`
+	LastUser        sql.NullString `json:"last_user"`
+	ModifiedDate    sql.NullString `json:"modified_date"`
+	StationTypeID   sql.NullString `json:"station_type_id"`
+	StatusColorID   sql.NullString `json:"status_color_id"`
 }
 
 type Tool struct {
-	ID        int64  `json:"id"`
-	Name      string `json:"name"`
-	StationID int64  `json:"station_id"`
+	ID                    string         `json:"id"`
+	ParentID              sql.NullString `json:"parent_id"`
+	EntityType            sql.NullString `json:"entity_type"`
+	ShortName             sql.NullString `json:"short_name"`
+	Description           sql.NullString `json:"description"`
+	IpAddressDevice       sql.NullString `json:"ip_address_device"`
+	ToolWithSps           sql.NullString `json:"tool_with_sps"`
+	SpsPlcNameSpaService  sql.NullString `json:"sps_plc_name_spa_service"`
+	SpsDbNoSend           sql.NullString `json:"sps_db_no_send"`
+	SpsDbNoReceive        sql.NullString `json:"sps_db_no_receive"`
+	SpsPreCheckByte       sql.NullString `json:"sps_pre_check_byte"`
+	SpsAddressInSendDb    sql.NullString `json:"sps_address_in_send_db"`
+	SpsAddressInReceiveDb sql.NullString `json:"sps_address_in_receive_db"`
+	Comment               sql.NullString `json:"comment"`
+	LastUser              sql.NullString `json:"last_user"`
+	ModifiedDate          sql.NullString `json:"modified_date"`
+	ToolClassID           sql.NullString `json:"tool_class_id"`
+	ToolTypeID            sql.NullString `json:"tool_type_id"`
+	StatusColorID         sql.NullString `json:"status_color_id"`
 }

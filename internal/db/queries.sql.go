@@ -7,277 +7,459 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
-const createLine = `-- name: CreateLine :one
-
-INSERT INTO lines (name)
-VALUES (?)
-RETURNING id, name
-`
-
-// internal/db/queries/queries.sql
-func (q *Queries) CreateLine(ctx context.Context, name string) (Line, error) {
-	row := q.db.QueryRowContext(ctx, createLine, name)
-	var i Line
-	err := row.Scan(&i.ID, &i.Name)
-	return i, err
-}
-
-const createOperation = `-- name: CreateOperation :one
-INSERT INTO operations (name, tool_id)
-VALUES (?, ?)
-RETURNING id, name, tool_id
-`
-
-type CreateOperationParams struct {
-	Name   string `json:"name"`
-	ToolID int64  `json:"tool_id"`
-}
-
-func (q *Queries) CreateOperation(ctx context.Context, arg CreateOperationParams) (Operation, error) {
-	row := q.db.QueryRowContext(ctx, createOperation, arg.Name, arg.ToolID)
-	var i Operation
-	err := row.Scan(&i.ID, &i.Name, &i.ToolID)
-	return i, err
-}
-
-const createStation = `-- name: CreateStation :one
-INSERT INTO stations (name, line_id)
-VALUES (?, ?)
-RETURNING id, name, line_id
-`
-
-type CreateStationParams struct {
-	Name   string `json:"name"`
-	LineID int64  `json:"line_id"`
-}
-
-func (q *Queries) CreateStation(ctx context.Context, arg CreateStationParams) (Station, error) {
-	row := q.db.QueryRowContext(ctx, createStation, arg.Name, arg.LineID)
-	var i Station
-	err := row.Scan(&i.ID, &i.Name, &i.LineID)
-	return i, err
-}
-
-const createTool = `-- name: CreateTool :one
-INSERT INTO tools (name, station_id)
-VALUES (?, ?)
-RETURNING id, name, station_id
-`
-
-type CreateToolParams struct {
-	Name      string `json:"name"`
-	StationID int64  `json:"station_id"`
-}
-
-func (q *Queries) CreateTool(ctx context.Context, arg CreateToolParams) (Tool, error) {
-	row := q.db.QueryRowContext(ctx, createTool, arg.Name, arg.StationID)
-	var i Tool
-	err := row.Scan(&i.ID, &i.Name, &i.StationID)
-	return i, err
-}
-
 const getLineByID = `-- name: GetLineByID :one
-SELECT id, name FROM lines
+
+
+SELECT id, parent_id, entity_type, name, comment, last_user, modified_date, status_color_id FROM lines WHERE id = ?
+`
+
+// queries.sql
+// LINE QUERIES
+func (q *Queries) GetLineByID(ctx context.Context, id string) (Line, error) {
+	row := q.db.QueryRowContext(ctx, getLineByID, id)
+	var i Line
+	err := row.Scan(
+		&i.ID,
+		&i.ParentID,
+		&i.EntityType,
+		&i.Name,
+		&i.Comment,
+		&i.LastUser,
+		&i.ModifiedDate,
+		&i.StatusColorID,
+	)
+	return i, err
+}
+
+const getOperationByID = `-- name: GetOperationByID :one
+
+SELECT id, parent_id, entity_type, short_name, description, decision_criteria, sequence_group, sequence, always_perform, comment, last_user, modified_date, q_gate_relevant_id, decision_class_id, saving_class_id, verification_class_id, generation_class_id, serial_or_parallel_id, status_color_id FROM operations WHERE id = ?
+`
+
+// OPERATION QUERIES
+func (q *Queries) GetOperationByID(ctx context.Context, id string) (Operation, error) {
+	row := q.db.QueryRowContext(ctx, getOperationByID, id)
+	var i Operation
+	err := row.Scan(
+		&i.ID,
+		&i.ParentID,
+		&i.EntityType,
+		&i.ShortName,
+		&i.Description,
+		&i.DecisionCriteria,
+		&i.SequenceGroup,
+		&i.Sequence,
+		&i.AlwaysPerform,
+		&i.Comment,
+		&i.LastUser,
+		&i.ModifiedDate,
+		&i.QGateRelevantID,
+		&i.DecisionClassID,
+		&i.SavingClassID,
+		&i.VerificationClassID,
+		&i.GenerationClassID,
+		&i.SerialOrParallelID,
+		&i.StatusColorID,
+	)
+	return i, err
+}
+
+const getStationByID = `-- name: GetStationByID :one
+
+SELECT id, parent_id, entity_type, number, name_description, comment, last_user, modified_date, station_type_id, status_color_id FROM stations WHERE id = ?
+`
+
+// STATION QUERIES
+func (q *Queries) GetStationByID(ctx context.Context, id string) (Station, error) {
+	row := q.db.QueryRowContext(ctx, getStationByID, id)
+	var i Station
+	err := row.Scan(
+		&i.ID,
+		&i.ParentID,
+		&i.EntityType,
+		&i.Number,
+		&i.NameDescription,
+		&i.Comment,
+		&i.LastUser,
+		&i.ModifiedDate,
+		&i.StationTypeID,
+		&i.StatusColorID,
+	)
+	return i, err
+}
+
+const getToolByID = `-- name: GetToolByID :one
+
+SELECT id, parent_id, entity_type, short_name, description, ip_address_device, tool_with_sps, sps_plc_name_spa_service, sps_db_no_send, sps_db_no_receive, sps_pre_check_byte, sps_address_in_send_db, sps_address_in_receive_db, comment, last_user, modified_date, tool_class_id, tool_type_id, status_color_id FROM tools WHERE id = ?
+`
+
+// TOOL QUERIES
+func (q *Queries) GetToolByID(ctx context.Context, id string) (Tool, error) {
+	row := q.db.QueryRowContext(ctx, getToolByID, id)
+	var i Tool
+	err := row.Scan(
+		&i.ID,
+		&i.ParentID,
+		&i.EntityType,
+		&i.ShortName,
+		&i.Description,
+		&i.IpAddressDevice,
+		&i.ToolWithSps,
+		&i.SpsPlcNameSpaService,
+		&i.SpsDbNoSend,
+		&i.SpsDbNoReceive,
+		&i.SpsPreCheckByte,
+		&i.SpsAddressInSendDb,
+		&i.SpsAddressInReceiveDb,
+		&i.Comment,
+		&i.LastUser,
+		&i.ModifiedDate,
+		&i.ToolClassID,
+		&i.ToolTypeID,
+		&i.StatusColorID,
+	)
+	return i, err
+}
+
+const insertLine = `-- name: InsertLine :exec
+INSERT INTO lines (id, parent_id, entity_type, name, comment, last_user, modified_date, status_color_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`
+
+type InsertLineParams struct {
+	ID            string         `json:"id"`
+	ParentID      sql.NullString `json:"parent_id"`
+	EntityType    sql.NullString `json:"entity_type"`
+	Name          sql.NullString `json:"name"`
+	Comment       sql.NullString `json:"comment"`
+	LastUser      sql.NullString `json:"last_user"`
+	ModifiedDate  sql.NullString `json:"modified_date"`
+	StatusColorID sql.NullString `json:"status_color_id"`
+}
+
+func (q *Queries) InsertLine(ctx context.Context, arg InsertLineParams) error {
+	_, err := q.db.ExecContext(ctx, insertLine,
+		arg.ID,
+		arg.ParentID,
+		arg.EntityType,
+		arg.Name,
+		arg.Comment,
+		arg.LastUser,
+		arg.ModifiedDate,
+		arg.StatusColorID,
+	)
+	return err
+}
+
+const insertOperation = `-- name: InsertOperation :exec
+INSERT INTO operations (id, parent_id, entity_type, short_name, description, decision_criteria, sequence_group, sequence, always_perform, comment, last_user, modified_date, q_gate_relevant_id, decision_class_id, saving_class_id, verification_class_id, generation_class_id, serial_or_parallel_id, status_color_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`
+
+type InsertOperationParams struct {
+	ID                  string         `json:"id"`
+	ParentID            sql.NullString `json:"parent_id"`
+	EntityType          sql.NullString `json:"entity_type"`
+	ShortName           sql.NullString `json:"short_name"`
+	Description         sql.NullString `json:"description"`
+	DecisionCriteria    sql.NullString `json:"decision_criteria"`
+	SequenceGroup       sql.NullString `json:"sequence_group"`
+	Sequence            sql.NullString `json:"sequence"`
+	AlwaysPerform       sql.NullString `json:"always_perform"`
+	Comment             sql.NullString `json:"comment"`
+	LastUser            sql.NullString `json:"last_user"`
+	ModifiedDate        sql.NullString `json:"modified_date"`
+	QGateRelevantID     sql.NullString `json:"q_gate_relevant_id"`
+	DecisionClassID     sql.NullString `json:"decision_class_id"`
+	SavingClassID       sql.NullString `json:"saving_class_id"`
+	VerificationClassID sql.NullString `json:"verification_class_id"`
+	GenerationClassID   sql.NullString `json:"generation_class_id"`
+	SerialOrParallelID  sql.NullString `json:"serial_or_parallel_id"`
+	StatusColorID       sql.NullString `json:"status_color_id"`
+}
+
+func (q *Queries) InsertOperation(ctx context.Context, arg InsertOperationParams) error {
+	_, err := q.db.ExecContext(ctx, insertOperation,
+		arg.ID,
+		arg.ParentID,
+		arg.EntityType,
+		arg.ShortName,
+		arg.Description,
+		arg.DecisionCriteria,
+		arg.SequenceGroup,
+		arg.Sequence,
+		arg.AlwaysPerform,
+		arg.Comment,
+		arg.LastUser,
+		arg.ModifiedDate,
+		arg.QGateRelevantID,
+		arg.DecisionClassID,
+		arg.SavingClassID,
+		arg.VerificationClassID,
+		arg.GenerationClassID,
+		arg.SerialOrParallelID,
+		arg.StatusColorID,
+	)
+	return err
+}
+
+const insertStation = `-- name: InsertStation :exec
+INSERT INTO stations (id, parent_id, entity_type, number, name_description, comment, last_user, modified_date, station_type_id, status_color_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`
+
+type InsertStationParams struct {
+	ID              string         `json:"id"`
+	ParentID        sql.NullString `json:"parent_id"`
+	EntityType      sql.NullString `json:"entity_type"`
+	Number          sql.NullString `json:"number"`
+	NameDescription sql.NullString `json:"name_description"`
+	Comment         sql.NullString `json:"comment"`
+	LastUser        sql.NullString `json:"last_user"`
+	ModifiedDate    sql.NullString `json:"modified_date"`
+	StationTypeID   sql.NullString `json:"station_type_id"`
+	StatusColorID   sql.NullString `json:"status_color_id"`
+}
+
+func (q *Queries) InsertStation(ctx context.Context, arg InsertStationParams) error {
+	_, err := q.db.ExecContext(ctx, insertStation,
+		arg.ID,
+		arg.ParentID,
+		arg.EntityType,
+		arg.Number,
+		arg.NameDescription,
+		arg.Comment,
+		arg.LastUser,
+		arg.ModifiedDate,
+		arg.StationTypeID,
+		arg.StatusColorID,
+	)
+	return err
+}
+
+const insertTool = `-- name: InsertTool :exec
+INSERT INTO tools (id, parent_id, entity_type, short_name, description, ip_address_device, tool_with_sps, sps_plc_name_spa_service, sps_db_no_send, sps_db_no_receive, sps_pre_check_byte, sps_address_in_send_db, sps_address_in_receive_db, comment, last_user, modified_date, tool_class_id, tool_type_id, status_color_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`
+
+type InsertToolParams struct {
+	ID                    string         `json:"id"`
+	ParentID              sql.NullString `json:"parent_id"`
+	EntityType            sql.NullString `json:"entity_type"`
+	ShortName             sql.NullString `json:"short_name"`
+	Description           sql.NullString `json:"description"`
+	IpAddressDevice       sql.NullString `json:"ip_address_device"`
+	ToolWithSps           sql.NullString `json:"tool_with_sps"`
+	SpsPlcNameSpaService  sql.NullString `json:"sps_plc_name_spa_service"`
+	SpsDbNoSend           sql.NullString `json:"sps_db_no_send"`
+	SpsDbNoReceive        sql.NullString `json:"sps_db_no_receive"`
+	SpsPreCheckByte       sql.NullString `json:"sps_pre_check_byte"`
+	SpsAddressInSendDb    sql.NullString `json:"sps_address_in_send_db"`
+	SpsAddressInReceiveDb sql.NullString `json:"sps_address_in_receive_db"`
+	Comment               sql.NullString `json:"comment"`
+	LastUser              sql.NullString `json:"last_user"`
+	ModifiedDate          sql.NullString `json:"modified_date"`
+	ToolClassID           sql.NullString `json:"tool_class_id"`
+	ToolTypeID            sql.NullString `json:"tool_type_id"`
+	StatusColorID         sql.NullString `json:"status_color_id"`
+}
+
+func (q *Queries) InsertTool(ctx context.Context, arg InsertToolParams) error {
+	_, err := q.db.ExecContext(ctx, insertTool,
+		arg.ID,
+		arg.ParentID,
+		arg.EntityType,
+		arg.ShortName,
+		arg.Description,
+		arg.IpAddressDevice,
+		arg.ToolWithSps,
+		arg.SpsPlcNameSpaService,
+		arg.SpsDbNoSend,
+		arg.SpsDbNoReceive,
+		arg.SpsPreCheckByte,
+		arg.SpsAddressInSendDb,
+		arg.SpsAddressInReceiveDb,
+		arg.Comment,
+		arg.LastUser,
+		arg.ModifiedDate,
+		arg.ToolClassID,
+		arg.ToolTypeID,
+		arg.StatusColorID,
+	)
+	return err
+}
+
+const updateLine = `-- name: UpdateLine :exec
+UPDATE lines
+SET parent_id = ?, entity_type = ?, name = ?, comment = ?, last_user = ?, modified_date = ?, status_color_id = ?
 WHERE id = ?
 `
 
-func (q *Queries) GetLineByID(ctx context.Context, id int64) (Line, error) {
-	row := q.db.QueryRowContext(ctx, getLineByID, id)
-	var i Line
-	err := row.Scan(&i.ID, &i.Name)
-	return i, err
+type UpdateLineParams struct {
+	ParentID      sql.NullString `json:"parent_id"`
+	EntityType    sql.NullString `json:"entity_type"`
+	Name          sql.NullString `json:"name"`
+	Comment       sql.NullString `json:"comment"`
+	LastUser      sql.NullString `json:"last_user"`
+	ModifiedDate  sql.NullString `json:"modified_date"`
+	StatusColorID sql.NullString `json:"status_color_id"`
+	ID            string         `json:"id"`
 }
 
-const getOperationsByToolID = `-- name: GetOperationsByToolID :many
-SELECT id, name, tool_id FROM operations
-WHERE tool_id = ?
-`
-
-func (q *Queries) GetOperationsByToolID(ctx context.Context, toolID int64) ([]Operation, error) {
-	rows, err := q.db.QueryContext(ctx, getOperationsByToolID, toolID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Operation
-	for rows.Next() {
-		var i Operation
-		if err := rows.Scan(&i.ID, &i.Name, &i.ToolID); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) UpdateLine(ctx context.Context, arg UpdateLineParams) error {
+	_, err := q.db.ExecContext(ctx, updateLine,
+		arg.ParentID,
+		arg.EntityType,
+		arg.Name,
+		arg.Comment,
+		arg.LastUser,
+		arg.ModifiedDate,
+		arg.StatusColorID,
+		arg.ID,
+	)
+	return err
 }
 
-const getStationsByLineID = `-- name: GetStationsByLineID :many
-SELECT id, name, line_id FROM stations
-WHERE line_id = ?
+const updateOperation = `-- name: UpdateOperation :exec
+UPDATE operations
+SET parent_id = ?, entity_type = ?, short_name = ?, description = ?, decision_criteria = ?, sequence_group = ?, sequence = ?, always_perform = ?, comment = ?, last_user = ?, modified_date = ?, q_gate_relevant_id = ?, decision_class_id = ?, saving_class_id = ?, verification_class_id = ?, generation_class_id = ?, serial_or_parallel_id = ?, status_color_id = ?
+WHERE id = ?
 `
 
-func (q *Queries) GetStationsByLineID(ctx context.Context, lineID int64) ([]Station, error) {
-	rows, err := q.db.QueryContext(ctx, getStationsByLineID, lineID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Station
-	for rows.Next() {
-		var i Station
-		if err := rows.Scan(&i.ID, &i.Name, &i.LineID); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+type UpdateOperationParams struct {
+	ParentID            sql.NullString `json:"parent_id"`
+	EntityType          sql.NullString `json:"entity_type"`
+	ShortName           sql.NullString `json:"short_name"`
+	Description         sql.NullString `json:"description"`
+	DecisionCriteria    sql.NullString `json:"decision_criteria"`
+	SequenceGroup       sql.NullString `json:"sequence_group"`
+	Sequence            sql.NullString `json:"sequence"`
+	AlwaysPerform       sql.NullString `json:"always_perform"`
+	Comment             sql.NullString `json:"comment"`
+	LastUser            sql.NullString `json:"last_user"`
+	ModifiedDate        sql.NullString `json:"modified_date"`
+	QGateRelevantID     sql.NullString `json:"q_gate_relevant_id"`
+	DecisionClassID     sql.NullString `json:"decision_class_id"`
+	SavingClassID       sql.NullString `json:"saving_class_id"`
+	VerificationClassID sql.NullString `json:"verification_class_id"`
+	GenerationClassID   sql.NullString `json:"generation_class_id"`
+	SerialOrParallelID  sql.NullString `json:"serial_or_parallel_id"`
+	StatusColorID       sql.NullString `json:"status_color_id"`
+	ID                  string         `json:"id"`
 }
 
-const getToolsByStationID = `-- name: GetToolsByStationID :many
-SELECT id, name, station_id FROM tools
-WHERE station_id = ?
-`
-
-func (q *Queries) GetToolsByStationID(ctx context.Context, stationID int64) ([]Tool, error) {
-	rows, err := q.db.QueryContext(ctx, getToolsByStationID, stationID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Tool
-	for rows.Next() {
-		var i Tool
-		if err := rows.Scan(&i.ID, &i.Name, &i.StationID); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) UpdateOperation(ctx context.Context, arg UpdateOperationParams) error {
+	_, err := q.db.ExecContext(ctx, updateOperation,
+		arg.ParentID,
+		arg.EntityType,
+		arg.ShortName,
+		arg.Description,
+		arg.DecisionCriteria,
+		arg.SequenceGroup,
+		arg.Sequence,
+		arg.AlwaysPerform,
+		arg.Comment,
+		arg.LastUser,
+		arg.ModifiedDate,
+		arg.QGateRelevantID,
+		arg.DecisionClassID,
+		arg.SavingClassID,
+		arg.VerificationClassID,
+		arg.GenerationClassID,
+		arg.SerialOrParallelID,
+		arg.StatusColorID,
+		arg.ID,
+	)
+	return err
 }
 
-const listLines = `-- name: ListLines :many
-SELECT id, name FROM lines
+const updateStation = `-- name: UpdateStation :exec
+UPDATE stations
+SET parent_id = ?, entity_type = ?, number = ?, name_description = ?, comment = ?, last_user = ?, modified_date = ?, station_type_id = ?, status_color_id = ?
+WHERE id = ?
 `
 
-func (q *Queries) ListLines(ctx context.Context) ([]Line, error) {
-	rows, err := q.db.QueryContext(ctx, listLines)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Line
-	for rows.Next() {
-		var i Line
-		if err := rows.Scan(&i.ID, &i.Name); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+type UpdateStationParams struct {
+	ParentID        sql.NullString `json:"parent_id"`
+	EntityType      sql.NullString `json:"entity_type"`
+	Number          sql.NullString `json:"number"`
+	NameDescription sql.NullString `json:"name_description"`
+	Comment         sql.NullString `json:"comment"`
+	LastUser        sql.NullString `json:"last_user"`
+	ModifiedDate    sql.NullString `json:"modified_date"`
+	StationTypeID   sql.NullString `json:"station_type_id"`
+	StatusColorID   sql.NullString `json:"status_color_id"`
+	ID              string         `json:"id"`
 }
 
-const listOperations = `-- name: ListOperations :many
-SELECT id, name, tool_id FROM operations
-`
-
-func (q *Queries) ListOperations(ctx context.Context) ([]Operation, error) {
-	rows, err := q.db.QueryContext(ctx, listOperations)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Operation
-	for rows.Next() {
-		var i Operation
-		if err := rows.Scan(&i.ID, &i.Name, &i.ToolID); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) UpdateStation(ctx context.Context, arg UpdateStationParams) error {
+	_, err := q.db.ExecContext(ctx, updateStation,
+		arg.ParentID,
+		arg.EntityType,
+		arg.Number,
+		arg.NameDescription,
+		arg.Comment,
+		arg.LastUser,
+		arg.ModifiedDate,
+		arg.StationTypeID,
+		arg.StatusColorID,
+		arg.ID,
+	)
+	return err
 }
 
-const listStations = `-- name: ListStations :many
-SELECT id, name, line_id FROM stations
+const updateTool = `-- name: UpdateTool :exec
+UPDATE tools
+SET parent_id = ?, entity_type = ?, short_name = ?, description = ?, ip_address_device = ?, tool_with_sps = ?, sps_plc_name_spa_service = ?, sps_db_no_send = ?, sps_db_no_receive = ?, sps_pre_check_byte = ?, sps_address_in_send_db = ?, sps_address_in_receive_db = ?, comment = ?, last_user = ?, modified_date = ?, tool_class_id = ?, tool_type_id = ?, status_color_id = ?
+WHERE id = ?
 `
 
-func (q *Queries) ListStations(ctx context.Context) ([]Station, error) {
-	rows, err := q.db.QueryContext(ctx, listStations)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Station
-	for rows.Next() {
-		var i Station
-		if err := rows.Scan(&i.ID, &i.Name, &i.LineID); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+type UpdateToolParams struct {
+	ParentID              sql.NullString `json:"parent_id"`
+	EntityType            sql.NullString `json:"entity_type"`
+	ShortName             sql.NullString `json:"short_name"`
+	Description           sql.NullString `json:"description"`
+	IpAddressDevice       sql.NullString `json:"ip_address_device"`
+	ToolWithSps           sql.NullString `json:"tool_with_sps"`
+	SpsPlcNameSpaService  sql.NullString `json:"sps_plc_name_spa_service"`
+	SpsDbNoSend           sql.NullString `json:"sps_db_no_send"`
+	SpsDbNoReceive        sql.NullString `json:"sps_db_no_receive"`
+	SpsPreCheckByte       sql.NullString `json:"sps_pre_check_byte"`
+	SpsAddressInSendDb    sql.NullString `json:"sps_address_in_send_db"`
+	SpsAddressInReceiveDb sql.NullString `json:"sps_address_in_receive_db"`
+	Comment               sql.NullString `json:"comment"`
+	LastUser              sql.NullString `json:"last_user"`
+	ModifiedDate          sql.NullString `json:"modified_date"`
+	ToolClassID           sql.NullString `json:"tool_class_id"`
+	ToolTypeID            sql.NullString `json:"tool_type_id"`
+	StatusColorID         sql.NullString `json:"status_color_id"`
+	ID                    string         `json:"id"`
 }
 
-const listTools = `-- name: ListTools :many
-SELECT id, name, station_id FROM tools
-`
-
-func (q *Queries) ListTools(ctx context.Context) ([]Tool, error) {
-	rows, err := q.db.QueryContext(ctx, listTools)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Tool
-	for rows.Next() {
-		var i Tool
-		if err := rows.Scan(&i.ID, &i.Name, &i.StationID); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) UpdateTool(ctx context.Context, arg UpdateToolParams) error {
+	_, err := q.db.ExecContext(ctx, updateTool,
+		arg.ParentID,
+		arg.EntityType,
+		arg.ShortName,
+		arg.Description,
+		arg.IpAddressDevice,
+		arg.ToolWithSps,
+		arg.SpsPlcNameSpaService,
+		arg.SpsDbNoSend,
+		arg.SpsDbNoReceive,
+		arg.SpsPreCheckByte,
+		arg.SpsAddressInSendDb,
+		arg.SpsAddressInReceiveDb,
+		arg.Comment,
+		arg.LastUser,
+		arg.ModifiedDate,
+		arg.ToolClassID,
+		arg.ToolTypeID,
+		arg.StatusColorID,
+		arg.ID,
+	)
+	return err
 }
