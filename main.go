@@ -17,6 +17,8 @@ func main() {
 	// Create an instance of the app structure
 	app := NewApp()
 
+	core := NewCore()
+
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:            "CEP",
@@ -27,6 +29,7 @@ func main() {
 		OnStartup:        app.startup,
 		Bind: []interface{}{
 			app,
+			core,
 		},
 	})
 
