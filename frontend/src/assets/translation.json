@@ -1,13 +1,29 @@
 {
     "en": {
         "translation": {
-            "Mythical": "Unicorn"
+            "Mythical": "Unicorn",
+            "line" : "Line",
+            "station" : "Station",
+            "tool" : "Tool",
+            "operation" : "Operation",
+            "lines" : "Lines",
+            "stations" : "Stations",
+            "tools" : "Tools",
+            "operations" : "Operations"
         }   
     },
 
     "de": {
         "translation": {
-            "Mythical": "Einhorn"
+            "Mythical": "Einhorn",
+            "line" : "Linie",
+            "station" : "Station",
+            "tool" : "Werkzeug",
+            "operation" : "Operation",
+            "lines" : "Linien",
+            "stations" : "Stationen",
+            "tools" : "Werkzeuge",
+            "operations" : "Operationen"
         }
     }
 }

@@ -10,13 +10,6 @@ export default function Stations() {
 
   return (
     <>
-      <h1>
-        Stations of Line {luuid}
-        <Link href="/">
-          <Button className="ml-5 mt-5">{"<-"}</Button>
-        </Link>
-      </h1>
-
       <input
         type="text"
         onChange={(e) => setI(e.target.value)}
@@ -25,7 +18,7 @@ export default function Stations() {
       <Link
         href={
           i === ""
-            ? `/line/${luuid}/station/error`
+            ? `/line/${luuid}/station/blank`
             : `/line/${luuid}/station/${i}`
         }
       >

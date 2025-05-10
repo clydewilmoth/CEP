@@ -5,27 +5,28 @@ import Tools from "./pages/Tools";
 import Operations from "./pages/Operations";
 import GreetForm from "./components/logic/GreetForm";
 import LanguageForm from "./components/logic/LanguageForm";
+import Header from "./components/logic/Header";
 
 function App() {
   return (
-    <>
-      <h1>{"[Login Window]"}</h1>
-      <h1>{"[Header]"}</h1>
-      <br />
-      <Route path={"/"} component={Lines} />
-      <Route path={"/line/:luuid"} component={Stations} />
-      <Route path={"/line/:luuid/station/:suuid"} component={Tools} />
-      <Route
-        path={"/line/:luuid/station/:suuid/tool/:tuuid"}
-        component={Operations}
-      />
-      <br />
-      <br />
-      <GreetForm />
-      <br />
-      <br />
-      <LanguageForm />
-    </>
+    <div className="flex flex-col items-center justify-start w-full h-screen gap-10">
+      <Header />
+      <div>
+        <Route path={"/"} component={Lines} />
+        <Route path={"/line/:luuid"} component={Stations} />
+        <Route path={"/line/:luuid/station/:suuid"} component={Tools} />
+        <Route
+          path={"/line/:luuid/station/:suuid/tool/:tuuid"}
+          component={Operations}
+        />
+      </div>
+      <div>
+        <GreetForm />
+      </div>
+      <div>
+        <LanguageForm />
+      </div>
+    </div>
   );
 }
 
