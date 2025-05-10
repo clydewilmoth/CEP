@@ -240,3 +240,144 @@ func (c *Core) GetAllEntitiesByTypeString(entityTypeStr string) ([]interface{}, 
 	}
 	return results, nil
 }
+
+func (c *Core) GetChildEntitiesString(parentIDStr string, childEntityTypeStr string) ([]interface{}, error) {
+	if DB == nil {
+		return nil, errors.New("datenbank nicht initialisiert")
+	}
+	parentID, err := c.parseUUIDFromString(parentIDStr)
+	if err != nil {
+		return nil, fmt.Errorf("ungültige ParentID: %w", err)
+	}
+
+	var results []interface{}
+	modelInstance, err := c.getModelInstance(childEntityTypeStr)
+	if err != nil {
+		return nil, err
+	}
+
+	switch strings.ToLower(childEntityTypeStr) {
+	case "station":
+		var items []Station
+		if errDb := DB.Model(modelInstance).Where("parent_id = ?", parentID).Order("created_at asc").Find(&items).Error; errDb != nil {
+			return nil, errDb
+		}
+		for i := range items {
+			results = append(results, &items[i])
+		}
+	case "tool":
+		var items []Tool
+		if errDb := DB.Model(modelInstance).Where("parent_id = ?", parentID).Order("created_at asc").Find(&items).Error; errDb != nil {
+			return nil, errDb
+		}
+		for i := range items {
+			results = append(results, &items[i])
+		}
+	case "operation":
+		var items []Operation
+		if errDb := DB.Model(modelInstance).Where("parent_id = ?", parentID).Order("created_at asc").Find(&items).Error; errDb != nil {
+			return nil, errDb
+		}
+		for i := range items {
+			results = append(results, &items[i])
+		}
+	default:
+		return nil, fmt.Errorf("GetChildEntitiesString nicht implementiert für Kind-Typ: %s", childEntityTypeStr)
+	}
+	return results, nil
+}
+
+func (c *Core) GetEntityHierarchyString(entityTypeStr string, entityIDStr string) (interface{}, error) {
+	if DB == nil {
+		return nil, errors.New("datenbank nicht initialisiert")
+	}
+	entityID, err := c.parseUUIDFromString(entityIDStr)
+	if err != nil {
+		return nil, err
+	}
+
+	modelInstance, err := c.getModelInstance(entityTypeStr)
+	if err != nil {
+		return nil, err
+	}
+
+	tx := DB
+	switch strings.ToLower(entityTypeStr) {
+	case "line":
+		tx = tx.Preload("Stations.Tools.Operations")
+	case "station":
+		tx = tx.Preload("Tools.Operations")
+	case "tool":
+		tx = tx.Preload("Operations")
+	case "operation":
+		break
+	default:
+		return nil, fmt.Errorf("hierarchisches Laden nicht vollständig definiert für Typ: %s", entityTypeStr)
+	}
+
+	if err := tx.First(modelInstance, "id = ?", entityID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("entität vom Typ %s mit ID %s für Hierarchie nicht gefunden", entityTypeStr, entityIDStr)
+		}
+		return nil, fmt.Errorf("fehler beim Laden der Hierarchie für Typ %s, ID %s: %w", entityTypeStr, entityIDStr, err)
+	}
+	return modelInstance, nil
+}
+
+func (c *Core) UpdateEntityFieldsString(entityTypeStr string, entityIDStr string, updatesMapStr map[string]string) error {
+	if DB == nil {
+		return errors.New("datenbank nicht initialisiert")
+	}
+	entityID, err := c.parseUUIDFromString(entityIDStr)
+	if err != nil {
+		return err
+	}
+
+	modelInstance, err := c.getModelInstance(entityTypeStr)
+	if err != nil {
+		return err
+	}
+
+	updates := make(map[string]interface{})
+	for k, v := range updatesMapStr {
+		updates[k] = v
+	}
+
+	var count int64
+	if err := DB.Model(modelInstance).Where("id = ?", entityID).Count(&count).Error; err != nil {
+		return fmt.Errorf("fehler beim Prüfen der Existenz der Entität %s (%s): %w", entityTypeStr, entityID, err)
+	}
+	if count == 0 {
+		return fmt.Errorf("entität vom Typ %s mit ID %s nicht gefunden für Update", entityTypeStr, entityID)
+	}
+
+	result := DB.Model(modelInstance).Where("id = ?", entityID).Updates(updates)
+	if result.Error != nil {
+		return fmt.Errorf("fehler beim Aktualisieren der Entität vom Typ %s mit ID %s: %w", entityTypeStr, entityID, result.Error)
+	}
+	return nil
+}
+
+func (c *Core) DeleteEntityByIDString(entityTypeStr string, entityIDStr string) error {
+	if DB == nil {
+		return errors.New("datenbank nicht initialisiert")
+	}
+	entityID, err := c.parseUUIDFromString(entityIDStr)
+	if err != nil {
+		return err
+	}
+
+	modelInstance, err := c.getModelInstance(entityTypeStr)
+	if err != nil {
+		return err
+	}
+
+	result := DB.Where("id = ?", entityID).Delete(modelInstance)
+	if result.Error != nil {
+		return fmt.Errorf("fehler beim Löschen der Entität vom Typ %s mit ID %s: %w", entityTypeStr, entityIDStr, result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("keine Entität vom Typ %s mit ID %s zum Löschen gefunden", entityTypeStr, entityIDStr)
+	}
+	return nil
+}
