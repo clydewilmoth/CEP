@@ -8,29 +8,34 @@ import {
   GetEntityDetailsByIDString,
   GetChildEntitiesString,
 } from "../../../wailsjs/go/main/Core";
+import { useLocation } from "wouter";
 
 export default function EntityCollection({
   entity,
   parentID,
+  link,
 }: {
   entity: string;
   parentID: string;
+  link: string;
 }) {
   const [observer, setObserver] = useState(0);
   const [entities, setEntities] = useState<any[]>([]);
   const [selectedEntityID, setSelectedEntityID] = useState("");
   const [selectedFields, setSelectedFields] = useState({});
 
+  const [location, navigate] = useLocation();
+
   useEffect(() => {
     const fetch = async () => {
       const res =
-        entity == entity
+        entity == "line"
           ? await GetAllEntitiesByTypeString(entity)
           : await GetChildEntitiesString(parentID, entity);
       setEntities(res);
     };
     fetch();
-  }, [observer]);
+  }, [observer, location]);
 
   return (
     <>
@@ -52,7 +57,9 @@ export default function EntityCollection({
             <EntityCard
               name={element.Name}
               description={element.Description}
-              onClick={() => setObserver(observer + 1)}
+              onClick={() => {
+                link != "" && navigate(`${link}${element.ID}`);
+              }}
               tOnClick={async () => {
                 await DeleteEntityByIDString(entity, element.ID);
                 setObserver(observer + 1);
@@ -72,7 +79,7 @@ export default function EntityCollection({
           name=""
           description=""
           onClick={async () => {
-            await CreateEntity(entity, "");
+            await CreateEntity(entity, parentID);
             setObserver(observer + 1);
           }}
           add={true}

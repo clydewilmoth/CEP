@@ -16,9 +16,9 @@ export default function EntityForm({
 }) {
   return (
     <div className="w-screen h-screen fixed bg-white">
-      <div className="flex flex-col justify-center items-center p-10 gap-3 bg-black text-white rounded-xl fixed left-1/2 translate-x-[-50%]">
+      <div className="flex flex-col justify-center items-center p-10 gap-3 bg-white text-black shadow-xl border-2 rounded-lg fixed left-1/2 translate-x-[-50%]">
         <Button
-          className="rounded-lg bg-white text-black p-1 hover:bg-slate-100 w-8 h-8 focus:bg-slate-100"
+          className="rounded-lg bg-black text-white p-1 w-8 h-8"
           onClick={onClose}
         >
           <Undo2 />
@@ -29,7 +29,10 @@ export default function EntityForm({
             key === "ID" ||
             key === "CreatedAt" ||
             key === "UpdatedAt" ||
-            key === "Stations"
+            key === "Stations" ||
+            key === "ParentID" ||
+            key === "Tools" ||
+            key === "Operations"
           ) {
             return null;
           }
@@ -48,7 +51,7 @@ export default function EntityForm({
                     [key]: e.target.value,
                   });
                 }}
-                className="rounded-lg bg-white text-black p-1"
+                className="rounded-md bg-white text-black p-1 border-b-2 border-black"
               />
             </div>
           );

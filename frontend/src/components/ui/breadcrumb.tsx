@@ -131,25 +131,30 @@ export function BreadcrumbWithCustomSeparator({
             </Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
+        {/* Separator nach dem Ordner */}
+        {titles.length > 0 && <BreadcrumbSeparator key="sep-folder" />}
         {titles.map((title, index) => {
           if (title == " " && titles.length > 2) {
             return <BreadcrumbSeparator key={`sep-${index}`} />;
           } else if (title == "" || title == " ") {
-            return;
+            return null;
           }
+          const isLast = index === titles.length - 1;
           return (
             <React.Fragment key={index}>
               <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href={`/${links[index]}`}>
-                    {title != "" &&
-                      `${t(title.split(" ")[0])} ${title.split(" ")[1]}`}
-                  </Link>
-                </BreadcrumbLink>
+                {isLast ? (
+                  <BreadcrumbPage className="text-foreground text-xl font-bold">
+                    {title}
+                  </BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <Link href={links[index]}>{title}</Link>
+                  </BreadcrumbLink>
+                )}
               </BreadcrumbItem>
-              {index != titles.length - 2 && (
-                <BreadcrumbSeparator key={`sep2-${index}`} />
-              )}
+              {/* Separator nur, wenn NICHT das letzte Element */}
+              {!isLast && <BreadcrumbSeparator key={`sep2-${index}`} />}
             </React.Fragment>
           );
         })}

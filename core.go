@@ -58,7 +58,7 @@ func (c *Core) InitDB() error {
 		return fmt.Errorf("fehler beim Erstellen des Anwendungsdatenverzeichnisses '%s': %w", appDataDir, err)
 	}
 
-	dbPath := filepath.Join(appDataDir, "config_explorer_wal.db?_journal_mode=WAL")
+	dbPath := filepath.Join(appDataDir, "config_explorer_wal.db?_journal_mode=WAL&_foreign_keys=1")
 	log.Printf("Datenbankpfad (WAL-Modus): %s\n", dbPath)
 
 	database, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{
@@ -69,6 +69,10 @@ func (c *Core) InitDB() error {
 	}
 
 	log.Println("Erfolgreich mit der Datenbank verbunden (WAL-Modus).")
+
+	if err := database.Exec("PRAGMA foreign_keys = ON;").Error; err != nil {
+		log.Printf("Warnung: Konnte PRAGMA foreign_keys nicht explizit aktivieren: %v\n", err)
+	}
 
 	err = database.AutoMigrate(&Line{}, &Station{}, &Tool{}, &Operation{})
 	if err != nil {
