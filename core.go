@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -31,18 +32,29 @@ func (c *Core) startup(ctx context.Context) {
 // domReady is called after front-end resources have been loaded
 func (c Core) domReady(ctx context.Context) {
 	// Add your action here
+
 }
 
-// beforeClose is called when the application is about to quit,
-// either by clicking the window close button or calling runtime.Quit.
-// Returning true will cause the application to continue, false will continue shutdown as normal.
 func (c *Core) beforeClose(ctx context.Context) (prevent bool) {
-	return false
+	dialog, err := runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
+		Type:    runtime.QuestionDialog,
+		Title:   "Quit?",
+		Message: "Are you sure you want to quit?",
+	})
+
+	if err != nil {
+		return false
+	}
+	return dialog != "Yes"
 }
 
 // shutdown is called at application termination
 func (c *Core) shutdown(ctx context.Context) {
 	// Perform your teardown here
+}
+
+func (c *Core) SelectDir() (string, error) {
+	return runtime.OpenDirectoryDialog(c.ctx, runtime.OpenDialogOptions{})
 }
 
 var DB *gorm.DB
