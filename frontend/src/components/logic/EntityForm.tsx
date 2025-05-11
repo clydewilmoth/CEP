@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { UpdateEntityFieldsString } from "../../../wailsjs/go/main/Core";
-import { X } from "lucide-react";
+import { Undo2 } from "lucide-react";
 import { Button } from "../ui/button";
 
 export default function EntityForm({
@@ -21,7 +21,7 @@ export default function EntityForm({
           className="rounded-lg bg-white text-black p-1 hover:bg-slate-100 w-8 h-8 focus:bg-slate-100"
           onClick={onClose}
         >
-          <X />
+          <Undo2 />
         </Button>
 
         {Object.entries(fields).map(([key, value]) => {
