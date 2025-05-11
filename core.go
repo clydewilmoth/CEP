@@ -47,6 +47,7 @@ func (c *Core) shutdown(ctx context.Context) {
 
 var DB *gorm.DB
 
+// Funktioniert
 func (c *Core) InitDB() error {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
@@ -105,20 +106,21 @@ func (c *Core) parseUUIDFromString(idStr string) (uuid.UUID, error) {
 	return parsedID, nil
 }
 
-func (c *Core) CreateEntity(entityTypeStr string, parentIDStr_optional ...string) (string, error) {
+// Funktioniert
+func (c *Core) CreateEntity(entityTypeStr string, parentIDStr_optional string) (string, error) {
 	if DB == nil {
-		return "", errors.New("datenbank nicht initialisiert")
+		return "", fmt.Errorf("database not initialised")
 	}
 	model, err := c.getModelInstance(entityTypeStr)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("entitytype not valid")
 	}
 
 	var parentID uuid.UUID
-	if len(parentIDStr_optional) > 0 && parentIDStr_optional[0] != "" {
-		parentID, err = c.parseUUIDFromString(parentIDStr_optional[0])
+	if parentIDStr_optional != "" {
+		parentID, err = c.parseUUIDFromString(parentIDStr_optional)
 		if err != nil {
-			return "", fmt.Errorf("ungültige ParentID: %w", err)
+			return "", fmt.Errorf("parentid not valid")
 		}
 	}
 
@@ -141,18 +143,18 @@ func (c *Core) CreateEntity(entityTypeStr string, parentIDStr_optional ...string
 		}
 	case *Line:
 		if parentID != uuid.Nil {
-			return "", errors.New("linien können keine ParentID haben")
+			return "", fmt.Errorf("parentid error")
 		}
 	default:
-		return "", fmt.Errorf("parentID-Handling nicht implementiert für Typ: %s", entityTypeStr)
+		return "", fmt.Errorf("parentid error")
 	}
 
 	if needsParent && parentID == uuid.Nil {
-		return "", fmt.Errorf("parentID ist erforderlich für Entitätstyp: %s", entityTypeStr)
+		return "", fmt.Errorf("undefined")
 	}
 
 	if err := DB.Create(model).Error; err != nil {
-		return "", fmt.Errorf("fehler beim Erstellen der Entität vom Typ %s: %w", entityTypeStr, err)
+		return "", fmt.Errorf("undefined")
 	}
 
 	var newEntityID uuid.UUID
@@ -169,6 +171,7 @@ func (c *Core) CreateEntity(entityTypeStr string, parentIDStr_optional ...string
 	return newEntityID.String(), nil
 }
 
+// Funktioniert
 func (c *Core) GetEntityDetailsByIDString(entityTypeStr string, entityIDStr string) (interface{}, error) {
 	if DB == nil {
 		return nil, errors.New("datenbank nicht initialisiert")
@@ -324,6 +327,7 @@ func (c *Core) GetEntityHierarchyString(entityTypeStr string, entityIDStr string
 	return modelInstance, nil
 }
 
+// Funktioniert
 func (c *Core) UpdateEntityFieldsString(entityTypeStr string, entityIDStr string, updatesMapStr map[string]string) error {
 	if DB == nil {
 		return errors.New("datenbank nicht initialisiert")
@@ -358,6 +362,7 @@ func (c *Core) UpdateEntityFieldsString(entityTypeStr string, entityIDStr string
 	return nil
 }
 
+// funktioniert
 func (c *Core) DeleteEntityByIDString(entityTypeStr string, entityIDStr string) error {
 	if DB == nil {
 		return errors.New("datenbank nicht initialisiert")

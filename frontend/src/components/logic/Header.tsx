@@ -33,7 +33,7 @@ export default function Header() {
   }, [location]);
 
   return (
-    <div className=" text-black font-bold text-5xl p-10 w-full flex flex-col items-center justify-start gap-5">
+    <div className=" text-black font-bold text-5xl w-full flex flex-col items-center justify-start gap-5">
       <div className="text-left w-full">CEP</div>
       <div className="flex flex-col items-center justify-center">
         <div className="min-h-10">

@@ -6,10 +6,16 @@ import Operations from "./pages/Operations";
 import GreetForm from "./components/logic/GreetForm";
 import LanguageForm from "./components/logic/LanguageForm";
 import Header from "./components/logic/Header";
+import { InitDB } from "../wailsjs/go/main/Core";
+import { useEffect } from "react";
 
 function App() {
+  useEffect(() => {
+    InitDB();
+  }, []);
+
   return (
-    <div className="flex flex-col items-center justify-start w-full h-screen gap-10">
+    <div className="flex flex-col items-center justify-start w-full h-screen gap-10 p-10">
       <Header />
       <div>
         <Route path={"/"} component={Lines} />
