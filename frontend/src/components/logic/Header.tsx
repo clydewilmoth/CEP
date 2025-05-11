@@ -16,34 +16,28 @@ export default function Header() {
     const newTitles: string[] = [];
     const newLinks: string[] = [];
 
-    // Linienübersicht
     if (parts.length >= 2) {
-      newTitles.push(parts[1]); // Linien-ID
+      newTitles.push(parts[1]);
       newLinks.push(`/line/${parts[1]}`);
     }
-    // Stationsübersicht
+
     if (parts.length >= 4) {
-      newTitles.push(parts[3]); // Stations-ID
+      newTitles.push(parts[3]);
       newLinks.push(`/line/${parts[1]}/station/${parts[3]}`);
     }
-    // Toolübersicht
+
     if (parts.length >= 6) {
-      newTitles.push(parts[5]); // Tool-ID
+      newTitles.push(parts[5]);
       newLinks.push(`/line/${parts[1]}/station/${parts[3]}/tool/${parts[5]}`);
     }
-    // Operationsübersicht
+
     if (parts.length >= 8) {
-      newTitles.push(parts[7]); // Operations-ID
+      newTitles.push(parts[7]);
       newLinks.push(
         `/line/${parts[1]}/station/${parts[3]}/tool/${parts[5]}/operation/${parts[7]}`
       );
     }
 
-    // Breadcrumb-Links für die Navigation:
-    // [0]: / (Linienübersicht)
-    // [1]: /line/123 (Stationsübersicht)
-    // [2]: /line/123/station/456 (Toolübersicht)
-    // [3]: /line/123/station/456/tool/789 (Operationsübersicht)
     const breadcrumbLinks: string[] = ["/"];
     if (parts.length >= 2) breadcrumbLinks.push(`/line/${parts[1]}`);
     if (parts.length >= 4)
@@ -54,7 +48,7 @@ export default function Header() {
       );
 
     setTitles(newTitles);
-    setLinks(breadcrumbLinks.slice(1, breadcrumbLinks.length)); // skip '/' for Folder icon
+    setLinks(breadcrumbLinks.slice(1, breadcrumbLinks.length));
   }, [location]);
 
   useEffect(() => {
@@ -91,12 +85,12 @@ export default function Header() {
               entityType,
               id.trim()
             );
-            names.push(`${typeLabel} (${entity?.Name ?? ""})`);
+            names.push(`${typeLabel} ${entity?.Name ?? ""}`);
           } catch {
-            names.push(`${typeLabel} ()`);
+            names.push(`${typeLabel}`);
           }
         } else {
-          names.push(`${typeLabel} ()`);
+          names.push(`${typeLabel}`);
         }
       }
       if (isMounted) setDisplayNames(names);

@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct
@@ -29,8 +31,17 @@ func (a App) domReady(ctx context.Context) {
 // beforeClose is called when the application is about to quit,
 // either by clicking the window close button or calling runtime.Quit.
 // Returning true will cause the application to continue, false will continue shutdown as normal.
-func (a *App) beforeClose(ctx context.Context) (prevent bool) {
-	return false
+func (b *App) beforeClose(ctx context.Context) (prevent bool) {
+	dialog, err := runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
+		Type:    runtime.QuestionDialog,
+		Title:   "Quit?",
+		Message: "Are you sure you want to quit?",
+	})
+
+	if err != nil {
+		return false
+	}
+	return dialog != "Yes"
 }
 
 // shutdown is called at application termination
