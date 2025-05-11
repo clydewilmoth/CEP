@@ -1,13 +1,6 @@
 import * as React from "react";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Tooltip,
   TooltipContent,
@@ -28,8 +21,8 @@ export default function EntityCard({
   name: string;
   description: string;
   onClick: () => void;
-  tOnClick?: () => void;
-  eOnClick?: () => void;
+  tOnClick: () => void;
+  eOnClick: () => void;
   add: boolean;
 }) {
   const [iconsVisible, setIconsVisible] = React.useState<boolean>(false);
@@ -44,24 +37,33 @@ export default function EntityCard({
               onMouseEnter={() => setIconsVisible(true)}
               onMouseLeave={() => setIconsVisible(false)}
             >
-              <CardContent className="flex justify-center items-center text-xl font-semibold gap-5">
-                {!add && iconsVisible && (
-                  <div className="rounded-lg p-1 bg-black text-white">
-                    <Trash onClick={tOnClick} className="scale-75" />
-                  </div>
-                )}
+              <CardContent className="flex justify-center items-center font-semibold gap-5 flex-col">
                 {add ? "+" : name}
+
                 {!add && iconsVisible && (
-                  <div className="rounded-lg p-1 bg-black text-white">
-                    <Eye onClick={eOnClick} className="scale-75" />
+                  <div className="flex justify-center items-center gap-4">
+                    <div
+                      className="rounded-lg p-1 bg-black text-white"
+                      onClick={tOnClick}
+                    >
+                      <Trash className="scale-75" />
+                    </div>
+                    <div
+                      className="rounded-lg p-1 bg-black text-white"
+                      onClick={eOnClick}
+                    >
+                      <Eye className="scale-75" />
+                    </div>
                   </div>
                 )}
               </CardContent>
             </Card>
           </TooltipTrigger>
-          <TooltipContent>
-            <p>{add ? "Add Line" : description}</p>
-          </TooltipContent>
+          {description != "" && (
+            <TooltipContent>
+              <p>{description}</p>
+            </TooltipContent>
+          )}
         </Tooltip>
       </TooltipProvider>
     </div>

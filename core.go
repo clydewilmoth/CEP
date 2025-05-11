@@ -208,7 +208,7 @@ func (c *Core) GetAllEntitiesByTypeString(entityTypeStr string) ([]interface{}, 
 	switch strings.ToLower(entityTypeStr) { // Sicherstellen, dass der Vergleich case-insensitiv ist
 	case "line":
 		var items []Line
-		if errDb := DB.Model(modelInstance).Order("created_at asc").Find(&items).Error; errDb != nil {
+		if errDb := DB.Model(modelInstance).Find(&items).Error; errDb != nil {
 			return nil, errDb
 		}
 		for i := range items {
@@ -216,7 +216,7 @@ func (c *Core) GetAllEntitiesByTypeString(entityTypeStr string) ([]interface{}, 
 		}
 	case "station":
 		var items []Station
-		if errDb := DB.Model(modelInstance).Order("created_at asc").Find(&items).Error; errDb != nil {
+		if errDb := DB.Model(modelInstance).Find(&items).Error; errDb != nil {
 			return nil, errDb
 		}
 		for i := range items {
@@ -224,7 +224,7 @@ func (c *Core) GetAllEntitiesByTypeString(entityTypeStr string) ([]interface{}, 
 		}
 	case "tool":
 		var items []Tool
-		if errDb := DB.Model(modelInstance).Order("created_at asc").Find(&items).Error; errDb != nil {
+		if errDb := DB.Model(modelInstance).Find(&items).Error; errDb != nil {
 			return nil, errDb
 		}
 		for i := range items {
@@ -232,7 +232,7 @@ func (c *Core) GetAllEntitiesByTypeString(entityTypeStr string) ([]interface{}, 
 		}
 	case "operation":
 		var items []Operation
-		if errDb := DB.Model(modelInstance).Order("created_at asc").Find(&items).Error; errDb != nil {
+		if errDb := DB.Model(modelInstance).Find(&items).Error; errDb != nil {
 			return nil, errDb
 		}
 		for i := range items {
