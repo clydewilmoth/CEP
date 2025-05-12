@@ -3,6 +3,8 @@ import { BreadcrumbWithCustomSeparator } from "../ui/breadcrumb";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { GetEntityDetailsByIDString } from "../../../wailsjs/go/main/Core";
+import UserDialog from "@/components/logic/UserDialog";
+import SelectDirDialog from "./SelectDirDialog";
 
 export default function Header() {
   const { t } = useTranslation();
@@ -106,9 +108,15 @@ export default function Header() {
   }, [titles, links]);
 
   return (
-    <div className="text-black font-bold text-5xl w-full flex flex-col items-center justify-start gap-5">
-      <div className="text-left w-full">CEP</div>
-      <div className="flex flex-col items-center justify-center">
+    <div className="text-black  w-full flex flex-col items-center justify-start gap-5">
+      <div className="w-full flex justify-between items-center">
+        <div className="text-left font-bold text-5xl">CEP</div>
+        <div className="flex gap-3">
+          <SelectDirDialog />
+          <UserDialog />
+        </div>
+      </div>
+      <div className="flex flex-col items-center justify-center font-bold text-5xl">
         <div className="min-h-10">
           <BreadcrumbWithCustomSeparator titles={displayNames} links={links} />
         </div>
