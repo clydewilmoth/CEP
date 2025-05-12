@@ -7,7 +7,6 @@ import Header from "./components/logic/Header";
 import { InitDB } from "../wailsjs/go/main/Core";
 import { useEffect, useState } from "react";
 import { Button } from "./components/ui/button";
-import { SelectDir } from "../wailsjs/go/main/Core";
 
 function App() {
   const [initialised, setInitialised] = useState(false);

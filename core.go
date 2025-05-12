@@ -123,54 +123,68 @@ func (c *Core) parseUUIDFromString(idStr string) (uuid.UUID, error) {
 }
 
 // Funktioniert
-func (c *Core) CreateEntity(entityTypeStr string, parentIDStr_optional string) (string, error) {
+func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStr_optional string) (string, error) {
 	if DB == nil {
-		return "", fmt.Errorf("database not initialised")
+		return "", errors.New("datenbank nicht initialisiert")
 	}
+	if userName == "" {
+		return "", errors.New("benutzername darf nicht leer sein beim Erstellen")
+	}
+
 	model, err := c.getModelInstance(entityTypeStr)
 	if err != nil {
-		return "", fmt.Errorf("entitytype not valid")
+		return "", err
 	}
 
 	var parentID uuid.UUID
 	if parentIDStr_optional != "" {
 		parentID, err = c.parseUUIDFromString(parentIDStr_optional)
 		if err != nil {
-			return "", fmt.Errorf("parentid not valid")
+			return "", fmt.Errorf("ungültige ParentID: %w", err)
 		}
 	}
 
 	needsParent := false
+	// Setze ParentID und CreatedBy/UpdatedBy für das spezifische Modell
 	switch m := model.(type) {
+	case *Line:
+		if parentID != uuid.Nil {
+			return "", errors.New("linien können keine ParentID haben")
+		}
+		m.CreatedBy = userName
+		m.UpdatedBy = userName // Beim Erstellen ist Ersteller auch letzter Bearbeiter
 	case *Station:
 		needsParent = true
 		if parentID != uuid.Nil {
 			m.ParentID = parentID
 		}
+		m.CreatedBy = userName
+		m.UpdatedBy = userName
 	case *Tool:
 		needsParent = true
 		if parentID != uuid.Nil {
 			m.ParentID = parentID
 		}
+		m.CreatedBy = userName
+		m.UpdatedBy = userName
 	case *Operation:
 		needsParent = true
 		if parentID != uuid.Nil {
 			m.ParentID = parentID
 		}
-	case *Line:
-		if parentID != uuid.Nil {
-			return "", fmt.Errorf("parentid error")
-		}
+		m.CreatedBy = userName
+		m.UpdatedBy = userName
 	default:
-		return "", fmt.Errorf("parentid error")
+		return "", fmt.Errorf("entitätstyp %s nicht für Erstellung konfiguriert", entityTypeStr)
 	}
 
 	if needsParent && parentID == uuid.Nil {
-		return "", fmt.Errorf("undefined")
+		return "", fmt.Errorf("parentID ist erforderlich für Entitätstyp: %s", entityTypeStr)
 	}
 
+	// ID wird durch BeforeCreate Hook gesetzt
 	if err := DB.Create(model).Error; err != nil {
-		return "", fmt.Errorf("undefined")
+		return "", fmt.Errorf("fehler beim Erstellen der Entität vom Typ %s: %w", entityTypeStr, err)
 	}
 
 	var newEntityID uuid.UUID
@@ -185,6 +199,49 @@ func (c *Core) CreateEntity(entityTypeStr string, parentIDStr_optional string) (
 		newEntityID = m.ID
 	}
 	return newEntityID.String(), nil
+}
+
+// UpdateEntityFieldsString aktualisiert spezifische Felder einer Entität und den UpdatedBy-Benutzer.
+func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, entityIDStr string, updatesMapStr map[string]string) error {
+	if DB == nil {
+		return errors.New("datenbank nicht initialisiert")
+	}
+	if userName == "" {
+		return errors.New("benutzername darf nicht leer sein beim Aktualisieren")
+	}
+
+	entityID, err := c.parseUUIDFromString(entityIDStr)
+	if err != nil {
+		return err
+	}
+
+	modelInstance, err := c.getModelInstance(entityTypeStr)
+	if err != nil {
+		return err
+	}
+
+	updates := make(map[string]interface{})
+	for k, v := range updatesMapStr {
+		updates[k] = v
+	}
+
+	// Füge UpdatedBy und UpdatedAt (automatisch von GORM) zu den Updates hinzu
+	updates["updated_by"] = userName
+	// GORM's `Updates` Methode aktualisiert `UpdatedAt` automatisch, wenn das Feld im Modell existiert.
+
+	var count int64
+	if err := DB.Model(modelInstance).Where("id = ?", entityID).Count(&count).Error; err != nil {
+		return fmt.Errorf("fehler beim Prüfen der Existenz der Entität %s (%s): %w", entityTypeStr, entityID, err)
+	}
+	if count == 0 {
+		return fmt.Errorf("entität vom Typ %s mit ID %s nicht gefunden für Update", entityTypeStr, entityID)
+	}
+
+	result := DB.Model(modelInstance).Where("id = ?", entityID).Updates(updates)
+	if result.Error != nil {
+		return fmt.Errorf("fehler beim Aktualisieren der Entität vom Typ %s mit ID %s: %w", entityTypeStr, entityID, result.Error)
+	}
+	return nil
 }
 
 // Funktioniert
@@ -341,41 +398,6 @@ func (c *Core) GetEntityHierarchyString(entityTypeStr string, entityIDStr string
 		return nil, fmt.Errorf("fehler beim Laden der Hierarchie für Typ %s, ID %s: %w", entityTypeStr, entityIDStr, err)
 	}
 	return modelInstance, nil
-}
-
-// Funktioniert
-func (c *Core) UpdateEntityFieldsString(entityTypeStr string, entityIDStr string, updatesMapStr map[string]string) error {
-	if DB == nil {
-		return errors.New("datenbank nicht initialisiert")
-	}
-	entityID, err := c.parseUUIDFromString(entityIDStr)
-	if err != nil {
-		return err
-	}
-
-	modelInstance, err := c.getModelInstance(entityTypeStr)
-	if err != nil {
-		return err
-	}
-
-	updates := make(map[string]interface{})
-	for k, v := range updatesMapStr {
-		updates[k] = v
-	}
-
-	var count int64
-	if err := DB.Model(modelInstance).Where("id = ?", entityID).Count(&count).Error; err != nil {
-		return fmt.Errorf("fehler beim Prüfen der Existenz der Entität %s (%s): %w", entityTypeStr, entityID, err)
-	}
-	if count == 0 {
-		return fmt.Errorf("entität vom Typ %s mit ID %s nicht gefunden für Update", entityTypeStr, entityID)
-	}
-
-	result := DB.Model(modelInstance).Where("id = ?", entityID).Updates(updates)
-	if result.Error != nil {
-		return fmt.Errorf("fehler beim Aktualisieren der Entität vom Typ %s mit ID %s: %w", entityTypeStr, entityID, result.Error)
-	}
-	return nil
 }
 
 // funktioniert

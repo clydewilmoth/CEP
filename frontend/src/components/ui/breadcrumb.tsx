@@ -121,15 +121,29 @@ export function BreadcrumbWithCustomSeparator({
   links,
 }: React.PropsWithChildren<{ titles: string[]; links: string[] }>) {
   const { t } = useTranslation();
+  const onlyFolder = titles.length === 0;
   return (
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <Link href={`/`}>
-              <Folder />
-            </Link>
-          </BreadcrumbLink>
+          {onlyFolder ? (
+            <BreadcrumbLink asChild>
+              <span
+                className="font-bold text-foreground text-xl cursor-default flex items-center"
+                style={{ pointerEvents: "none" }}
+              >
+                <Folder />
+              </span>
+            </BreadcrumbLink>
+          ) : (
+            <BreadcrumbLink asChild>
+              <Link href="/">
+                <span className="flex items-center">
+                  <Folder />
+                </span>
+              </Link>
+            </BreadcrumbLink>
+          )}
         </BreadcrumbItem>
         {/* Separator nach dem Ordner */}
         {titles.length > 0 && <BreadcrumbSeparator key="sep-folder" />}
