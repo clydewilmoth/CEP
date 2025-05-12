@@ -65,7 +65,7 @@ export default function EntityCard({
             </CardContent>
           </Card>
         </TooltipTrigger>
-        {description != "" && (
+        {description != null && !add && (
           <TooltipContent>
             <p>{description}</p>
           </TooltipContent>

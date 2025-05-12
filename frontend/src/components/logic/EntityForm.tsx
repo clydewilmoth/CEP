@@ -35,7 +35,9 @@ export default function EntityForm({
             return null;
           }
           // Lokaler State pro Feld
-          const [inputValue, setInputValue] = useState(String(value));
+          const [inputValue, setInputValue] = useState(
+            StringNullToBlank(value)
+          );
 
           return (
             <div key={key} className="w-fit">
@@ -62,4 +64,8 @@ export default function EntityForm({
       </div>
     </div>
   );
+
+  function StringNullToBlank(string: any) {
+    return string == null ? "" : String(string);
+  }
 }

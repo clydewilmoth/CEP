@@ -4,7 +4,7 @@ import Stations from "./pages/Stations";
 import Tools from "./pages/Tools";
 import Operations from "./pages/Operations";
 import Header from "./components/logic/Header";
-import { HandleExport, InitDB } from "../wailsjs/go/main/Core";
+import { HandleExport, InitDB, HandleImport } from "../wailsjs/go/main/Core";
 import { useEffect, useState } from "react";
 import { Button } from "./components/ui/button";
 import { GetEntityHierarchyString } from "../wailsjs/go/main/Core";
@@ -36,9 +36,18 @@ function App() {
       )}
       <Button
         onClick={async () => {
-          await HandleExport("line", "0a078040-d018-4b9a-a544-2f60efa1a16c");
+          await HandleExport("line", "8a0e88e5-176f-45ea-88c2-e2774e8c4b1b");
         }}
-      />
+      >
+        Export
+      </Button>
+      <Button
+        onClick={async () => {
+          await HandleImport("Selim");
+        }}
+      >
+        Import
+      </Button>
     </div>
   );
 }
