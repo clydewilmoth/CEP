@@ -7,6 +7,7 @@ import {
   DeleteEntityByIDString,
   GetEntityDetailsByIDString,
   GetChildEntitiesString,
+  HandleExport,
 } from "../../../wailsjs/go/main/Core";
 import { useLocation } from "wouter";
 
@@ -14,10 +15,14 @@ export default function EntityCollection({
   entity,
   parentID,
   link,
+  context,
+  updateContext,
 }: {
   entity: string;
   parentID: string;
   link: string;
+  context?: number;
+  updateContext?: () => void;
 }) {
   const [observer, setObserver] = useState(0);
   const [entities, setEntities] = useState<any[]>([]);
@@ -35,7 +40,7 @@ export default function EntityCollection({
       setEntities(res);
     };
     fetch();
-  }, [observer, location]);
+  }, [observer, location, context]);
 
   return (
     <>
@@ -70,6 +75,9 @@ export default function EntityCollection({
                   await GetEntityDetailsByIDString(entity, element.ID)
                 );
               }}
+              exOnClick={async () => {
+                await HandleExport(entity, element.ID);
+              }}
               add={false}
               key={index}
             />
@@ -93,6 +101,7 @@ export default function EntityCollection({
             add={true}
             tOnClick={() => {}}
             eOnClick={() => {}}
+            exOnClick={() => {}}
           />
         )}
       </div>
