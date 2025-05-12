@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -55,6 +56,18 @@ func (c *Core) shutdown(ctx context.Context) {
 
 func (c *Core) SelectDir() (string, error) {
 	return runtime.OpenDirectoryDialog(c.ctx, runtime.OpenDialogOptions{})
+}
+
+func (c *Core) HandleExport(entityType string, entityID string) error {
+	file, _ := runtime.SaveFileDialog(c.ctx, runtime.SaveDialogOptions{
+		DefaultFilename: fmt.Sprintf("%s_%s_export.json", entityType, entityID),
+		Title:           "Export as JSON",
+		Filters: []runtime.FileFilter{
+			runtime.FileFilter{DisplayName: "JSON Files", Pattern: "*.json"},
+			runtime.FileFilter{DisplayName: "All Files", Pattern: "*.*"},
+		},
+	})
+	return c.ExportEntityHierarchyToJSON(entityType, entityID, file)
 }
 
 var DB *gorm.DB
@@ -398,6 +411,33 @@ func (c *Core) GetEntityHierarchyString(entityTypeStr string, entityIDStr string
 		return nil, fmt.Errorf("fehler beim Laden der Hierarchie für Typ %s, ID %s: %w", entityTypeStr, entityIDStr, err)
 	}
 	return modelInstance, nil
+}
+
+func (c *Core) ExportEntityHierarchyToJSON(entityTypeStr string, entityIDStr string, filePath string) error {
+	if DB == nil {
+		return errors.New("datenbank nicht initialisiert")
+	}
+	if filePath == "" {
+		return errors.New("dateipfad für den Export darf nicht leer sein")
+	}
+
+	hierarchyData, err := c.GetEntityHierarchyString(entityTypeStr, entityIDStr)
+	if err != nil {
+		return fmt.Errorf("fehler beim Laden der Entitätenhierarchie für den Export: %w", err)
+	}
+
+	jsonData, err := json.MarshalIndent(hierarchyData, "", "  ")
+	if err != nil {
+		return fmt.Errorf("fehler beim Konvertieren der Daten zu JSON: %w", err)
+	}
+
+	err = os.WriteFile(filePath, jsonData, 0644)
+	if err != nil {
+		return fmt.Errorf("fehler beim Schreiben der JSON-Datei nach '%s': %w", filePath, err)
+	}
+
+	log.Printf("Entitätenhierarchie erfolgreich nach '%s' exportiert.", filePath)
+	return nil
 }
 
 // funktioniert
