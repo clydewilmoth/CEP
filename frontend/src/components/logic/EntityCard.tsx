@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import { Trash, Eye } from "lucide-react";
+import { Trash, Eye, FileUp } from "lucide-react";
 
 export default function EntityCard({
   name,
@@ -16,6 +16,7 @@ export default function EntityCard({
   onClick,
   tOnClick,
   eOnClick,
+  exOnClick,
   add,
 }: {
   name: string;
@@ -23,6 +24,7 @@ export default function EntityCard({
   onClick: () => void;
   tOnClick: () => void;
   eOnClick: () => void;
+  exOnClick: () => void;
   add: boolean;
 }) {
   const [iconsVisible, setIconsVisible] = React.useState<boolean>(false);
@@ -59,6 +61,15 @@ export default function EntityCard({
                     }}
                   >
                     <Eye className="scale-75" />
+                  </div>
+                  <div
+                    className="rounded-lg p-1 bg-black text-white"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      exOnClick();
+                    }}
+                  >
+                    <FileUp className="scale-75" />
                   </div>
                 </div>
               )}

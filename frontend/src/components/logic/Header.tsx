@@ -2,16 +2,28 @@ import { useEffect, useState } from "react";
 import { BreadcrumbWithCustomSeparator } from "../ui/breadcrumb";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
-import { GetEntityDetailsByIDString } from "../../../wailsjs/go/main/Core";
+import {
+  GetEntityDetailsByIDString,
+  HandleImport,
+} from "../../../wailsjs/go/main/Core";
 import UserDialog from "@/components/logic/UserDialog";
 import SelectDirDialog from "./SelectDirDialog";
+import { FileDown } from "lucide-react";
+import { Button } from "../ui/button";
 
-export default function Header() {
+export default function Header({
+  context,
+  updateContext,
+}: {
+  context?: number;
+  updateContext?: () => void;
+}) {
   const { t } = useTranslation();
   const [location] = useLocation();
   const [titles, setTitles] = useState<string[]>([]);
   const [links, setLinks] = useState<string[]>([]);
   const [displayNames, setDisplayNames] = useState<string[]>([]);
+  const [internalRefreshKey, setInternalRefreshKey] = useState(0);
 
   useEffect(() => {
     const parts = location.split("/").filter(Boolean);
@@ -112,6 +124,15 @@ export default function Header() {
       <div className="w-full flex justify-between items-center">
         <div className="text-left font-bold text-5xl">CEP</div>
         <div className="flex gap-3">
+          <Button
+            className="rounded-lg bg-black text-white p-1 w-8 h-8"
+            onClick={async () => {
+              await HandleImport(String(localStorage.getItem("user")));
+              updateContext && updateContext();
+            }}
+          >
+            <FileDown />
+          </Button>
           <SelectDirDialog />
           <UserDialog />
         </div>

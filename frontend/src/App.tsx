@@ -11,6 +11,7 @@ import { GetEntityHierarchyString } from "../wailsjs/go/main/Core";
 
 function App() {
   const [initialised, setInitialised] = useState(false);
+  const [context, setContext] = useState(0);
 
   useEffect(() => {
     const init = async () => {
@@ -22,32 +23,35 @@ function App() {
 
   return (
     <div className="flex flex-col items-center justify-start w-full h-screen gap-10 p-10">
-      <Header />
+      <Header context={context} updateContext={() => setContext(context + 1)} />
       {initialised && (
         <div>
-          <Route path={"/"} component={Lines} />
-          <Route path={"/line/:luuid"} component={Stations} />
-          <Route path={"/line/:luuid/station/:suuid"} component={Tools} />
-          <Route
-            path={"/line/:luuid/station/:suuid/tool/:tuuid"}
-            component={Operations}
-          />
+          <Route path={"/"}>
+            <Lines
+              context={context}
+              updateContext={() => setContext(context + 1)}
+            />
+          </Route>
+          <Route path={"/line/:luuid"}>
+            <Stations
+              context={context}
+              updateContext={() => setContext(context + 1)}
+            />
+          </Route>
+          <Route path={"/line/:luuid/station/:suuid"}>
+            <Tools
+              context={context}
+              updateContext={() => setContext(context + 1)}
+            />
+          </Route>
+          <Route path={"/line/:luuid/station/:suuid/tool/:tuuid"}>
+            <Operations
+              context={context}
+              updateContext={() => setContext(context + 1)}
+            />
+          </Route>
         </div>
       )}
-      <Button
-        onClick={async () => {
-          await HandleExport("line", "8a0e88e5-176f-45ea-88c2-e2774e8c4b1b");
-        }}
-      >
-        Export
-      </Button>
-      <Button
-        onClick={async () => {
-          await HandleImport("Selim");
-        }}
-      >
-        Import
-      </Button>
     </div>
   );
 }
