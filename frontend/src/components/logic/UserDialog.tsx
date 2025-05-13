@@ -2,6 +2,7 @@ import { Undo2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
 import { User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function UserDialog() {
   const [formMode, setFormMode] = useState(false);
@@ -12,6 +13,7 @@ export default function UserDialog() {
       : setUser(localStorage.getItem("user"));
   }, []);
   const [alert, setAlert] = useState("");
+  const { t, i18n } = useTranslation();
 
   return (
     <>
@@ -22,7 +24,7 @@ export default function UserDialog() {
               className="rounded-lg bg-black text-white p-1 w-8 h-8"
               onClick={() => {
                 if (user == "") {
-                  setAlert("One character required!");
+                  setAlert(t("userAlert"));
                 } else {
                   setFormMode(false);
                   setAlert("");
@@ -31,16 +33,16 @@ export default function UserDialog() {
             >
               <Undo2 />
             </Button>
-            <h1 className="w-full text-center font-semibold text-base">User</h1>
+            <h1 className="w-full text-center font-semibold text-base">
+              {t("user")}
+            </h1>
             <input
               type="text"
               value={String(user)}
               onChange={(e) => {
                 setUser(e.target.value);
                 localStorage.setItem("user", e.target.value); // Fix: Speichere das neue Value, nicht den alten user-State
-                e.target.value === ""
-                  ? setAlert("One character required!")
-                  : setAlert("");
+                e.target.value === "" ? setAlert(t("userAlert")) : setAlert("");
               }}
               className="rounded-md bg-white text-black p-1 border-b-2 border-black w-full"
             />

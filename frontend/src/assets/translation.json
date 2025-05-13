@@ -9,7 +9,10 @@
             "lines" : "Lines",
             "stations" : "Stations",
             "tools" : "Tools",
-            "operations" : "Operations"
+            "operations" : "Operations",
+             "language" : "Language Selection",
+             "user" : "Username",
+             "userAlert" : "One character required!"
         }   
     },
 
@@ -23,7 +26,10 @@
             "lines" : "Linien",
             "stations" : "Stationen",
             "tools" : "Werkzeuge",
-            "operations" : "Operationen"
+            "operations" : "Operationen",
+            "language" : "Sprachauswahl",
+            "user" : "Nutzername",
+            "userAlert" : "Ein Zeichen erforderlich!"
         }
     }
 }

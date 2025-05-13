@@ -10,6 +10,7 @@ import UserDialog from "@/components/logic/UserDialog";
 import SelectDirDialog from "./SelectDirDialog";
 import { FileDown } from "lucide-react";
 import { Button } from "../ui/button";
+import InternalisationDropwdown from "./InternalisationDropdown";
 
 export default function Header({
   context,
@@ -122,8 +123,10 @@ export default function Header({
   return (
     <div className="text-black  w-full flex flex-col items-center justify-start gap-5">
       <div className="w-full flex justify-between items-center">
-        <div className="text-left font-bold text-5xl">CEP</div>
-        <div className="flex gap-3">
+        <div className="flex gap-10  justify-center items-center">
+          <div className="text-left font-bold text-5xl">CEP</div>
+        </div>
+        <div className="flex gap-3 justify-center items-center">
           <Button
             className="rounded-lg bg-black text-white p-1 w-8 h-8"
             onClick={async () => {
@@ -134,6 +137,7 @@ export default function Header({
             <FileDown />
           </Button>
           <SelectDirDialog />
+          <InternalisationDropwdown />
           <UserDialog />
         </div>
       </div>
