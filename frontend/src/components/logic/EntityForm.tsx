@@ -16,7 +16,7 @@ export default function EntityForm({
 }) {
   return (
     <div className="relative w-fit flex flex-col justify-center items-center">
-      <div className="flex w-[28.2rem] flex-wrap justify-start items-center bg-white text-black shadow-xl border-2 rounded-xl p-6 max-h-[32rem] overflow-auto gap-5">
+      <div className="flex w-[30.2rem] flex-wrap justify-start items-center bg-white text-black shadow-xl border-2 rounded-xl p-6 max-h-[32rem] overflow-auto gap-5">
         <div className="flex justify-center w-full">
           <Button
             className="rounded-lg bg-black text-white p-1 w-8 h-8"

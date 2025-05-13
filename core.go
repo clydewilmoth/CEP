@@ -30,13 +30,14 @@ func (c *Core) startup(ctx context.Context) {
 	c.ctx = ctx
 }
 
-func (c *Core) beforeClose(ctx context.Context) (prevent bool) {
+func (c *Core) beforeClose(ctx context.Context) bool {
 	dialog, err := runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
-		Type:    runtime.QuestionDialog,
-		Title:   "Quit?",
-		Message: "Are you sure you want to quit?",
+		Type:          runtime.QuestionDialog,
+		Title:         "Quit?",
+		Message:       "Are you sure you want to quit?",
+		Buttons:       []string{"Yes", "No"},
+		DefaultButton: "Yes",
 	})
-
 	if err != nil {
 		return false
 	}
