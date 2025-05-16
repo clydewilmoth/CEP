@@ -3,8 +3,7 @@ import { BreadcrumbWithSeparator } from "../ui/breadcrumb";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { GetEntityDetails } from "../../../wailsjs/go/main/Core";
-import { UserDialog } from "@/components/logic/UserDialog";
-import InternalisationDropwdown from "./InternalisationDropdown";
+import { Menu } from "./Menu";
 
 export default function Header() {
   const { t } = useTranslation();
@@ -111,8 +110,7 @@ export default function Header() {
           <div className="text-left font-bold text-5xl">CEP</div>
         </div>
         <div className="flex gap-3 justify-center items-center">
-          <InternalisationDropwdown />
-          <UserDialog />
+          <Menu />
         </div>
       </div>
       <div className="flex flex-col items-center justify-center font-bold text-5xl">

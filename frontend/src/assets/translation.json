@@ -10,9 +10,13 @@
             "stations" : "Stations",
             "tools" : "Tools",
             "operations" : "Operations",
-             "language" : "Language Selection",
-             "user" : "Username",
-             "userAlert" : "One character required!"
+            "language" : "Language Selection",
+            "user" : "Username",
+            "userAlert" : "One character required!",
+            "NameDialog Title" : "Name",
+            "NameDialog Description" : "Edit name. Changes save automatically. Close the window to finish.",
+            "LangDialog Title" : "Language",
+            "LangDialog Description" : "Choose language. Changes save automatically. Close the window to finish."
         }   
     },
 
@@ -29,7 +33,12 @@
             "operations" : "Operationen",
             "language" : "Sprachauswahl",
             "user" : "Nutzername",
-            "userAlert" : "Ein Zeichen erforderlich!"
+            "userAlert" : "Ein Zeichen erforderlich!",
+            "NameDialog Title" : "Name",
+            "NameDialog Description" : "Name bearbeiten. Änderungen werden automatisch übernommen. Schließe das Fenster zum beenden.",
+            "LangDialog Title" : "Sprache",
+            "LangDialog Description" : "Wähle deine Sprache. Änderungen werden automatisch übernommen. Schließe das Fenster zum beenden."
+
         }
     }
 }

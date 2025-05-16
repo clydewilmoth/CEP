@@ -6,6 +6,7 @@ import Operations from "./pages/Operations";
 import Header from "./components/logic/Header";
 import { InitDB } from "../wailsjs/go/main/Core";
 import { useEffect, useState } from "react";
+import { create } from "zustand";
 
 function App() {
   const [initialised, setInitialised] = useState(false);
@@ -40,5 +41,13 @@ function App() {
     </div>
   );
 }
+
+export const useContext = create<{
+  context: number;
+  increase: () => void;
+}>((set) => ({
+  context: 0,
+  increase: () => set((state) => ({ context: state.context + 1 })),
+}));
 
 export default App;
