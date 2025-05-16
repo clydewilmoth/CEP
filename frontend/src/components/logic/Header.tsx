@@ -1,30 +1,17 @@
 import { useEffect, useState } from "react";
-import { BreadcrumbWithCustomSeparator } from "../ui/breadcrumb";
+import { BreadcrumbWithSeparator } from "../ui/breadcrumb";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
-import {
-  GetEntityDetailsByIDString,
-  HandleImport,
-} from "../../../wailsjs/go/main/Core";
-import UserDialog from "@/components/logic/UserDialog";
-import SelectDirDialog from "./SelectDirDialog";
-import { FileDown } from "lucide-react";
-import { Button } from "../ui/button";
+import { GetEntityDetails } from "../../../wailsjs/go/main/Core";
+import { UserDialog } from "@/components/logic/UserDialog";
 import InternalisationDropwdown from "./InternalisationDropdown";
 
-export default function Header({
-  context,
-  updateContext,
-}: {
-  context?: number;
-  updateContext?: () => void;
-}) {
+export default function Header() {
   const { t } = useTranslation();
   const [location] = useLocation();
   const [titles, setTitles] = useState<string[]>([]);
   const [links, setLinks] = useState<string[]>([]);
   const [displayNames, setDisplayNames] = useState<string[]>([]);
-  const [internalRefreshKey, setInternalRefreshKey] = useState(0);
 
   useEffect(() => {
     const parts = location.split("/").filter(Boolean);
@@ -96,10 +83,7 @@ export default function Header({
           entityType
         ) {
           try {
-            const entity = await GetEntityDetailsByIDString(
-              entityType,
-              id.trim()
-            );
+            const entity = await GetEntityDetails(entityType, id.trim());
             names.push(`${typeLabel} ${entity?.Name ?? ""}`);
           } catch {
             names.push(`${typeLabel}`);
@@ -127,23 +111,13 @@ export default function Header({
           <div className="text-left font-bold text-5xl">CEP</div>
         </div>
         <div className="flex gap-3 justify-center items-center">
-          <Button
-            className="rounded-lg bg-black text-white p-1 w-8 h-8"
-            onClick={async () => {
-              await HandleImport(String(localStorage.getItem("user")));
-              updateContext && updateContext();
-            }}
-          >
-            <FileDown />
-          </Button>
-          <SelectDirDialog />
           <InternalisationDropwdown />
           <UserDialog />
         </div>
       </div>
       <div className="flex flex-col items-center justify-center font-bold text-5xl">
         <div className="min-h-10">
-          <BreadcrumbWithCustomSeparator titles={displayNames} links={links} />
+          <BreadcrumbWithSeparator titles={displayNames} links={links} />
         </div>
         <div className="text-3xl font-display">
           {location.split("/").length < 3

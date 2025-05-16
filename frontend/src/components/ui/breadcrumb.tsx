@@ -116,7 +116,7 @@ export {
   BreadcrumbEllipsis,
 };
 
-export function BreadcrumbWithCustomSeparator({
+export function BreadcrumbWithSeparator({
   titles,
   links,
 }: React.PropsWithChildren<{ titles: string[]; links: string[] }>) {

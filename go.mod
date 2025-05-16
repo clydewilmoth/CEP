@@ -4,7 +4,17 @@ go 1.22.0
 
 toolchain go1.23.3
 
-require github.com/wailsapp/wails/v2 v2.10.1
+require (
+	github.com/joho/godotenv v1.5.1
+	github.com/wailsapp/wails/v2 v2.10.1
+	gorm.io/driver/sqlserver v1.5.4
+)
+
+require (
+	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
+	github.com/golang-sql/sqlexp v0.1.0 // indirect
+	github.com/microsoft/go-mssqldb v1.7.2 // indirect
+)
 
 require (
 	github.com/bep/debounce v1.2.1 // indirect
@@ -22,7 +32,6 @@ require (
 	github.com/leaanthony/u v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
@@ -36,6 +45,5 @@ require (
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
-	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.26.1
 )
