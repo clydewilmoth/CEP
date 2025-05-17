@@ -111,7 +111,7 @@ type OperationHistory struct {
 }
 
 type AppMetadata struct {
-	Key        string    `gorm:"primaryKey;size:50"`
+	ConfigKey  string    `gorm:"primaryKey;size:50"`
 	LastUpdate time.Time `gorm:"type:datetime2"`
 }
 

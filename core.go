@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -115,76 +116,24 @@ func (c *Core) InitDB() error {
 	log.Println("Successfully connected to and migrated MS SQL server DB.")
 	return nil
 }
+
 func ensureAppMetadataExists(db *gorm.DB) {
 	var meta AppMetadata
-	err := db.First(&meta, "key = ?", GlobalMetadataKey).Error
+	// Verwende rohes SQL für diese Abfrage
+	err := db.Raw("SELECT TOP 1 * FROM app_metadata WHERE config_key = @key", sql.Named("key", GlobalMetadataKey)).Scan(&meta).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		initialMeta := AppMetadata{Key: GlobalMetadataKey, LastUpdate: time.Now()}
+		initialMeta := AppMetadata{ConfigKey: GlobalMetadataKey, LastUpdate: time.Now()}
 		if creationErr := db.Create(&initialMeta).Error; creationErr != nil {
 			log.Printf("Warning: failed to create initial app metadata: %v", creationErr)
 		}
-	} else if err != nil {
+	} else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) { // Fehler nur loggen, wenn es nicht "nicht gefunden" ist
 		log.Printf("Warning: error checking app metadata: %v", err)
 	}
 }
-func (c *Core) ConfigureAndSaveDSN(host, portStr, dbname, user, password, encrypt string) error {
-	if host == "" || portStr == "" || dbname == "" || user == "" {
-		return errors.New("host, port, database name, and user are required fields")
-	}
-	if _, err := strconv.Atoi(portStr); err != nil {
-		return fmt.Errorf("invalid port number: %s", portStr)
-	}
-	if encrypt == "" {
-		encrypt = "disable"
-	} else if strings.ToLower(encrypt) != "true" && strings.ToLower(encrypt) != "false" && strings.ToLower(encrypt) != "disable" {
-		return errors.New("invalid encrypt option, must be true, false, or disable")
-	}
-	dsn := fmt.Sprintf("sqlserver://%s:%s@%s:%s?database=%s&encrypt=%s", user, password, host, portStr, dbname, encrypt)
-	exePath, err := os.Executable()
-	if err != nil {
-		return fmt.Errorf("could not get executable path to save .env file: %w", err)
-	}
-	envFilePath := filepath.Join(filepath.Dir(exePath), ".env")
-	file, err := os.OpenFile(envFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return fmt.Errorf("failed to open/create .env file at %s: %w", envFilePath, err)
-	}
-	defer file.Close()
-	writer := bufio.NewWriter(file)
-	_, err = writer.WriteString(fmt.Sprintf("MSSQL_DSN=\"%s\"\n", dsn))
-	if err != nil {
-		return fmt.Errorf("failed to write MSSQL_DSN to .env file: %w", err)
-	}
-	_, err = writer.WriteString(fmt.Sprintf("GORM_LOGGER_LEVEL=\"%s\"\n", "Info"))
-	if err != nil {
-		return fmt.Errorf("failed to write GORM_LOGGER_LEVEL to .env file: %w", err)
-	}
-	if err = writer.Flush(); err != nil {
-		return fmt.Errorf("failed to flush .env file writer: %w", err)
-	}
-	log.Printf(".env file successfully created/updated at: %s", envFilePath)
-	return nil
-}
-func (c *Core) GetPlatformSpecificUserName() string {
-	currentUser, err := user.Current()
-	if err != nil {
-		log.Printf("Warning: Could not get current OS user: %v. Returning empty string.", err)
-		return ""
-	}
-	username := currentUser.Username
-	if runtime.GOOS == "windows" {
-		if strings.Contains(username, "\\") {
-			parts := strings.Split(username, "\\")
-			if len(parts) > 1 {
-				return parts[len(parts)-1]
-			}
-		}
-	}
-	return username
-}
+
 func updateGlobalLastUpdateTimestampAndLogChange(tx *gorm.DB, entityID uuid.UUID, entityType string, operationType string, userID *string) error {
 	now := time.Now()
-	if err := tx.Model(&AppMetadata{}).Where("key = ?", GlobalMetadataKey).Update("last_update", now).Error; err != nil {
+	if err := tx.Model(&AppMetadata{}).Where("config_key = ?", GlobalMetadataKey).Update("last_update", now).Error; err != nil {
 		return fmt.Errorf("failed to update global timestamp: %w", err)
 	}
 	if operationType == OpTypeUpdate || operationType == OpTypeDelete || (operationType == OpTypeSystemEvent && entityType == "system") {
@@ -205,15 +154,25 @@ func updateGlobalLastUpdateTimestampAndLogChange(tx *gorm.DB, entityID uuid.UUID
 	}
 	return nil
 }
+
 func (c *Core) GetGlobalLastUpdateTimestamp() (string, error) {
 	if DB == nil {
 		return "", errors.New("DB not initialized")
 	}
 	var meta AppMetadata
-	if err := DB.First(&meta, "key = ?", GlobalMetadataKey).Error; err != nil {
+	// Verwende rohes SQL
+	err := DB.Raw("SELECT TOP 1 * FROM app_metadata WHERE config_key = @key", sql.Named("key", GlobalMetadataKey)).Scan(&meta).Error
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			nowTime := time.Now()
-			go DB.Create(&AppMetadata{Key: GlobalMetadataKey, LastUpdate: nowTime})
+			// Versuche, es im Hintergrund zu erstellen, falls es fehlt
+			go func() {
+				var tempMeta AppMetadata
+				// Erneute Prüfung vor dem Erstellen im Goroutine
+				if errCheck := DB.Raw("SELECT TOP 1 * FROM app_metadata WHERE config_key = @key_check", sql.Named("key_check", GlobalMetadataKey)).Scan(&tempMeta).Error; errors.Is(errCheck, gorm.ErrRecordNotFound) {
+					DB.Create(&AppMetadata{ConfigKey: GlobalMetadataKey, LastUpdate: nowTime})
+				}
+			}()
 			return nowTime.Format(time.RFC3339Nano), nil
 		}
 		return "", fmt.Errorf("failed to get global last update timestamp: %w", err)
@@ -302,14 +261,71 @@ func getModelInstance(entityTypeStr string) (interface{}, error) {
 		return &ToolHistory{}, nil
 	case "operationhistory":
 		return &OperationHistory{}, nil
+	case "appmetadata":
+		return &AppMetadata{}, nil
 	default:
 		return nil, fmt.Errorf("unknown entity type: %s", entityTypeStr)
 	}
-}
-
+} // AppMetadata hinzugefügt
 type HierarchyResponse struct {
 	Data                interface{} `json:"data"`
 	GlobalLastUpdatedAt string      `json:"globalLastUpdatedAt"`
+}
+
+func (c *Core) ConfigureAndSaveDSN(host, portStr, dbname, user, password, encrypt string) error {
+	if host == "" || portStr == "" || dbname == "" || user == "" {
+		return errors.New("host, port, database name, and user are required fields")
+	}
+	if _, err := strconv.Atoi(portStr); err != nil {
+		return fmt.Errorf("invalid port number: %s", portStr)
+	}
+	if encrypt == "" {
+		encrypt = "disable"
+	} else if strings.ToLower(encrypt) != "true" && strings.ToLower(encrypt) != "false" && strings.ToLower(encrypt) != "disable" {
+		return errors.New("invalid encrypt option, must be true, false, or disable")
+	}
+	dsn := fmt.Sprintf("sqlserver://%s:%s@%s:%s?database=%s&encrypt=%s", user, password, host, portStr, dbname, encrypt)
+	exePath, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("could not get executable path to save .env file: %w", err)
+	}
+	envFilePath := filepath.Join(filepath.Dir(exePath), ".env")
+	file, err := os.OpenFile(envFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		return fmt.Errorf("failed to open/create .env file at %s: %w", envFilePath, err)
+	}
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(fmt.Sprintf("MSSQL_DSN=\"%s\"\n", dsn))
+	if err != nil {
+		return fmt.Errorf("failed to write MSSQL_DSN to .env file: %w", err)
+	}
+	_, err = writer.WriteString(fmt.Sprintf("GORM_LOGGER_LEVEL=\"%s\"\n", "Info"))
+	if err != nil {
+		return fmt.Errorf("failed to write GORM_LOGGER_LEVEL to .env file: %w", err)
+	}
+	if err = writer.Flush(); err != nil {
+		return fmt.Errorf("failed to flush .env file writer: %w", err)
+	}
+	log.Printf(".env file successfully created/updated at: %s", envFilePath)
+	return nil
+}
+func (c *Core) GetPlatformSpecificUserName() string {
+	currentUser, err := user.Current()
+	if err != nil {
+		log.Printf("Warning: Could not get current OS user: %v. Returning empty string.", err)
+		return ""
+	}
+	username := currentUser.Username
+	if runtime.GOOS == "windows" {
+		if strings.Contains(username, "\\") {
+			parts := strings.Split(username, "\\")
+			if len(parts) > 1 {
+				return parts[len(parts)-1]
+			}
+		}
+	}
+	return username
 }
 
 func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStrIfApplicable string) (interface{}, error) {
@@ -321,7 +337,7 @@ func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStrIf
 	}
 	var parentID uuid.UUID
 	var err error
-	base := BaseModel{CreatedBy: strPtr(userName), UpdatedBy: strPtr(userName)}
+	base := BaseModel{CreatedBy: strPtr(userName), UpdatedBy: strPtr(userName)} // ID wird durch Hook gesetzt, Zeitstempel von DB
 	var entityToCreate interface{}
 	entityTypeNormalized := strings.ToLower(entityTypeStr)
 	switch entityTypeNormalized {
@@ -361,12 +377,28 @@ func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStrIf
 		if err := tx.Create(entityToCreate).Error; err != nil {
 			return fmt.Errorf("DB error creating %s: %w", entityTypeStr, err)
 		}
-		return tx.Model(&AppMetadata{}).Where("key = ?", GlobalMetadataKey).Update("last_update", time.Now()).Error
+		return tx.Model(&AppMetadata{}).Where("config_key = ?", GlobalMetadataKey).Update("last_update", time.Now()).Error
 	})
 	if err != nil {
 		return nil, err
 	}
-	return entityToCreate, nil
+	// Nach dem Erstellen neu laden, um von der DB gesetzte Defaults (ID, CreatedAt, UpdatedAt) zu erhalten
+	reloadInstance, _ := getModelInstance(entityTypeNormalized)
+	var reloadID uuid.UUID
+	switch e := entityToCreate.(type) {
+	case *Line:
+		reloadID = e.ID
+	case *Station:
+		reloadID = e.ID
+	case *Tool:
+		reloadID = e.ID
+	case *Operation:
+		reloadID = e.ID
+	}
+	if errReload := DB.First(reloadInstance, "id = ?", reloadID).Error; errReload != nil {
+		return nil, fmt.Errorf("error reloading entity after create: %w", errReload)
+	}
+	return reloadInstance, nil
 }
 
 func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, entityIDStr string, lastKnownUpdatedAtStr string, updatesMapStr map[string]string) (interface{}, error) {
@@ -390,52 +422,50 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 	modelToUpdate, err := getModelInstance(entityTypeStr)
 	if err != nil {
 		return nil, err
-	}
-	var finalModelInstance interface{}
+	} // modelToUpdate ist ein Zeiger
+
 	err = DB.Transaction(func(tx *gorm.DB) error {
-		result := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(modelToUpdate, "id = ?", entityID)
-		if result.Error != nil {
-			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		// Verwende rohes SQL für den initialen Lade- und Sperrvorgang
+		// Die `FOR UPDATE` Klausel von GORM `Clauses(clause.Locking{Strength: "UPDATE"})` ist hier nicht direkt
+		// mit `Raw().Scan()` kombinierbar, daher die Prüfung und das Update in separaten Schritten innerhalb der Transaktion.
+		// Wir laden zuerst, um den aktuellen Zeitstempel zu bekommen.
+		var currentDBUpdatedAt time.Time
+		rawSQL := fmt.Sprintf("SELECT TOP 1 updated_at FROM %s WHERE id = @id", strings.ToLower(entityTypeStr)+"s") // Plural für Tabellennamen
+		if errScan := tx.Raw(rawSQL, sql.Named("id", entityID)).Scan(lastKnownUpdatedAt).Error; errScan != nil {
+			if errors.Is(errScan, gorm.ErrRecordNotFound) {
 				return errors.New("record not found or already deleted")
 			}
-			return fmt.Errorf("error loading entity for update: %w", result.Error)
+			return fmt.Errorf("error loading entity's updated_at for update check: %w", errScan)
 		}
-		var currentDBUpdatedAt time.Time
-		switch m := modelToUpdate.(type) {
-		case *Line:
-			currentDBUpdatedAt = m.UpdatedAt
-		case *Station:
-			currentDBUpdatedAt = m.UpdatedAt
-		case *Tool:
-			currentDBUpdatedAt = m.UpdatedAt
-		case *Operation:
-			currentDBUpdatedAt = m.UpdatedAt
-		default:
-			return fmt.Errorf("unknown type for timestamp extraction: %T", m)
-		}
+
 		if !currentDBUpdatedAt.Truncate(time.Millisecond).Equal(lastKnownUpdatedAt.Truncate(time.Millisecond)) {
 			return errors.New("conflict: record was modified by another user")
 		}
+
 		gormUpdates := make(map[string]interface{})
 		for k, v := range updatesMapStr {
 			gormUpdates[k] = strPtr(v)
 		}
 		gormUpdates["updated_by"] = strPtr(userName)
-		gormUpdates["updated_at"] = time.Now()
-		if errUpdate := tx.Model(modelToUpdate).Updates(gormUpdates).Error; errUpdate != nil {
+		gormUpdates["updated_at"] = time.Now() // Setze den neuen Zeitstempel explizit
+
+		// Model(modelToUpdate) hier ist wichtig, damit GORM den Tabellennamen kennt.
+		// Da modelToUpdate ein leerer Zeiger ist, verwenden wir den Typ.
+		if errUpdate := tx.Model(modelToUpdate).Where("id = ?", entityID).Updates(gormUpdates).Error; errUpdate != nil {
 			return fmt.Errorf("error updating DB: %w", errUpdate)
 		}
-		tempModelInstance, _ := getModelInstance(entityTypeStr)
-		if errLoad := tx.First(tempModelInstance, "id = ?", entityID).Error; errLoad != nil {
-			return fmt.Errorf("error reloading entity after update: %w", errLoad)
-		}
-		finalModelInstance = tempModelInstance
+
 		return updateGlobalLastUpdateTimestampAndLogChange(tx, entityID, strings.ToLower(entityTypeStr), OpTypeUpdate, strPtr(userName))
 	})
 	if err != nil {
 		return nil, err
 	}
-	return finalModelInstance, nil
+	// Lade die Entität erneut, um die finalen Werte zurückzugeben
+	reloadedInstance, _ := getModelInstance(entityTypeStr)
+	if errReload := DB.First(reloadedInstance, "id = ?", entityID).Error; errReload != nil {
+		return nil, fmt.Errorf("error reloading entity after update: %w", errReload)
+	}
+	return reloadedInstance, nil
 }
 
 func (c *Core) GetEntityDetails(entityTypeStr string, entityIDStr string) (interface{}, error) {
@@ -450,7 +480,9 @@ func (c *Core) GetEntityDetails(entityTypeStr string, entityIDStr string) (inter
 	if err != nil {
 		return nil, err
 	}
-	if err := DB.First(modelInstance, "id = ?", entityID).Error; err != nil {
+	// Rohes SQL für SELECT TOP 1
+	rawSQL := fmt.Sprintf("SELECT TOP 1 * FROM %s WHERE id = @id", strings.ToLower(entityTypeStr)+"s")
+	if err := DB.Raw(rawSQL, sql.Named("id", entityID)).Scan(modelInstance).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("entity type %s with ID %s not found", entityTypeStr, entityIDStr)
 		}
@@ -471,14 +503,14 @@ func (c *Core) GetVersionedEntityDetails(versionIDStr string, entityTypeStr stri
 	if err != nil {
 		return nil, fmt.Errorf("invalid entityOriginalID: %w", err)
 	}
-
 	historyModelName := strings.ToLower(entityTypeStr) + "history"
 	historyInstance, err := getModelInstance(historyModelName)
 	if err != nil {
 		return nil, fmt.Errorf("could not get history model instance for %s: %w", entityTypeStr, err)
 	}
-
-	if err := DB.Where("version_id = ? AND id = ?", versionID, entityOriginalID).First(historyInstance).Error; err != nil {
+	// Rohes SQL für SELECT TOP 1 aus History
+	rawSQL := fmt.Sprintf("SELECT TOP 1 * FROM %s WHERE version_id = @versionID AND id = @entityOriginalID", historyModelName+"s") // Plural für Tabellenname
+	if err := DB.Raw(rawSQL, sql.Named("versionID", versionID), sql.Named("entityOriginalID", entityOriginalID)).Scan(historyInstance).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("%s with original ID %s in version %s not found", entityTypeStr, entityOriginalIDStr, versionIDStr)
 		}
@@ -508,7 +540,6 @@ func (c *Core) GetAllEntities(entityTypeStr string, parentIDStr_optional string)
 			return nil, errors.New("ParentID is required for non-line entities in GetAllEntities")
 		}
 	}
-
 	switch strings.ToLower(entityTypeStr) {
 	case "line":
 		var items []Line
@@ -563,7 +594,6 @@ func (c *Core) GetAllVersionedEntities(versionIDStr string, entityTypeStr string
 	}
 	var results []interface{}
 	query := DB.Model(historyInstance).Where("version_id = ?", versionID).Order("created_at asc")
-
 	if parentIDStr_optional != "" {
 		parentID, err := parseUUIDFromString(parentIDStr_optional)
 		if err != nil {
@@ -575,7 +605,6 @@ func (c *Core) GetAllVersionedEntities(versionIDStr string, entityTypeStr string
 			return nil, errors.New("ParentID is required for non-line entities in GetAllVersionedEntities unless fetching all lines of a version")
 		}
 	}
-
 	switch strings.ToLower(entityTypeStr) {
 	case "line":
 		var items []LineHistory
@@ -638,20 +667,20 @@ func internalGetEntityHierarchy(entityTypeStr string, entityIDStr string) (inter
 	if err != nil {
 		return nil, err
 	}
-	tx := DB
+	txDB := DB
 	switch strings.ToLower(entityTypeStr) {
 	case "line":
-		tx = tx.Preload("Stations.Tools.Operations")
+		txDB = txDB.Preload("Stations.Tools.Operations")
 	case "station":
-		tx = tx.Preload("Tools.Operations").Preload("Line")
+		txDB = txDB.Preload("Tools.Operations").Preload("Line")
 	case "tool":
-		tx = tx.Preload("Operations").Preload("Station.Line")
+		txDB = txDB.Preload("Operations").Preload("Station.Line")
 	case "operation":
-		tx = tx.Preload("Tool.Station.Line")
+		txDB = txDB.Preload("Tool.Station.Line")
 	default:
 		return nil, fmt.Errorf("hierarchical loading not defined for type: %s", entityTypeStr)
 	}
-	if err := tx.First(modelInstance, "id = ?", entityID).Error; err != nil {
+	if err := txDB.First(modelInstance, "id = ?", entityID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("entity type %s with ID %s not found for hierarchy", entityTypeStr, entityIDStr)
 		}
@@ -671,6 +700,7 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 	if err != nil {
 		return err
 	}
+
 	if err := DB.First(modelInstance, "id = ?", entityID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("no entity %s with ID %s found to delete", entityTypeStr, entityIDStr)
@@ -1146,7 +1176,7 @@ func (c *Core) ImportCopiedEntityHierarchyFromJSON(userName string, entityTypeSt
 			return fmt.Errorf("error reloading newly created top entity: %w", errLoad)
 		}
 		newTopEntity = reloadedTopEntity
-		return tx.Model(&AppMetadata{}).Where("key = ?", GlobalMetadataKey).Update("last_update", time.Now()).Error
+		return tx.Model(&AppMetadata{}).Where("config_key = ?", GlobalMetadataKey).Update("last_update", time.Now()).Error
 	})
 	if err != nil {
 		return nil, err

@@ -16,7 +16,8 @@
             "NameDialog Title" : "Name",
             "NameDialog Description" : "Edit name. Changes save automatically. Close the window to finish.",
             "LangDialog Title" : "Language",
-            "LangDialog Description" : "Choose language. Changes save automatically. Close the window to finish."
+            "LangDialog Description" : "Choose language. Changes save automatically. Close the window to finish.",
+            "Understood" : "Understood"
         }   
     },
 
@@ -37,7 +38,8 @@
             "NameDialog Title" : "Name",
             "NameDialog Description" : "Name bearbeiten. Änderungen werden automatisch übernommen. Schließe das Fenster zum beenden.",
             "LangDialog Title" : "Sprache",
-            "LangDialog Description" : "Wähle deine Sprache. Änderungen werden automatisch übernommen. Schließe das Fenster zum beenden."
+            "LangDialog Description" : "Wähle deine Sprache. Änderungen werden automatisch übernommen. Schließe das Fenster zum beenden.",
+            "Understood" : "Verstanden"
 
         }
     }

@@ -27,7 +27,7 @@ export function Menu() {
     localStorage.getItem("lang") == null
       ? i18n.changeLanguage("en")
       : i18n.changeLanguage(String(localStorage.getItem("lang")));
-  });
+  }, []);
 
   return (
     <DropdownMenu>
@@ -45,7 +45,7 @@ export function Menu() {
   );
 }
 
-export function UserDialog() {
+function UserDialog() {
   const { t } = useTranslation();
   const [name, setName] = useState<string | null>();
   useEffect(() => {
@@ -91,7 +91,7 @@ export function UserDialog() {
   );
 }
 
-export function LangDialog() {
+function LangDialog() {
   const { t, i18n } = useTranslation();
   const [lang, setLang] = useState<string | null>();
   useEffect(() => {

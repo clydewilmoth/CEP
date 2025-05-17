@@ -1,3 +1,5 @@
+import { EntityCollection } from "@/components/logic/EntityCollection";
+
 export default function Lines() {
-  return <></>;
+  return <EntityCollection entityType="line" parentId="" />;
 }

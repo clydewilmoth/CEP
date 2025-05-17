@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@radix-ui/react-context-menu':
+        specifier: ^2.2.14
+        version: 2.2.14(@types/react-dom@18.3.7(@types/react@18.3.21))(@types/react@18.3.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-dialog':
         specifier: ^1.1.13
         version: 1.1.13(@types/react-dom@18.3.7(@types/react@18.3.21))(@types/react@18.3.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -29,6 +32,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.6
         version: 1.2.6(@types/react-dom@18.3.7(@types/react@18.3.21))(@types/react@18.3.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tanstack/react-query':
+        specifier: ^5.76.1
+        version: 5.76.1(react@18.3.1)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -310,6 +316,19 @@ packages:
       react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
     peerDependenciesMeta:
       '@types/react':
+        optional: true
+
+  '@radix-ui/react-context-menu@2.2.14':
+    resolution: {integrity: sha512-RUHvrJE2qKAd9pQ50HZZsePio4SMWEh8v6FWQwg/4t6K1fuxfb4Ec40VEVvni6V7nFxmj9srU4UZc7aYp8x0LQ==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
         optional: true
 
   '@radix-ui/react-context@1.1.2':
@@ -626,6 +645,14 @@ packages:
 
   '@radix-ui/rect@1.1.1':
     resolution: {integrity: sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==}
+
+  '@tanstack/query-core@5.76.0':
+    resolution: {integrity: sha512-FN375hb8ctzfNAlex5gHI6+WDXTNpe0nbxp/d2YJtnP+IBM6OUm7zcaoCW6T63BawGOYZBbKC0iPvr41TteNVg==}
+
+  '@tanstack/react-query@5.76.1':
+    resolution: {integrity: sha512-YxdLZVGN4QkT5YT1HKZQWiIlcgauIXEIsMOTSjvyD5wLYK8YVvKZUPAysMqossFJJfDpJW3pFn7WNZuPOqq+fw==}
+    peerDependencies:
+      react: ^18 || ^19
 
   '@types/node@22.15.17':
     resolution: {integrity: sha512-wIX2aSZL5FE+MR0JlvF87BNVrtFWf6AE6rxSE9X7OwnVvoyCQjpzSRJ+M87se/4QCkCiebQAqrJ0y6fwIyi7nw==}
@@ -1693,6 +1720,20 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.21
 
+  '@radix-ui/react-context-menu@2.2.14(@types/react-dom@18.3.7(@types/react@18.3.21))(@types/react@18.3.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@radix-ui/primitive': 1.1.2
+      '@radix-ui/react-context': 1.1.2(@types/react@18.3.21)(react@18.3.1)
+      '@radix-ui/react-menu': 2.1.14(@types/react-dom@18.3.7(@types/react@18.3.21))(@types/react@18.3.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-primitive': 2.1.2(@types/react-dom@18.3.7(@types/react@18.3.21))(@types/react@18.3.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-use-callback-ref': 1.1.1(@types/react@18.3.21)(react@18.3.1)
+      '@radix-ui/react-use-controllable-state': 1.2.2(@types/react@18.3.21)(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    optionalDependencies:
+      '@types/react': 18.3.21
+      '@types/react-dom': 18.3.7(@types/react@18.3.21)
+
   '@radix-ui/react-context@1.1.2(@types/react@18.3.21)(react@18.3.1)':
     dependencies:
       react: 18.3.1
@@ -2016,6 +2057,13 @@ snapshots:
       '@types/react-dom': 18.3.7(@types/react@18.3.21)
 
   '@radix-ui/rect@1.1.1': {}
+
+  '@tanstack/query-core@5.76.0': {}
+
+  '@tanstack/react-query@5.76.1(react@18.3.1)':
+    dependencies:
+      '@tanstack/query-core': 5.76.0
+      react: 18.3.1
 
   '@types/node@22.15.17':
     dependencies:

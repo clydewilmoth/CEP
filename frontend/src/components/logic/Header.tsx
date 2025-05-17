@@ -5,7 +5,7 @@ import { useLocation } from "wouter";
 import { GetEntityDetails } from "../../../wailsjs/go/main/Core";
 import { Menu } from "./Menu";
 
-export default function Header() {
+export function Header() {
   const { t } = useTranslation();
   const [location] = useLocation();
   const [titles, setTitles] = useState<string[]>([]);
