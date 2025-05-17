@@ -5,7 +5,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu as Burger, FileDown, Globe, User } from "lucide-react";
+import {
+  Menu as Burger,
+  Database,
+  FileDown,
+  Globe,
+  User,
+  UserRound,
+} from "lucide-react";
 import {
   Dialog,
   DialogTrigger,
@@ -18,9 +25,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  CheckEnvInExeDir,
   GetPlatformSpecificUserName,
-  HandleExport,
   HandleImport,
+  ParseDSNFromEnv,
 } from "../../../wailsjs/go/main/Core";
 import { DialogHeader } from "../ui/dialog";
 import { Input } from "../ui/input";
@@ -38,7 +46,6 @@ import {
 } from "@/components/ui/form";
 import { ConfigureAndSaveDSN } from "../../../wailsjs/go/main/Core";
 
-import { Settings } from "lucide-react";
 import { useInit, useSignal } from "@/App";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -51,7 +58,7 @@ export function Menu() {
       : i18n.changeLanguage(String(localStorage.getItem("lang")));
   }, []);
 
-  const { dsnOpen, setDsnOpen } = useInit();
+  const { setDsnOpen } = useInit();
 
   return (
     <>
@@ -63,13 +70,13 @@ export function Menu() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-6">
-          <Button variant="ghost" size="icon" onClick={() => setDsnOpen(true)}>
-            <Settings />
-          </Button>
-          <DropdownMenuSeparator className="h-[0.05rem]" />
           <UserDialog />
           <DropdownMenuSeparator className="h-[0.05rem]" />
           <LangDialog />
+          <DropdownMenuSeparator className="h-[0.05rem]" />
+          <Button variant="ghost" size="icon" onClick={() => setDsnOpen(true)}>
+            <Database />
+          </Button>
           <DropdownMenuSeparator className="h-[0.05rem]" />
           <ImportDialog />
         </DropdownMenuContent>
@@ -100,7 +107,7 @@ function UserDialog() {
     >
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon">
-          <User />
+          <UserRound />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[300px]">
@@ -214,7 +221,7 @@ export function DSNDialog() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     ConfigureAndSaveDSN(
       values.Host,
       String(values.Port),
@@ -232,13 +239,37 @@ export function DSNDialog() {
   const { t } = useTranslation();
 
   const { dsnOpen, setDsnOpen } = useInit();
-  const { initSignal, increment } = useSignal();
+  const { increment } = useSignal();
+
+  useEffect(() => {
+    if (dsnOpen) {
+      (async () => {
+        try {
+          const env = await ParseDSNFromEnv();
+          if (env) {
+            form.reset({
+              Host: env.Host || "localhost",
+              Port: Number(env.Port) || 1433,
+              Database: env.Database || "db",
+              User: env.User || "sa",
+              Password: env.Password || "",
+              Encrypted: env.Encrypt === "true",
+              TrustServerCertificate: env.TrustServerCertificate === "true",
+            });
+          }
+        } catch (e) {
+          // Ignorieren, falls keine ENV vorhanden
+        }
+      })();
+    }
+    // eslint-disable-next-line
+  }, [dsnOpen]);
 
   return (
     <Dialog
       open={dsnOpen}
-      onOpenChange={() => {
-        setDsnOpen(dsnOpen && initSignal > 0 ? false : true);
+      onOpenChange={async () => {
+        setDsnOpen(dsnOpen && (await CheckEnvInExeDir()) ? false : true);
       }}
     >
       <DialogContent className="sm:max-w-[30rem]">

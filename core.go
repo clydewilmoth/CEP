@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
+	"net/url"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -36,19 +38,6 @@ func NewCore() *Core {
 
 func (c *Core) startup(ctx context.Context) {
 	c.ctx = ctx
-}
-
-func (c *Core) beforeClose(ctx context.Context) (prevent bool) {
-	dialog, err := ws.MessageDialog(ctx, ws.MessageDialogOptions{
-		Type:    ws.QuestionDialog,
-		Title:   "Quit?",
-		Message: "Are you sure you want to quit?",
-	})
-
-	if err != nil {
-		return false
-	}
-	return dialog != "Yes"
 }
 
 func (c *Core) HandleExport(entityType string, entityID string) string {
@@ -99,6 +88,44 @@ func (c *Core) CheckEnvInExeDir() bool {
 	envPath := filepath.Join(filepath.Dir(exePath), ".env")
 	_, err = os.Stat(envPath)
 	return err == nil
+}
+
+type DSNParams struct {
+	User                   string
+	Password               string
+	Host                   string
+	Port                   string
+	Database               string
+	Encrypt                string
+	TrustServerCertificate string
+}
+
+func (c *Core) ParseDSNFromEnv() (*DSNParams, error) {
+	dsn := os.Getenv("MSSQL_DSN")
+	if dsn == "" {
+		return nil, errors.New("MSSQL_DSN not set in environment")
+	}
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return nil, err
+	}
+	user := ""
+	pass := ""
+	if u.User != nil {
+		user = u.User.Username()
+		pass, _ = u.User.Password()
+	}
+	host, port, _ := net.SplitHostPort(u.Host)
+	q := u.Query()
+	return &DSNParams{
+		User:                   user,
+		Password:               pass,
+		Host:                   host,
+		Port:                   port,
+		Database:               q.Get("database"),
+		Encrypt:                q.Get("encrypt"),
+		TrustServerCertificate: q.Get("trustservercertificate"),
+	}, nil
 }
 
 func loadConfiguration() {
