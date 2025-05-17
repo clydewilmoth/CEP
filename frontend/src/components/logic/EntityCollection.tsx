@@ -109,21 +109,22 @@ function CreateEntityCard({
       entityType: string;
       parentId: string;
     }) => CreateEntity(name, entityType, parentId),
-    onSuccess: () => queryClient.invalidateQueries(),
+    onSuccess: () => (
+      queryClient.invalidateQueries(),
+      toast(`${t(entityType)} ${t("CreateToast")}`)
+    ),
   });
 
   return (
     <Card
       className="w-36 flex justify-center items-center hover:cursor-pointer hover:shadow-md transition-shadow"
-      onClick={() => (
+      onClick={() =>
         createEntity({
           name: String(localStorage.getItem("name")),
           entityType: entityType,
           parentId: parentId,
-        }),
-        console.log(parentId),
-        toast(`${t(entityType)} ${t("CreateToast")}`)
-      )}
+        })
+      }
     >
       <Button variant="ghost" size="icon" className="hover:bg-background">
         <Plus />
@@ -180,7 +181,7 @@ function EntityCard({
         <DeleteEntityDialog
           entityType={entityType}
           entityId={entityId}
-          onClick={() => setKey((k) => k + 1)}
+          onClose={() => setKey((k) => k + 1)}
         />
         <ContextMenuSeparator />
         <ExportEntityDialog
@@ -196,11 +197,11 @@ function EntityCard({
 function DeleteEntityDialog({
   entityType,
   entityId,
-  onClick,
+  onClose,
 }: {
   entityType: string;
   entityId: string;
-  onClick?: () => void;
+  onClose?: () => void;
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -215,14 +216,17 @@ function DeleteEntityDialog({
       entityType: string;
       entityId: string;
     }) => DeleteEntityByIDString(name, entityType, entityId),
-    onSuccess: () => queryClient.invalidateQueries(),
+    onSuccess: () => (
+      queryClient.invalidateQueries(),
+      toast(`${t(entityType)} ${t("DeleteToast")}`)
+    ),
   });
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog
       open={open}
-      onOpenChange={(open) => (setOpen(open), !open && onClick && onClick())}
+      onOpenChange={(open) => (setOpen(open), !open && onClose && onClose())}
     >
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon">
@@ -244,9 +248,8 @@ function DeleteEntityDialog({
               entityType: entityType,
               entityId: entityId,
             }),
-            toast(`${t(entityType)} ${t("DeleteToast")}`),
             setOpen(false),
-            onClick && onClick()
+            onClose && onClose()
           )}
         >
           {t("Confirm")}
@@ -265,11 +268,15 @@ function ExportEntityDialog({
   entityId: string;
   onClick?: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Button
       variant="ghost"
       size="icon"
-      onClick={() => (HandleExport(entityType, entityId), onClick && onClick())}
+      onClick={async () => (
+        toast(t(await HandleExport(entityType, entityId))), onClick && onClick()
+      )}
     >
       <FileUp />
     </Button>

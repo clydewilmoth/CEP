@@ -17,7 +17,11 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { GetPlatformSpecificUserName } from "../../../wailsjs/go/main/Core";
+import {
+  GetPlatformSpecificUserName,
+  HandleExport,
+  HandleImport,
+} from "../../../wailsjs/go/main/Core";
 import { DialogHeader } from "../ui/dialog";
 import { Input } from "../ui/input";
 
@@ -37,6 +41,7 @@ import { ConfigureAndSaveDSN } from "../../../wailsjs/go/main/Core";
 import { Settings } from "lucide-react";
 import { useInit, useSignal } from "@/App";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function Menu() {
   const { i18n } = useTranslation();
@@ -159,8 +164,17 @@ function LangDialog() {
 }
 
 function ImportDialog() {
+  const queryClient = useQueryClient();
+
+  const { mutateAsync: importEntity } = useMutation({
+    mutationFn: async () =>
+      toast(t(await HandleImport(String(localStorage.getItem("name"))))),
+    onSuccess: () => queryClient.invalidateQueries(),
+  });
+  const { t } = useTranslation();
+
   return (
-    <Button variant="ghost" size="icon">
+    <Button variant="ghost" size="icon" onClick={() => importEntity()}>
       <FileDown />
     </Button>
   );

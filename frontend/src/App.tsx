@@ -9,6 +9,8 @@ import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 const queryClient = new QueryClient();
 
@@ -16,11 +18,12 @@ function App() {
   const [initialised, setInitialised] = useState(false);
   const { setDsnOpen } = useInit();
   const { initSignal } = useSignal();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const init = async () => {
       (await CheckEnvInExeDir())
-        ? (await InitDB(), setInitialised(true), setDsnOpen(false))
+        ? (toast(t(await InitDB())), setInitialised(true), setDsnOpen(false))
         : setDsnOpen(true);
     };
 

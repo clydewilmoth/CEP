@@ -51,7 +51,7 @@ func (c *Core) beforeClose(ctx context.Context) (prevent bool) {
 	return dialog != "Yes"
 }
 
-func (c *Core) HandleExport(entityType string, entityID string) error {
+func (c *Core) HandleExport(entityType string, entityID string) string {
 	file, _ := ws.SaveFileDialog(c.ctx, ws.SaveDialogOptions{
 		DefaultFilename: fmt.Sprintf("%s_%s_export.json", entityType, entityID),
 		Title:           "Export",
@@ -60,10 +60,15 @@ func (c *Core) HandleExport(entityType string, entityID string) error {
 			{DisplayName: "*", Pattern: "*.*"},
 		},
 	})
-	return c.ExportEntityHierarchyToJSON(entityType, entityID, file)
+	err := c.ExportEntityHierarchyToJSON(entityType, entityID, file)
+	if err != nil {
+		return "ExportError"
+	} else {
+		return "ExportSuccess"
+	}
 }
 
-func (c *Core) HandleImport(user string) error {
+func (c *Core) HandleImport(user string) string {
 	file, _ := ws.OpenFileDialog(c.ctx, ws.OpenDialogOptions{
 		Title: "Import",
 		Filters: []ws.FileFilter{
@@ -71,7 +76,12 @@ func (c *Core) HandleImport(user string) error {
 			{DisplayName: "*", Pattern: "*.*"},
 		},
 	})
-	return c.ImportEntityHierarchyFromJSON_UseOriginalData(user, file)
+	err := c.ImportEntityHierarchyFromJSON_UseOriginalData(user, file)
+	if err != nil {
+		return "ImportError"
+	} else {
+		return "ImportSuccess"
+	}
 }
 
 var DB *gorm.DB
@@ -119,11 +129,11 @@ func loadConfiguration() {
 		log.Println("Successfully loaded .env file from current working directory.")
 	}
 }
-func (c *Core) InitDB() error {
+func (c *Core) InitDB() string {
 	loadConfiguration()
 	dsn := os.Getenv("MSSQL_DSN")
 	if dsn == "" {
-		return errors.New("MSSQL_DSN environment variable not set or .env file not found/readable")
+		return "InitError"
 	}
 	gormLogLevelStr := os.Getenv("GORM_LOGGER_LEVEL")
 	gormLogLevel := logger.Warn
@@ -138,15 +148,15 @@ func (c *Core) InitDB() error {
 	var err error
 	DB, err = gorm.Open(sqlserver.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(gormLogLevel)})
 	if err != nil {
-		return fmt.Errorf("failed to initialize MS SQL server DB using DSN from env: %w", err)
+		return "InitError"
 	}
 	err = DB.AutoMigrate(&Line{}, &Station{}, &Tool{}, &Operation{}, &Version{}, &LineHistory{}, &StationHistory{}, &ToolHistory{}, &OperationHistory{}, &AppMetadata{}, &EntityChangeLog{})
 	if err != nil {
-		return fmt.Errorf("failed to migrate MS SQL server DB: %w", err)
+		return "InitError"
 	}
 	ensureAppMetadataExists(DB)
 	log.Println("Successfully connected to and migrated MS SQL server DB.")
-	return nil
+	return "InitSuccess"
 }
 func ensureAppMetadataExists(db *gorm.DB) {
 	var meta AppMetadata
