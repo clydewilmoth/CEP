@@ -5,7 +5,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu as Burger, Globe, User } from "lucide-react";
+import { Menu as Burger, FileDown, Globe, User } from "lucide-react";
 import {
   Dialog,
   DialogTrigger,
@@ -38,8 +38,10 @@ export function Menu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-6">
         <UserDialog />
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator className="h-[0.05rem]" />
         <LangDialog />
+        <DropdownMenuSeparator className="h-[0.05rem]" />
+        <ImportDialog />
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -127,5 +129,13 @@ function LangDialog() {
         </RadioGroup>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ImportDialog() {
+  return (
+    <Button variant="ghost" size="icon">
+      <FileDown />
+    </Button>
   );
 }

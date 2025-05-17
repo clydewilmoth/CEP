@@ -8,6 +8,7 @@ import { ConfigureAndSaveDSN, InitDB } from "../wailsjs/go/main/Core";
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/sonner";
 
 const queryClient = new QueryClient();
 
@@ -24,10 +25,10 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex flex-col items-center justify-start w-full h-screen gap-10 p-10">
+      <div className="flex flex-col items-center justify-start w-full h-screen gap-10 p-12">
         <Header />
         {initialised && (
-          <div>
+          <div className="w-full">
             <Route path={"/"}>
               <Lines />
             </Route>
@@ -42,6 +43,7 @@ function App() {
             </Route>
           </div>
         )}
+        <Toaster />
       </div>
     </QueryClientProvider>
   );

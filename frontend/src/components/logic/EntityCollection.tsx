@@ -14,7 +14,7 @@ import {
 } from "../../../wailsjs/go/main/Core";
 import { useLocation } from "wouter";
 import { navigate } from "wouter/use-browser-location";
-import { Plus, Trash2 } from "lucide-react";
+import { Eye, FileUp, Plus, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { useTranslation } from "react-i18next";
 import {
@@ -29,10 +29,12 @@ import { useState } from "react";
 import {
   ContextMenu,
   ContextMenuContent,
-  ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "../ui/context-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "../ui/input";
+import { toast } from "sonner";
 
 export function EntityCollection({
   entityType,
@@ -41,23 +43,48 @@ export function EntityCollection({
   entityType: string;
   parentId: string;
 }) {
-  const { data: entities } = useQuery({
+  const {
+    data: entities,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["entities", entityType, parentId],
     queryFn: () => GetAllEntities(entityType, String(parentId)),
   });
+  const { t } = useTranslation();
+  const [filter, setFilter] = useState("");
 
   return (
-    <div className="flex flex-wrap gap-7">
-      {entities?.map((entity, index) => (
-        <EntityCard
-          entityType={entityType}
-          entityId={entity.ID}
-          entityName={entity.Name}
-          entityDescription={entity.Description}
-          key={index}
+    <div className="flex flex-col gap-7 w-full">
+      <div className="flex items-start w-full justify-center">
+        <Input
+          className="w-64"
+          type="text"
+          placeholder={t("Search")}
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
         />
-      ))}
-      <CreateEntityCard entityType={entityType} parentId={parentId} />
+      </div>
+
+      <div className="flex flex-wrap gap-7">
+        {isLoading
+          ? Array.from({ length: 10 }).map((_, index) => (
+              <Skeleton className="w-1/2 h-24 rounded-xl" key={index} />
+            ))
+          : entities?.map(
+              (entity, index) =>
+                StringNullToBlank(entity.Name).includes(filter) && (
+                  <EntityCard
+                    entityType={entityType}
+                    entityId={entity.ID}
+                    entityName={entity.Name}
+                    entityDescription={entity.Description}
+                    key={index}
+                  />
+                )
+            )}
+        <CreateEntityCard entityType={entityType} parentId={parentId} />
+      </div>
     </div>
   );
 }
@@ -70,6 +97,7 @@ function CreateEntityCard({
   parentId: string;
 }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const { mutateAsync: createEntity } = useMutation({
     mutationFn: ({
@@ -87,13 +115,14 @@ function CreateEntityCard({
   return (
     <Card
       className="w-36 flex justify-center items-center hover:cursor-pointer hover:shadow-md transition-shadow"
-      onClick={() =>
+      onClick={() => (
         createEntity({
           name: String(localStorage.getItem("name")),
           entityType: entityType,
           parentId: parentId,
-        })
-      }
+        }),
+        toast(`${t(entityType)} ${t("CreateToast")}`)
+      )}
     >
       <Button variant="ghost" size="icon" className="hover:bg-background">
         <Plus />
@@ -114,9 +143,10 @@ function EntityCard({
   entityDescription: string;
 }) {
   const location = useLocation();
+  const [key, setKey] = useState(0);
 
   return (
-    <ContextMenu>
+    <ContextMenu key={key}>
       <ContextMenuTrigger>
         <TooltipProvider>
           <Tooltip>
@@ -129,22 +159,30 @@ function EntityCard({
               >
                 <CardTitle className="break-words w-full max-w-full text-center">
                   {entityName}
-                  Test{" "}
                 </CardTitle>
               </Card>
             </TooltipTrigger>
-            <TooltipContent>{entityDescription}</TooltipContent>
+            {typeof entityDescription == "string" &&
+              entityDescription != "" && (
+                <TooltipContent>{entityDescription}</TooltipContent>
+              )}
           </Tooltip>
         </TooltipProvider>
       </ContextMenuTrigger>
       <ContextMenuContent className="min-w-0">
-        <ContextMenuItem onSelect={(e) => e.preventDefault()}>
-          <DeleteEntityDialog entityType={entityType} entityId={entityId} />
-        </ContextMenuItem>
+        <Button variant="ghost" size="icon">
+          <Eye />
+        </Button>
         <ContextMenuSeparator />
-        <ContextMenuItem>1</ContextMenuItem>
+        <DeleteEntityDialog
+          entityType={entityType}
+          entityId={entityId}
+          onClose={() => setKey((k) => k + 1)}
+        />
         <ContextMenuSeparator />
-        <ContextMenuItem>2</ContextMenuItem>
+        <Button variant="ghost" size="icon">
+          <FileUp />
+        </Button>
       </ContextMenuContent>
     </ContextMenu>
   );
@@ -153,9 +191,11 @@ function EntityCard({
 function DeleteEntityDialog({
   entityType,
   entityId,
+  onClose,
 }: {
   entityType: string;
   entityId: string;
+  onClose?: () => void;
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -172,9 +212,10 @@ function DeleteEntityDialog({
     }) => DeleteEntityByIDString(name, entityType, entityId),
     onSuccess: () => queryClient.invalidateQueries(),
   });
+  const [open, setOpen] = useState(false);
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon">
           <Trash2 />
@@ -183,21 +224,30 @@ function DeleteEntityDialog({
       <DialogContent className="sm:max-w-[300px]">
         <DialogHeader>
           <DialogTitle>{t("DeleteDialog Title")}</DialogTitle>
-          <DialogDescription>{t("DeleteDialog Description")}</DialogDescription>
+          <DialogDescription>{`${t("DeleteDialog Description1")} ${t(
+            entityType
+          )}${t("DeleteDialog Description2")}`}</DialogDescription>
         </DialogHeader>
         <Button
           variant="outline"
-          onClick={() =>
+          onClick={() => (
             deleteEntity({
               name: String(localStorage.getItem("name")),
               entityType: entityType,
               entityId: entityId,
-            })
-          }
+            }),
+            toast(`${t(entityType)} ${t("DeleteToast")}`),
+            setOpen(false),
+            onClose && onClose()
+          )}
         >
-          {t("Understood")}
+          {t("Confirm")}
         </Button>
       </DialogContent>
     </Dialog>
   );
+}
+
+export function StringNullToBlank(value: string) {
+  return value ? String(value) : "";
 }
