@@ -121,7 +121,7 @@ function UserDialog() {
 
 function LangDialog() {
   const { t, i18n } = useTranslation();
-  const [lang, setLang] = useState<string | null>();
+  const [lang, setLang] = useState<string | null>(localStorage.getItem("lang"));
   useEffect(() => {
     setLang(localStorage.getItem("lang"));
   }, []);

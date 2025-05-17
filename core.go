@@ -51,6 +51,29 @@ func (c *Core) beforeClose(ctx context.Context) (prevent bool) {
 	return dialog != "Yes"
 }
 
+func (c *Core) HandleExport(entityType string, entityID string) error {
+	file, _ := ws.SaveFileDialog(c.ctx, ws.SaveDialogOptions{
+		DefaultFilename: fmt.Sprintf("%s_%s_export.json", entityType, entityID),
+		Title:           "Export",
+		Filters: []ws.FileFilter{
+			{DisplayName: "JSON", Pattern: "*.json"},
+			{DisplayName: "*", Pattern: "*.*"},
+		},
+	})
+	return c.ExportEntityHierarchyToJSON(entityType, entityID, file)
+}
+
+func (c *Core) HandleImport(user string) error {
+	file, _ := ws.OpenFileDialog(c.ctx, ws.OpenDialogOptions{
+		Title: "Import",
+		Filters: []ws.FileFilter{
+			{DisplayName: "JSON", Pattern: "*.json"},
+			{DisplayName: "*", Pattern: "*.*"},
+		},
+	})
+	return c.ImportEntityHierarchyFromJSON_UseOriginalData(user, file)
+}
+
 var DB *gorm.DB
 
 const GlobalMetadataKey = "global_state"

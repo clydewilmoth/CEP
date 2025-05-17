@@ -11,6 +11,8 @@ import {
   GetAllEntities,
   CreateEntity,
   DeleteEntityByIDString,
+  ExportEntityHierarchyToJSON,
+  HandleExport,
 } from "../../../wailsjs/go/main/Core";
 import { navigate } from "wouter/use-browser-location";
 import { Eye, FileUp, Plus, Trash2 } from "lucide-react";
@@ -33,7 +35,7 @@ import {
 } from "../ui/context-menu";
 import { Input } from "../ui/input";
 import { toast } from "sonner";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 
 export function EntityCollection({
   entityType,
@@ -144,7 +146,7 @@ function EntityCard({
   link: string;
 }) {
   const [key, setKey] = useState(0);
-  const [location, navigate] = useLocation();
+  const [_, navigate] = useLocation();
 
   return (
     <ContextMenu key={key}>
@@ -178,12 +180,14 @@ function EntityCard({
         <DeleteEntityDialog
           entityType={entityType}
           entityId={entityId}
-          onClose={() => setKey((k) => k + 1)}
+          onClick={() => setKey((k) => k + 1)}
         />
         <ContextMenuSeparator />
-        <Button variant="ghost" size="icon">
-          <FileUp />
-        </Button>
+        <ExportEntityDialog
+          entityType={entityType}
+          entityId={entityId}
+          onClick={() => setKey((k) => k + 1)}
+        />
       </ContextMenuContent>
     </ContextMenu>
   );
@@ -192,11 +196,11 @@ function EntityCard({
 function DeleteEntityDialog({
   entityType,
   entityId,
-  onClose,
+  onClick,
 }: {
   entityType: string;
   entityId: string;
-  onClose?: () => void;
+  onClick?: () => void;
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -216,7 +220,10 @@ function DeleteEntityDialog({
   const [open, setOpen] = useState(false);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(open) => (setOpen(open), !open && onClick && onClick())}
+    >
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon">
           <Trash2 />
@@ -239,13 +246,33 @@ function DeleteEntityDialog({
             }),
             toast(`${t(entityType)} ${t("DeleteToast")}`),
             setOpen(false),
-            onClose && onClose()
+            onClick && onClick()
           )}
         >
           {t("Confirm")}
         </Button>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ExportEntityDialog({
+  entityType,
+  entityId,
+  onClick,
+}: {
+  entityType: string;
+  entityId: string;
+  onClick?: () => void;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => (HandleExport(entityType, entityId), onClick && onClick())}
+    >
+      <FileUp />
+    </Button>
   );
 }
 
