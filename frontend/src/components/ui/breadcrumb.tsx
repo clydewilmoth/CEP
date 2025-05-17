@@ -159,7 +159,7 @@ export function BreadcrumbWithSeparator({
               <BreadcrumbItem>
                 {isLast ? (
                   <BreadcrumbPage className="text-foreground text-xl font-bold">
-                    {title}
+                    {t(title)}
                   </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>

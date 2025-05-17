@@ -12,7 +12,6 @@ import {
   CreateEntity,
   DeleteEntityByIDString,
 } from "../../../wailsjs/go/main/Core";
-import { useLocation } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import { Eye, FileUp, Plus, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
@@ -32,16 +31,18 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "../ui/context-menu";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "../ui/input";
 import { toast } from "sonner";
+import { Link, useLocation } from "wouter";
 
 export function EntityCollection({
   entityType,
   parentId,
+  link,
 }: {
   entityType: string;
   parentId: string;
+  link: string;
 }) {
   const {
     data: entities,
@@ -67,22 +68,19 @@ export function EntityCollection({
       </div>
 
       <div className="flex flex-wrap gap-7">
-        {isLoading
-          ? Array.from({ length: 10 }).map((_, index) => (
-              <Skeleton className="w-1/2 h-24 rounded-xl" key={index} />
-            ))
-          : entities?.map(
-              (entity, index) =>
-                StringNullToBlank(entity.Name).includes(filter) && (
-                  <EntityCard
-                    entityType={entityType}
-                    entityId={entity.ID}
-                    entityName={entity.Name}
-                    entityDescription={entity.Description}
-                    key={index}
-                  />
-                )
-            )}
+        {entities?.map(
+          (entity, index) =>
+            StringNullToBlank(entity.Name).includes(filter) && (
+              <EntityCard
+                entityType={entityType}
+                entityId={entity.ID}
+                entityName={entity.Name}
+                entityDescription={entity.Description}
+                link={link}
+                key={index}
+              />
+            )
+        )}
         <CreateEntityCard entityType={entityType} parentId={parentId} />
       </div>
     </div>
@@ -121,6 +119,7 @@ function CreateEntityCard({
           entityType: entityType,
           parentId: parentId,
         }),
+        console.log(parentId),
         toast(`${t(entityType)} ${t("CreateToast")}`)
       )}
     >
@@ -136,14 +135,16 @@ function EntityCard({
   entityId,
   entityName,
   entityDescription,
+  link,
 }: {
   entityType: string;
   entityId: string;
   entityName: string;
   entityDescription: string;
+  link: string;
 }) {
-  const location = useLocation();
   const [key, setKey] = useState(0);
+  const [location, navigate] = useLocation();
 
   return (
     <ContextMenu key={key}>
@@ -152,10 +153,10 @@ function EntityCard({
           <Tooltip>
             <TooltipTrigger asChild>
               <Card
-                className="w-36 hover:cursor-pointer hover:shadow-md transition-shadow h-fit flex flex-col justify-center items-center px-5 py-1 gap-2"
                 onClick={() => {
-                  navigate(`${location}${entityType}/${entityId}`);
+                  link != "" && navigate(`${link}${entityId}`);
                 }}
+                className="w-36 hover:cursor-pointer hover:shadow-md transition-shadow h-fit flex flex-col justify-center items-center px-5 py-1 gap-2"
               >
                 <CardTitle className="break-words w-full max-w-full text-center">
                   {entityName}

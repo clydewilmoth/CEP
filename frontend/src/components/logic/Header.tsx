@@ -6,7 +6,7 @@ import { GetEntityDetails } from "../../../wailsjs/go/main/Core";
 import { Menu } from "./Menu";
 
 export function Header() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [location] = useLocation();
   const [titles, setTitles] = useState<string[]>([]);
   const [links, setLinks] = useState<string[]>([]);
@@ -65,17 +65,6 @@ export function Header() {
         else if (link?.includes("/station/")) entityType = "station";
         else if (link?.includes("/line/")) entityType = "line";
 
-        const typeLabel =
-          entityType === "line"
-            ? "Linie"
-            : entityType === "station"
-            ? "Station"
-            : entityType === "tool"
-            ? "Tool"
-            : entityType === "operation"
-            ? "Operation"
-            : entityType;
-
         if (
           id &&
           (id.match(/^\d+$/) || id.match(/^[a-f0-9-]{24,}$/i)) &&
@@ -83,12 +72,12 @@ export function Header() {
         ) {
           try {
             const entity = await GetEntityDetails(entityType, id.trim());
-            names.push(`${typeLabel} ${entity?.Name ?? ""}`);
+            names.push(`${t(entityType)} ${entity?.Name ?? ""}`);
           } catch {
-            names.push(`${typeLabel}`);
+            names.push(`${t(entityType)}`);
           }
         } else {
-          names.push(`${typeLabel}`);
+          names.push(`${t(entityType)}`);
         }
       }
       if (isMounted) setDisplayNames(names);
@@ -101,7 +90,7 @@ export function Header() {
     return () => {
       isMounted = false;
     };
-  }, [titles, links]);
+  }, [titles, links, i18n.language]);
 
   return (
     <div className="text-black  w-full flex flex-col items-center justify-start gap-5">
