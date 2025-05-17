@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@hookform/resolvers':
+        specifier: ^5.0.1
+        version: 5.0.1(react-hook-form@7.56.4(react@18.3.1))
       '@radix-ui/react-context-menu':
         specifier: ^2.2.14
         version: 2.2.14(@types/react-dom@18.3.7(@types/react@18.3.21))(@types/react@18.3.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -56,6 +59,9 @@ importers:
       react-dom:
         specifier: ^18.2.0
         version: 18.3.1(react@18.3.1)
+      react-hook-form:
+        specifier: ^7.56.4
+        version: 7.56.4(react@18.3.1)
       react-i18next:
         specifier: ^15.5.1
         version: 15.5.1(i18next@25.1.2(typescript@5.8.3))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.8.3)
@@ -71,6 +77,9 @@ importers:
       wouter:
         specifier: ^3.7.0
         version: 3.7.0(react@18.3.1)
+      zod:
+        specifier: ^3.24.4
+        version: 3.24.4
       zustand:
         specifier: ^5.0.4
         version: 5.0.4(@types/react@18.3.21)(react@18.3.1)(use-sync-external-store@1.5.0(react@18.3.1))
@@ -244,6 +253,11 @@ packages:
 
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
+
+  '@hookform/resolvers@5.0.1':
+    resolution: {integrity: sha512-u/+Jp83luQNx9AdyW2fIPGY6Y7NG68eN2ZW8FOJYL+M0i4s49+refdJdOp/A9n9HFQtQs3HIDHQvX3ZET2o7YA==}
+    peerDependencies:
+      react-hook-form: ^7.55.0
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -651,6 +665,9 @@ packages:
 
   '@radix-ui/rect@1.1.1':
     resolution: {integrity: sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==}
+
+  '@standard-schema/utils@0.3.0':
+    resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
   '@tanstack/query-core@5.76.0':
     resolution: {integrity: sha512-FN375hb8ctzfNAlex5gHI6+WDXTNpe0nbxp/d2YJtnP+IBM6OUm7zcaoCW6T63BawGOYZBbKC0iPvr41TteNVg==}
@@ -1210,6 +1227,12 @@ packages:
     peerDependencies:
       react: ^18.3.1
 
+  react-hook-form@7.56.4:
+    resolution: {integrity: sha512-Rob7Ftz2vyZ/ZGsQZPaRdIefkgOSrQSPXfqBdvOPwJfoGnjwRJUs7EM7Kc1mcoDv3NOtqBzPGbcMB8CGn9CKgw==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18 || ^19
+
   react-i18next@15.5.1:
     resolution: {integrity: sha512-C8RZ7N7H0L+flitiX6ASjq9p5puVJU1Z8VyL3OgM/QOMRf40BMZX+5TkpxzZVcTmOLPX5zlti4InEX5pFyiVeA==}
     peerDependencies:
@@ -1477,6 +1500,9 @@ packages:
     engines: {node: '>= 14'}
     hasBin: true
 
+  zod@3.24.4:
+    resolution: {integrity: sha512-OdqJE9UDRPwWsrHjLN2F8bPxvwJBK22EHLWtanu0LSYr5YqzsaaW3RMgmjwr8Rypg5k+meEJdSPXJZXE/yqOMg==}
+
   zustand@5.0.4:
     resolution: {integrity: sha512-39VFTN5InDtMd28ZhjLyuTnlytDr9HfwO512Ai4I8ZABCoyAj4F1+sr7sD1jP/+p7k77Iko0Pb5NhgBFDCX0kQ==}
     engines: {node: '>=12.20.0'}
@@ -1665,6 +1691,11 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
 
   '@floating-ui/utils@0.2.9': {}
+
+  '@hookform/resolvers@5.0.1(react-hook-form@7.56.4(react@18.3.1))':
+    dependencies:
+      '@standard-schema/utils': 0.3.0
+      react-hook-form: 7.56.4(react@18.3.1)
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -2075,6 +2106,8 @@ snapshots:
       '@types/react-dom': 18.3.7(@types/react@18.3.21)
 
   '@radix-ui/rect@1.1.1': {}
+
+  '@standard-schema/utils@0.3.0': {}
 
   '@tanstack/query-core@5.76.0': {}
 
@@ -2535,6 +2568,10 @@ snapshots:
       react: 18.3.1
       scheduler: 0.23.2
 
+  react-hook-form@7.56.4(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+
   react-i18next@15.5.1(i18next@25.1.2(typescript@5.8.3))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.8.3):
     dependencies:
       '@babel/runtime': 7.27.1
@@ -2777,6 +2814,8 @@ snapshots:
   yallist@3.1.1: {}
 
   yaml@2.7.1: {}
+
+  zod@3.24.4: {}
 
   zustand@5.0.4(@types/react@18.3.21)(react@18.3.1)(use-sync-external-store@1.5.0(react@18.3.1)):
     optionalDependencies:

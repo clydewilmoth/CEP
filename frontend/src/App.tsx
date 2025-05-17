@@ -4,7 +4,7 @@ import Stations from "./pages/Stations";
 import Tools from "./pages/Tools";
 import Operations from "./pages/Operations";
 import { Header } from "./components/logic/Header";
-import { ConfigureAndSaveDSN, InitDB } from "../wailsjs/go/main/Core";
+import { CheckEnvInExeDir, InitDB } from "../wailsjs/go/main/Core";
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -14,14 +14,18 @@ const queryClient = new QueryClient();
 
 function App() {
   const [initialised, setInitialised] = useState(false);
+  const { setDsnOpen } = useInit();
+  const { initSignal } = useSignal();
 
   useEffect(() => {
     const init = async () => {
-      await InitDB();
-      setInitialised(true);
+      (await CheckEnvInExeDir())
+        ? (await InitDB(), setInitialised(true), setDsnOpen(false))
+        : setDsnOpen(true);
     };
+
     init();
-  }, []);
+  }, [initSignal]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -49,12 +53,20 @@ function App() {
   );
 }
 
-export const useContext = create<{
-  context: number;
-  increase: () => void;
+export const useInit = create<{
+  dsnOpen: boolean;
+  setDsnOpen: (open: boolean) => void;
 }>((set) => ({
-  context: 0,
-  increase: () => set((state) => ({ context: state.context + 1 })),
+  dsnOpen: false,
+  setDsnOpen: (open) => set({ dsnOpen: open }),
+}));
+
+export const useSignal = create<{
+  initSignal: number;
+  increment: () => void;
+}>((set) => ({
+  initSignal: 0,
+  increment: () => set((state) => ({ initSignal: state.initSignal + 1 })),
 }));
 
 export default App;

@@ -23,8 +23,8 @@
             "DeleteDialog Description1" : "You are about to permanently delete this",
             "DeleteDialog Description2" : ". If you are aware of the consequences, you may proceed by pressing the button below.",
             "CreateToast" : "was created succesfully.",
-            "DeleteToast" : "was deleted succesfully."  
-        }   
+            "DeleteToast" : "was deleted succesfully.",
+            "DSNDialog Toast" : "Env file was created successfully. In order to apply changes you may need to restart the application."        }   
     },
 
     "de": {
@@ -51,7 +51,8 @@
             "DeleteDialog Description1" : "Du bist im Begriff, diese/s",
             "DeleteDialog Description2" : " dauerhaft zu löschen. Wenn dir die Folgen bewusst sind, kannst du jetzt fortfahren, durch betätigen der unteren Schaltfläche.",
             "CreateToast" : "wurde erfolgreich erstellt.",
-            "DeleteToast" : "wurde erfolgreich gelöscht."  
+            "DeleteToast" : "wurde erfolgreich gelöscht.",
+            "DSNDialog Toast" : "Env Datei wurde erfolgreich angelegt. Um die Änderungen zu übernehmen musst du ggf. die Anwendung neustarten."  
 
         }
     }

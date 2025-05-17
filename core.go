@@ -58,6 +58,16 @@ const OpTypeUpdate = "UPDATE"
 const OpTypeDelete = "DELETE"
 const OpTypeSystemEvent = "SYSTEM_EVENT"
 
+func (c *Core) CheckEnvInExeDir() bool {
+	exePath, err := os.Executable()
+	if err != nil {
+		return false
+	}
+	envPath := filepath.Join(filepath.Dir(exePath), ".env")
+	_, err = os.Stat(envPath)
+	return err == nil
+}
+
 func loadConfiguration() {
 	exePath, err := os.Executable()
 	if err == nil {
@@ -127,19 +137,31 @@ func ensureAppMetadataExists(db *gorm.DB) {
 		log.Printf("Warning: error checking app metadata: %v", err)
 	}
 }
-func (c *Core) ConfigureAndSaveDSN(host, portStr, dbname, user, password, encrypt string) error {
+func (c *Core) ConfigureAndSaveDSN(host, portStr, dbname, user, password, encrypt, trustServerCertificate string) error {
 	if host == "" || portStr == "" || dbname == "" || user == "" {
 		return errors.New("host, port, database name, and user are required fields")
 	}
 	if _, err := strconv.Atoi(portStr); err != nil {
 		return fmt.Errorf("invalid port number: %s", portStr)
 	}
-	if encrypt == "" {
-		encrypt = "disable"
-	} else if strings.ToLower(encrypt) != "true" && strings.ToLower(encrypt) != "false" && strings.ToLower(encrypt) != "disable" {
+	encryptLower := strings.ToLower(encrypt)
+	if encryptLower == "" {
+		encryptLower = "disable"
+	} else if encryptLower != "true" && encryptLower != "false" && encryptLower != "disable" {
 		return errors.New("invalid encrypt option, must be true, false, or disable")
 	}
-	dsn := fmt.Sprintf("sqlserver://%s:%s@%s:%s?database=%s&encrypt=%s", user, password, host, portStr, dbname, encrypt)
+
+	trustLower := strings.ToLower(trustServerCertificate)
+	trustParam := ""
+	if trustLower == "true" {
+		trustParam = "&trustservercertificate=true"
+	}
+
+	dsn := fmt.Sprintf(
+		"sqlserver://%s:%s@%s:%s?database=%s&encrypt=%s%s",
+		user, password, host, portStr, dbname, encryptLower, trustParam,
+	)
+
 	exePath, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("could not get executable path to save .env file: %w", err)
@@ -151,13 +173,9 @@ func (c *Core) ConfigureAndSaveDSN(host, portStr, dbname, user, password, encryp
 	}
 	defer file.Close()
 	writer := bufio.NewWriter(file)
-	_, err = writer.WriteString(fmt.Sprintf("MSSQL_DSN=\"%s\"\n", dsn))
+	_, err = writer.WriteString(fmt.Sprintf("MSSQL_DSN=%s\n", dsn))
 	if err != nil {
 		return fmt.Errorf("failed to write MSSQL_DSN to .env file: %w", err)
-	}
-	_, err = writer.WriteString(fmt.Sprintf("GORM_LOGGER_LEVEL=\"%s\"\n", "Info"))
-	if err != nil {
-		return fmt.Errorf("failed to write GORM_LOGGER_LEVEL to .env file: %w", err)
 	}
 	if err = writer.Flush(); err != nil {
 		return fmt.Errorf("failed to flush .env file writer: %w", err)
