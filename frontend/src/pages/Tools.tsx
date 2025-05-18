@@ -1,23 +1,15 @@
+import { EntityCollection } from "@/components/logic/EntityCollection";
 import { useParams } from "wouter";
-import EntityCollection from "@/components/logic/EntityCollection";
 
-export default function Tools({
-  context,
-  updateContext,
-}: {
-  context?: number;
-  updateContext?: () => void;
-}) {
+export default function Tools() {
   const params = useParams<{ luuid: string; suuid: string }>();
   const { luuid, suuid } = params;
 
   return (
     <EntityCollection
-      entity="tool"
-      parentID={suuid}
+      entityType="tool"
+      parentId={suuid}
       link={`/line/${luuid}/station/${suuid}/tool/`}
-      context={context}
-      updateContext={updateContext}
     />
   );
 }

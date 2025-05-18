@@ -116,7 +116,7 @@ export {
   BreadcrumbEllipsis,
 };
 
-export function BreadcrumbWithCustomSeparator({
+export function BreadcrumbWithSeparator({
   titles,
   links,
 }: React.PropsWithChildren<{ titles: string[]; links: string[] }>) {
@@ -159,7 +159,7 @@ export function BreadcrumbWithCustomSeparator({
               <BreadcrumbItem>
                 {isLast ? (
                   <BreadcrumbPage className="text-foreground text-xl font-bold">
-                    {title}
+                    {t(title)}
                   </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>

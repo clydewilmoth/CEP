@@ -10,9 +10,27 @@
             "stations" : "Stations",
             "tools" : "Tools",
             "operations" : "Operations",
-             "language" : "Language Selection",
-             "user" : "Username",
-             "userAlert" : "One character required!"
+            "language" : "Language Selection",
+            "user" : "Username",
+            "userAlert" : "One character required!",
+            "NameDialog Title" : "Name",
+            "NameDialog Description" : "Edit name. Changes save automatically. Close the window to finish.",
+            "LangDialog Title" : "Language",
+            "LangDialog Description" : "Choose language. Changes save automatically. Close the window to finish.",
+            "Confirm" : "Confirm",
+            "Search" : "Search",
+            "DeleteDialog Title" : "Delete",
+            "DeleteDialog Description1" : "You are about to permanently delete this",
+            "DeleteDialog Description2" : ". If you are aware of the consequences, you may proceed by pressing the button below.",
+            "CreateToast" : "was created succesfully.",
+            "DeleteToast" : "was deleted succesfully.",
+            "DSNDialog Toast" : "Env file was created successfully. In order to apply changes you may need to restart the application.",
+            "InitSuccess" : "Database connection established successfully.",
+            "InitError" : "Failed to establish database connection.",
+            "ImportSuccess": "Import completed successfully.",
+            "ImportError": "Import failed.",
+            "ExportSuccess": "Export completed successfully.",
+            "ExportError": "Export failed."
         }   
     },
 
@@ -29,7 +47,26 @@
             "operations" : "Operationen",
             "language" : "Sprachauswahl",
             "user" : "Nutzername",
-            "userAlert" : "Ein Zeichen erforderlich!"
+            "userAlert" : "Ein Zeichen erforderlich!",
+            "NameDialog Title" : "Name",
+            "NameDialog Description" : "Name bearbeiten. Änderungen werden automatisch übernommen. Schließe das Fenster zum beenden.",
+            "LangDialog Title" : "Sprache",
+            "LangDialog Description" : "Wähle deine Sprache. Änderungen werden automatisch übernommen. Schließe das Fenster zum beenden.",
+            "Confirm" : "Bestätigen",
+            "Search" : "Suche",
+            "DeleteDialog Title" : "Löschen",
+            "DeleteDialog Description1" : "Du bist im Begriff, diese/s",
+            "DeleteDialog Description2" : " dauerhaft zu löschen. Wenn dir die Folgen bewusst sind, kannst du jetzt fortfahren, durch betätigen der unteren Schaltfläche.",
+            "CreateToast" : "wurde erfolgreich erstellt.",
+            "DeleteToast" : "wurde erfolgreich gelöscht.",
+            "DSNDialog Toast" : "Env Datei wurde erfolgreich angelegt. Um die Änderungen zu übernehmen musst du ggf. die Anwendung neustarten.",
+            "InitSuccess" : "Datenbankverbindung erfolgreich hergestellt.",
+            "InitError" : "Datenbankverbindung konnte nicht hergestellt werden.",
+            "ImportSuccess": "Import erfolgreich abgeschlossen.",
+            "ImportError": "Import fehlgeschlagen.",
+            "ExportSuccess": "Export erfolgreich abgeschlossen.",
+            "ExportError": "Export fehlgeschlagen."  
+
         }
     }
 }

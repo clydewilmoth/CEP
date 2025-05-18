@@ -1,30 +1,16 @@
 import { useEffect, useState } from "react";
-import { BreadcrumbWithCustomSeparator } from "../ui/breadcrumb";
+import { BreadcrumbWithSeparator } from "../ui/breadcrumb";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
-import {
-  GetEntityDetailsByIDString,
-  HandleImport,
-} from "../../../wailsjs/go/main/Core";
-import UserDialog from "@/components/logic/UserDialog";
-import SelectDirDialog from "./SelectDirDialog";
-import { FileDown } from "lucide-react";
-import { Button } from "../ui/button";
-import InternalisationDropwdown from "./InternalisationDropdown";
+import { GetEntityDetails } from "../../../wailsjs/go/main/Core";
+import { Menu } from "./Menu";
 
-export default function Header({
-  context,
-  updateContext,
-}: {
-  context?: number;
-  updateContext?: () => void;
-}) {
-  const { t } = useTranslation();
+export function Header() {
+  const { t, i18n } = useTranslation();
   const [location] = useLocation();
   const [titles, setTitles] = useState<string[]>([]);
   const [links, setLinks] = useState<string[]>([]);
   const [displayNames, setDisplayNames] = useState<string[]>([]);
-  const [internalRefreshKey, setInternalRefreshKey] = useState(0);
 
   useEffect(() => {
     const parts = location.split("/").filter(Boolean);
@@ -79,33 +65,19 @@ export default function Header({
         else if (link?.includes("/station/")) entityType = "station";
         else if (link?.includes("/line/")) entityType = "line";
 
-        const typeLabel =
-          entityType === "line"
-            ? "Linie"
-            : entityType === "station"
-            ? "Station"
-            : entityType === "tool"
-            ? "Tool"
-            : entityType === "operation"
-            ? "Operation"
-            : entityType;
-
         if (
           id &&
           (id.match(/^\d+$/) || id.match(/^[a-f0-9-]{24,}$/i)) &&
           entityType
         ) {
           try {
-            const entity = await GetEntityDetailsByIDString(
-              entityType,
-              id.trim()
-            );
-            names.push(`${typeLabel} ${entity?.Name ?? ""}`);
+            const entity = await GetEntityDetails(entityType, id.trim());
+            names.push(`${t(entityType)} ${entity?.Name ?? ""}`);
           } catch {
-            names.push(`${typeLabel}`);
+            names.push(`${t(entityType)}`);
           }
         } else {
-          names.push(`${typeLabel}`);
+          names.push(`${t(entityType)}`);
         }
       }
       if (isMounted) setDisplayNames(names);
@@ -118,7 +90,7 @@ export default function Header({
     return () => {
       isMounted = false;
     };
-  }, [titles, links]);
+  }, [titles, links, i18n.language]);
 
   return (
     <div className="text-black  w-full flex flex-col items-center justify-start gap-5">
@@ -127,23 +99,12 @@ export default function Header({
           <div className="text-left font-bold text-5xl">CEP</div>
         </div>
         <div className="flex gap-3 justify-center items-center">
-          <Button
-            className="rounded-lg bg-black text-white p-1 w-8 h-8"
-            onClick={async () => {
-              await HandleImport(String(localStorage.getItem("user")));
-              updateContext && updateContext();
-            }}
-          >
-            <FileDown />
-          </Button>
-          <SelectDirDialog />
-          <InternalisationDropwdown />
-          <UserDialog />
+          <Menu />
         </div>
       </div>
       <div className="flex flex-col items-center justify-center font-bold text-5xl">
         <div className="min-h-10">
-          <BreadcrumbWithCustomSeparator titles={displayNames} links={links} />
+          <BreadcrumbWithSeparator titles={displayNames} links={links} />
         </div>
         <div className="text-3xl font-display">
           {location.split("/").length < 3
