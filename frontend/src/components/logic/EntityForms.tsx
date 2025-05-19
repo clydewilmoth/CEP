@@ -1,176 +1,123 @@
-import { z } from "zod";
+import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "../ui/form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+
+const formSchema = z.object({
+  Name: z.string().optional(),
+  Comment: z.string().optional(),
+  StatusColor: z.string().optional(),
+  AssemblyArea: z.string().optional(),
+});
 
 export function LineForm() {
   const { t } = useTranslation();
 
-  const formSchema = z.object({
-    Host: z.string().min(1, {
-      message: "Required!",
-    }),
-    Port: z.number().min(1, {
-      message: "Required!",
-    }),
-    Database: z.string().min(1, {
-      message: "Required!",
-    }),
-    User: z.string().min(1, {
-      message: "Required!",
-    }),
-    Password: z.string().min(1, {
-      message: "Required!",
-    }),
-    Encrypted: z.boolean(),
-    TrustServerCertificate: z.boolean(),
-  });
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      Host: "localhost",
-      Port: 1433,
-      Database: "db",
-      User: "sa",
-      Password: "",
-      Encrypted: true,
-      TrustServerCertificate: true,
-    },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    toast(`${t("DSNDialog Toast")}`);
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      console.log(values);
+      toast("Form submitted successfully");
+    } catch (error) {
+      console.error("Form submission error", error);
+      toast.error("Failed to submit the form. Please try again.");
+    }
   }
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="grid grid-cols-2 gap-7"
+        className="py-5 grid grid-cols-2 gap-8"
       >
+        <h1 className="col-span-2 text-2xl font-bold">{t("line")}</h1>
+        <p className="col-span-2">{t("Line Description")}</p>
         <FormField
           control={form.control}
-          name="Host"
+          name="Name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Host</FormLabel>
+              <FormLabel>{t("Name")}</FormLabel>
               <FormControl>
-                <Input placeholder="localhost" {...field} />
+                <Input placeholder="Name" type="" {...field} />
               </FormControl>
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
-          name="Port"
+          name="Comment"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Port</FormLabel>
+              <FormLabel>{t("Comment")}</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="1433" {...field} />
+                <Input placeholder="Comment" type="" {...field} />
               </FormControl>
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
-          name="Database"
+          name="StatusColor"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Database</FormLabel>
+              <FormLabel>{t("StatusColor")}</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="StatusColor" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Red">{t("Red")}</SelectItem>
+                  <SelectItem value="Yellow">{t("Yellow")}</SelectItem>
+                  <SelectItem value="Green">{t("Green")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="AssemblyArea"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("AssemblyArea")}</FormLabel>
               <FormControl>
-                <Input placeholder="db" {...field} />
+                <Input placeholder="AssemblyArea" type="" {...field} />
               </FormControl>
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="User"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>User</FormLabel>
-              <FormControl>
-                <Input placeholder="sa" {...field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="Password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input placeholder="" {...field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <div className="flex flex-col justify-around ml-2">
-          <FormField
-            control={form.control}
-            name="Encrypted"
-            render={({ field }) => (
-              <FormItem className="flex flex-col space-y-1 justify-center">
-                <div className="flex items-center space-x-2">
-                  <FormControl>
-                    <input
-                      type="checkbox"
-                      checked={field.value}
-                      onChange={field.onChange}
-                      id="Encrypted"
-                      className="accent-black w-4 h-4"
-                    />
-                  </FormControl>
-                  <FormLabel
-                    htmlFor="Encrypted"
-                    className="mb-0 cursor-pointer"
-                  >
-                    Encrypted
-                  </FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="TrustServerCertificate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col space-y-1 justify-center">
-                <div className="flex items-center space-x-2">
-                  <FormControl>
-                    <input
-                      type="checkbox"
-                      checked={field.value}
-                      onChange={field.onChange}
-                      id="TrustServerCertificate"
-                      className="accent-black w-4 h-4"
-                    />
-                  </FormControl>
-                  <FormLabel
-                    htmlFor="TrustServerCertificate"
-                    className="mb-0 cursor-pointer"
-                  >
-                    TrustServer
-                  </FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-        </div>
         <Button
           type="submit"
           variant="outline"
-          className="col-span-2 w-1/3 mx-auto"
+          className="col-span-2 w-1/2 mx-auto"
         >
-          Submit
+          {t("Submit")}
         </Button>
       </form>
     </Form>

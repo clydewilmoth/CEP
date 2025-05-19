@@ -38,7 +38,7 @@
             "DSN Database": "Database",
             "DSN FormTitle": "Database connection",
             "DSN FormDescription": "Set up an MSSQL database connection by entering the required connection information.",
-            "DSN Submit": "Submit",
+            "Submit": "Submit",
             "DSN TrustServer": "Trust Server",
             "DSN Encrypted": "Encrypted"
 
@@ -84,7 +84,7 @@
             "DSN Database": "Datenbank",
             "DSN FormTitle": "Datenbankverbindung",
             "DSN FormDescription": "Einrichtung einer MSSQL Datenbankverbindung durch Eingabe der erforderlichen Verbindungsinformationen.",
-            "DSN Submit": "Senden",
+            "Submit": "Senden",
             "DSN TrustServer": "Server vertrauen",
             "DSN Encrypted": "Verschlüsselt"
 

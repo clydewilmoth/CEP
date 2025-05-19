@@ -259,16 +259,16 @@ export function DSNDialog() {
         setDsnOpen(dsnOpen && (await CheckEnvInExeDir()) ? false : true);
       }}
     >
-      <DialogContent className="sm:max-w-[30rem]">
-        <DialogHeader>
-          <DialogTitle>{t("DSN FormTitle")}</DialogTitle>
-          <DialogDescription>{t("DSN FormDescription")}</DialogDescription>
-        </DialogHeader>
+      <DialogContent>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="grid grid-cols-2 gap-7"
+            className="py-5 grid grid-cols-2 gap-8"
           >
+            <h1 className="col-span-2 text-2xl font-bold">
+              {t("DSN FormTitle")}
+            </h1>
+            <p className="col-span-2">{t("DSN FormDescription")}</p>
             <FormField
               control={form.control}
               name="Host"
@@ -386,7 +386,7 @@ export function DSNDialog() {
               variant="outline"
               className="col-span-2 w-1/3 mx-auto"
             >
-              {t("DSN Submit")}
+              {t("Submit")}
             </Button>
           </form>
         </Form>

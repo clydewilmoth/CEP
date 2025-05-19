@@ -174,7 +174,11 @@ function EntityCard({
         </TooltipProvider>
       </ContextMenuTrigger>
       <ContextMenuContent className="min-w-0">
-        <FormEntityDialog onClose={() => setKey((k) => k + 1)} />
+        <FormDialog
+          entityType={entityType}
+          entityId={entityId}
+          onClose={() => setKey((k) => k + 1)}
+        />
         <ContextMenuSeparator />
         <DeleteEntityDialog
           entityType={entityType}
@@ -286,7 +290,15 @@ function ExportEntityDialog({
   );
 }
 
-function FormEntityDialog({ onClose }: { onClose?: () => void }) {
+function FormDialog({
+  entityType,
+  entityId,
+  onClose,
+}: {
+  entityType: string;
+  entityId: string;
+  onClose?: () => void;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -299,8 +311,18 @@ function FormEntityDialog({ onClose }: { onClose?: () => void }) {
           <Eye />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[300px]">
-        <LineForm />
+      <DialogContent className="w-7xl">
+        {entityType == "line" ? (
+          <LineForm />
+        ) : entityType == "station" ? (
+          "stationform"
+        ) : entityType == "tool" ? (
+          "toolform"
+        ) : entityType == "operation" ? (
+          "operationform"
+        ) : (
+          ""
+        )}
       </DialogContent>
     </Dialog>
   );
