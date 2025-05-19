@@ -49,6 +49,7 @@ import { ConfigureAndSaveDSN } from "../../../wailsjs/go/main/Core";
 import { useInit } from "@/App";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { PasswordInput } from "../ui/password-input";
 
 export function Menu() {
   const { setDsnOpen } = useInit();
@@ -260,8 +261,8 @@ export function DSNDialog() {
     >
       <DialogContent className="sm:max-w-[30rem]">
         <DialogHeader>
-          <DialogTitle>{t("DSNForm Title")}</DialogTitle>
-          <DialogDescription>{t("DSNForm Description")}</DialogDescription>
+          <DialogTitle>{t("DSN FormTitle")}</DialogTitle>
+          <DialogDescription>{t("DSN FormDescription")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -273,7 +274,7 @@ export function DSNDialog() {
               name="Host"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Host</FormLabel>
+                  <FormLabel>{t("Host")}</FormLabel>
                   <FormControl>
                     <Input placeholder="localhost" {...field} />
                   </FormControl>
@@ -285,7 +286,7 @@ export function DSNDialog() {
               name="Port"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Port</FormLabel>
+                  <FormLabel>{t("Port")}</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="1433" {...field} />
                   </FormControl>
@@ -297,7 +298,7 @@ export function DSNDialog() {
               name="Database"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Database</FormLabel>
+                  <FormLabel>{t("DSN Database")}</FormLabel>
                   <FormControl>
                     <Input placeholder="db" {...field} />
                   </FormControl>
@@ -309,7 +310,7 @@ export function DSNDialog() {
               name="User"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>User</FormLabel>
+                  <FormLabel>{t("DSN User")}</FormLabel>
                   <FormControl>
                     <Input placeholder="sa" {...field} />
                   </FormControl>
@@ -323,7 +324,7 @@ export function DSNDialog() {
                 <FormItem>
                   <FormLabel>{t("DSN Password")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="" {...field} />
+                    <PasswordInput placeholder="" {...field} />
                   </FormControl>
                 </FormItem>
               )}

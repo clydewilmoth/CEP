@@ -32,7 +32,16 @@
             "ExportSuccess": "Export completed successfully.",
             "ExportError": "Export failed.",
             "InitLoading": "Establishing database connection",
-            "InitReload": "Retry database connection" 
+            "InitReload": "Retry database connection",
+            "DSN User": "User",
+            "DSN Password": "Password",
+            "DSN Database": "Database",
+            "DSN FormTitle": "Database connection",
+            "DSN FormDescription": "Set up an MSSQL database connection by entering the required connection information.",
+            "DSN Submit": "Submit",
+            "DSN TrustServer": "Trust Server",
+            "DSN Encrypted": "Encrypted"
+
         }   
     },
 
@@ -69,7 +78,15 @@
             "ExportSuccess": "Export erfolgreich abgeschlossen.",
             "ExportError": "Export fehlgeschlagen.",
             "InitLoading" : "Datenbankverbindung wird hergestellt",
-            "InitReload": "Datenbankverbindung erneut herstellen"  
+            "InitReload": "Datenbankverbindung erneut herstellen",  
+            "DSN User": "Nutzer",
+            "DSN Password": "Passwort",
+            "DSN Database": "Datenbank",
+            "DSN FormTitle": "Datenbankverbindung",
+            "DSN FormDescription": "Einrichtung einer MSSQL Datenbankverbindung durch Eingabe der erforderlichen Verbindungsinformationen.",
+            "DSN Submit": "Senden",
+            "DSN TrustServer": "Server vertrauen",
+            "DSN Encrypted": "Verschlüsselt"
 
         }
     }
