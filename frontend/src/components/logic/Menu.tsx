@@ -51,13 +51,6 @@ import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function Menu() {
-  const { i18n } = useTranslation();
-  useEffect(() => {
-    localStorage.getItem("lang") == null
-      ? i18n.changeLanguage("en")
-      : i18n.changeLanguage(String(localStorage.getItem("lang")));
-  }, []);
-
   const { setDsnOpen } = useInit();
 
   return (
@@ -328,7 +321,7 @@ export function DSNDialog() {
               name="Password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t("DSN Password")}</FormLabel>
                   <FormControl>
                     <Input placeholder="" {...field} />
                   </FormControl>
@@ -355,7 +348,7 @@ export function DSNDialog() {
                         htmlFor="Encrypted"
                         className="mb-0 cursor-pointer"
                       >
-                        Encrypted
+                        {t("DSN Encrypted")}
                       </FormLabel>
                     </div>
                   </FormItem>
@@ -380,7 +373,7 @@ export function DSNDialog() {
                         htmlFor="TrustServerCertificate"
                         className="mb-0 cursor-pointer"
                       >
-                        TrustServer
+                        {t("DSN TrustServer")}
                       </FormLabel>
                     </div>
                   </FormItem>
@@ -392,7 +385,7 @@ export function DSNDialog() {
               variant="outline"
               className="col-span-2 w-1/3 mx-auto"
             >
-              Submit
+              {t("DSN Submit")}
             </Button>
           </form>
         </Form>

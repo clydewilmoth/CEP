@@ -20,14 +20,18 @@ const queryClient = new QueryClient();
 function App() {
   const { initialised, setInitialised, setDsnOpen, appRender, appRerender } =
     useInit();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    localStorage.getItem("lang") == null
+      ? i18n.changeLanguage("en")
+      : i18n.changeLanguage(String(localStorage.getItem("lang")));
     const init = async () => {
       (await CheckEnvInExeDir())
         ? (async () => {
             const initMessage = await InitDB();
+            setInitialised(false);
             setIsLoading(false);
             toast(t(initMessage));
             initMessage == "InitSuccess" && setInitialised(true);

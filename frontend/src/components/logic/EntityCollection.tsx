@@ -34,6 +34,8 @@ import {
 import { Input } from "../ui/input";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+import { LineForm } from "./EntityForms";
+import { useInit } from "@/App";
 
 export function EntityCollection({
   entityType,
@@ -44,11 +46,7 @@ export function EntityCollection({
   parentId: string;
   link: string;
 }) {
-  const {
-    data: entities,
-    isLoading,
-    error,
-  } = useQuery({
+  const { data: entities } = useQuery({
     queryKey: ["entities", entityType, parentId],
     queryFn: () => GetAllEntities(entityType, String(parentId)),
   });
@@ -75,7 +73,7 @@ export function EntityCollection({
                 entityType={entityType}
                 entityId={entity.ID}
                 entityName={entity.Name}
-                entityDescription={entity.Description}
+                entityComment={entity.Comment}
                 link={link}
                 key={index}
               />
@@ -111,7 +109,12 @@ function CreateEntityCard({
       queryClient.invalidateQueries(),
       toast(`${t(entityType)} ${t("CreateToast")}`)
     ),
+    onError: () => {
+      appRerender();
+    },
   });
+
+  const { appRerender } = useInit();
 
   return (
     <Card
@@ -135,13 +138,13 @@ function EntityCard({
   entityType,
   entityId,
   entityName,
-  entityDescription,
+  entityComment,
   link,
 }: {
   entityType: string;
   entityId: string;
   entityName: string;
-  entityDescription: string;
+  entityComment: string;
   link: string;
 }) {
   const [key, setKey] = useState(0);
@@ -164,17 +167,14 @@ function EntityCard({
                 </CardTitle>
               </Card>
             </TooltipTrigger>
-            {typeof entityDescription == "string" &&
-              entityDescription != "" && (
-                <TooltipContent>{entityDescription}</TooltipContent>
-              )}
+            {typeof entityComment == "string" && entityComment != "" && (
+              <TooltipContent>{entityComment}</TooltipContent>
+            )}
           </Tooltip>
         </TooltipProvider>
       </ContextMenuTrigger>
       <ContextMenuContent className="min-w-0">
-        <Button variant="ghost" size="icon">
-          <Eye />
-        </Button>
+        <FormEntityDialog onClose={() => setKey((k) => k + 1)} />
         <ContextMenuSeparator />
         <DeleteEntityDialog
           entityType={entityType}
@@ -218,7 +218,12 @@ function DeleteEntityDialog({
       queryClient.invalidateQueries(),
       toast(`${t(entityType)} ${t("DeleteToast")}`)
     ),
+    onError: () => {
+      appRerender();
+    },
   });
+
+  const { appRerender } = useInit();
   const [open, setOpen] = useState(false);
 
   return (
@@ -278,6 +283,26 @@ function ExportEntityDialog({
     >
       <FileUp />
     </Button>
+  );
+}
+
+function FormEntityDialog({ onClose }: { onClose?: () => void }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(open) => (setOpen(open), !open && onClose && onClose())}
+    >
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Eye />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[300px]">
+        <LineForm />
+      </DialogContent>
+    </Dialog>
   );
 }
 
