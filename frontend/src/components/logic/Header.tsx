@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { GetEntityDetails } from "../../../wailsjs/go/main/Core";
 import { Menu } from "./Menu";
+import { useInit } from "@/App";
 
 export function Header() {
   const { t, i18n } = useTranslation();
@@ -11,6 +12,7 @@ export function Header() {
   const [titles, setTitles] = useState<string[]>([]);
   const [links, setLinks] = useState<string[]>([]);
   const [displayNames, setDisplayNames] = useState<string[]>([]);
+  const { initialised } = useInit();
 
   useEffect(() => {
     const parts = location.split("/").filter(Boolean);
@@ -102,20 +104,22 @@ export function Header() {
           <Menu />
         </div>
       </div>
-      <div className="flex flex-col items-center justify-center font-bold text-5xl">
-        <div className="min-h-10">
-          <BreadcrumbWithSeparator titles={displayNames} links={links} />
+      {initialised && (
+        <div className="flex flex-col items-center justify-center font-bold text-5xl">
+          <div className="min-h-10">
+            <BreadcrumbWithSeparator titles={displayNames} links={links} />
+          </div>
+          <div className="text-3xl font-display">
+            {location.split("/").length < 3
+              ? t("lines")
+              : location.split("/").length < 4
+              ? t("stations")
+              : location.split("/").length < 6
+              ? t("tools")
+              : t("operations")}
+          </div>
         </div>
-        <div className="text-3xl font-display">
-          {location.split("/").length < 3
-            ? t("lines")
-            : location.split("/").length < 4
-            ? t("stations")
-            : location.split("/").length < 6
-            ? t("tools")
-            : t("operations")}
-        </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -46,7 +46,7 @@ import {
 } from "@/components/ui/form";
 import { ConfigureAndSaveDSN } from "../../../wailsjs/go/main/Core";
 
-import { useInit, useSignal } from "@/App";
+import { useInit } from "@/App";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -134,9 +134,6 @@ function UserDialog() {
 function LangDialog() {
   const { t, i18n } = useTranslation();
   const [lang, setLang] = useState<string | null>(localStorage.getItem("lang"));
-  useEffect(() => {
-    setLang(localStorage.getItem("lang"));
-  }, []);
 
   return (
     <Dialog>
@@ -232,14 +229,13 @@ export function DSNDialog() {
       values.TrustServerCertificate.toString()
     );
     toast(`${t("DSNDialog Toast")}`);
-    increment();
+    appRerender();
     setDsnOpen(false);
   }
 
   const { t } = useTranslation();
 
-  const { dsnOpen, setDsnOpen } = useInit();
-  const { increment } = useSignal();
+  const { dsnOpen, setDsnOpen, appRerender } = useInit();
 
   useEffect(() => {
     if (dsnOpen) {
@@ -257,12 +253,9 @@ export function DSNDialog() {
               TrustServerCertificate: env.TrustServerCertificate === "true",
             });
           }
-        } catch (e) {
-          // Ignorieren, falls keine ENV vorhanden
-        }
+        } catch (e) {}
       })();
     }
-    // eslint-disable-next-line
   }, [dsnOpen]);
 
   return (

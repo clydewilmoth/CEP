@@ -30,7 +30,9 @@
             "ImportSuccess": "Import completed successfully.",
             "ImportError": "Import failed.",
             "ExportSuccess": "Export completed successfully.",
-            "ExportError": "Export failed."
+            "ExportError": "Export failed.",
+            "InitLoading": "Establishing database connection",
+            "InitReload": "Retry database connection" 
         }   
     },
 
@@ -65,7 +67,9 @@
             "ImportSuccess": "Import erfolgreich abgeschlossen.",
             "ImportError": "Import fehlgeschlagen.",
             "ExportSuccess": "Export erfolgreich abgeschlossen.",
-            "ExportError": "Export fehlgeschlagen."  
+            "ExportError": "Export fehlgeschlagen.",
+            "InitLoading" : "Datenbankverbindung wird hergestellt",
+            "InitReload": "Datenbankverbindung erneut herstellen"  
 
         }
     }

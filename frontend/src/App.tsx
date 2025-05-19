@@ -11,30 +11,44 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { Loader } from "./components/ui/loader";
+import { RefreshCcw } from "lucide-react";
+import { Button } from "./components/ui/button";
 
 const queryClient = new QueryClient();
 
 function App() {
-  const [initialised, setInitialised] = useState(false);
-  const { setDsnOpen } = useInit();
-  const { initSignal } = useSignal();
+  const { initialised, setInitialised, setDsnOpen, appRender, appRerender } =
+    useInit();
   const { t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const init = async () => {
       (await CheckEnvInExeDir())
-        ? (toast(t(await InitDB())), setInitialised(true), setDsnOpen(false))
+        ? (async () => {
+            const initMessage = await InitDB();
+            setIsLoading(false);
+            toast(t(initMessage));
+            initMessage == "InitSuccess" && setInitialised(true);
+            setDsnOpen(false);
+          })()
         : setDsnOpen(true);
     };
-
     init();
-  }, [initSignal]);
+  }, [appRender]);
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex flex-col items-center justify-start w-full h-screen gap-10 p-12">
         <Header />
-        {initialised && (
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center gap-4 font-semibold">
+            <p>{t("InitLoading")}</p>
+            <Loader />
+          </div>
+        )}
+        {initialised ? (
           <div className="w-full">
             <Route path={"/"}>
               <Lines />
@@ -49,6 +63,17 @@ function App() {
               <Operations />
             </Route>
           </div>
+        ) : (
+          !isLoading &&
+          !initialised && (
+            <Button
+              variant="outline"
+              onClick={() => (setIsLoading(true), appRerender())}
+            >
+              {t("InitReload")}
+              <RefreshCcw />
+            </Button>
+          )
         )}
         <Toaster />
       </div>
@@ -57,19 +82,19 @@ function App() {
 }
 
 export const useInit = create<{
+  initialised: boolean;
+  setInitialised: (initialised: boolean) => void;
   dsnOpen: boolean;
   setDsnOpen: (open: boolean) => void;
+  appRender: number;
+  appRerender: () => void;
 }>((set) => ({
+  initialised: false,
+  setInitialised: (initialised) => set({ initialised }),
   dsnOpen: false,
   setDsnOpen: (open) => set({ dsnOpen: open }),
-}));
-
-export const useSignal = create<{
-  initSignal: number;
-  increment: () => void;
-}>((set) => ({
-  initSignal: 0,
-  increment: () => set((state) => ({ initSignal: state.initSignal + 1 })),
+  appRender: 0,
+  appRerender: () => set((state) => ({ appRender: state.appRender + 1 })),
 }));
 
 export default App;
