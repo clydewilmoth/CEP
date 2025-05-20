@@ -69,7 +69,11 @@ export function EntityCollection({
             className="outline-none shadow-none"
           />
           <SearchFieldClear>
-            <XIcon aria-hidden className="size-4" />
+            <XIcon
+              aria-hidden
+              className="size-4"
+              onClick={() => setFilter("")}
+            />
           </SearchFieldClear>
         </FieldGroup>
       </SearchField>
