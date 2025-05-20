@@ -50,10 +50,15 @@ export function EntityCollection({
   });
   const { t } = useTranslation();
   const [filter, setFilter] = useState("");
+  const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [createdEntityId, setCreatedEntityId] = useState<string | null>(null);
 
   return (
     <div className="flex flex-col gap-7 w-full">
-      <SearchField className="max-w-sm rounded-3xl mx-auto">
+      <SearchField
+        className="max-w-sm rounded-3xl mx-auto"
+        aria-labelledby="search-field"
+      >
         <FieldGroup>
           <SearchIcon aria-hidden className="size-4 text-muted-foreground" />
           <SearchFieldInput
@@ -82,8 +87,23 @@ export function EntityCollection({
               />
             )
         )}
-        <CreateEntityCard entityType={entityType} parentId={parentId} />
+        <CreateEntityCard
+          entityType={entityType}
+          parentId={parentId}
+          onCreated={(id: string) => {
+            setCreatedEntityId(id);
+            setFormDialogOpen(true);
+          }}
+        />
       </div>
+      {formDialogOpen && createdEntityId && (
+        <FormDialog
+          entityType={entityType}
+          entityId={createdEntityId}
+          onClose={() => setFormDialogOpen(false)}
+          forceOpen={true}
+        />
+      )}
     </div>
   );
 }
@@ -91,9 +111,11 @@ export function EntityCollection({
 function CreateEntityCard({
   entityType,
   parentId,
+  onCreated,
 }: {
   entityType: string;
   parentId: string;
+  onCreated: (id: string) => void;
 }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -107,28 +129,26 @@ function CreateEntityCard({
       name: string;
       entityType: string;
       parentId: string;
-    }) => CreateEntity(name, entityType, parentId),
-    onSuccess: () => (
-      queryClient.invalidateQueries(),
-      toast(`${t(entityType)} ${t("CreateToast")}`)
-    ),
-    onError: () => {
-      appRerender();
+    }) => {
+      return CreateEntity(name, entityType, parentId);
     },
+    onSuccess: (res) => (
+      queryClient.invalidateQueries(),
+      toast(`${t(entityType)} ${t("CreateToast")}`),
+      onCreated && onCreated(res.ID)
+    ),
   });
-
-  const { appRerender } = useInit();
 
   return (
     <Card
       className="w-36 flex justify-center items-center hover:cursor-pointer hover:shadow-md transition-shadow"
-      onClick={() =>
-        createEntity({
+      onClick={async () => {
+        await createEntity({
           name: String(localStorage.getItem("name")),
           entityType: entityType,
           parentId: parentId,
-        })
-      }
+        });
+      }}
     >
       <Button variant="ghost" size="icon" className="hover:bg-background">
         <Plus />
@@ -295,23 +315,27 @@ function FormDialog({
   entityType,
   entityId,
   onClose,
+  forceOpen = false,
 }: {
   entityType: string;
   entityId: string;
   onClose?: () => void;
+  forceOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(forceOpen);
 
   return (
     <Dialog
       open={open}
       onOpenChange={(open) => (setOpen(open), !open && onClose && onClose())}
     >
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Eye />
-        </Button>
-      </DialogTrigger>
+      {!forceOpen && (
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <Eye />
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="w-7xl">
         {entityType == "line" ? (
           <LineForm />
