@@ -47,9 +47,9 @@ function App() {
       <div className="flex flex-col items-center justify-start w-full h-screen gap-10 p-12">
         <Header />
         {isLoading && (
-          <div className="flex flex-col items-center justify-center gap-4 font-semibold">
-            <p>{t("InitLoading")}</p>
+          <div className="flex flex-row items-center justify-center gap-4 font-semibold">
             <Loader />
+            <p>{t("InitLoading")}</p>
           </div>
         )}
         {initialised ? (
@@ -74,8 +74,8 @@ function App() {
               variant="outline"
               onClick={() => (setIsLoading(true), appRerender())}
             >
-              {t("InitReload")}
               <RefreshCcw />
+              {t("InitReload")}
             </Button>
           )
         )}

@@ -13,17 +13,10 @@ import {
   DeleteEntityByIDString,
   HandleExport,
 } from "../../../wailsjs/go/main/Core";
-import { Eye, FileUp, Plus, Trash2 } from "lucide-react";
+import { Eye, FileUp, Plus, SearchIcon, Trash2, XIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import { useTranslation } from "react-i18next";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import { useState } from "react";
 import {
   ContextMenu,
@@ -31,11 +24,16 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "../ui/context-menu";
-import { Input } from "../ui/input";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { LineForm } from "./EntityForms";
 import { useInit } from "@/App";
+import {
+  SearchField,
+  SearchFieldClear,
+  SearchFieldInput,
+} from "../ui/searchfield";
+import { FieldGroup } from "../ui/field";
 
 export function EntityCollection({
   entityType,
@@ -55,15 +53,20 @@ export function EntityCollection({
 
   return (
     <div className="flex flex-col gap-7 w-full">
-      <div className="flex items-start w-full justify-center">
-        <Input
-          className="w-64"
-          type="text"
-          placeholder={t("Search")}
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        />
-      </div>
+      <SearchField className="max-w-sm rounded-3xl mx-auto">
+        <FieldGroup>
+          <SearchIcon aria-hidden className="size-4 text-muted-foreground" />
+          <SearchFieldInput
+            placeholder={t("Search")}
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="outline-none shadow-none"
+          />
+          <SearchFieldClear>
+            <XIcon aria-hidden className="size-4" />
+          </SearchFieldClear>
+        </FieldGroup>
+      </SearchField>
 
       <div className="flex flex-wrap gap-7">
         {entities?.map(
