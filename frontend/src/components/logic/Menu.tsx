@@ -71,18 +71,26 @@ export function Menu() {
             <Burger />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-6">
-          <UserDialog />
+        <DropdownMenuContent className="mr-[2.85rem]">
+          <div className="flex">
+            <UserDialog />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDsnOpen(true)}
+            >
+              <Database />
+            </Button>
+          </div>
           <DropdownMenuSeparator className="h-[0.05rem]" />
-          <LangDialog />
+          <div className="flex">
+            <LangDialog />
+            <ThemeSwitch />
+          </div>
           <DropdownMenuSeparator className="h-[0.05rem]" />
-          <ThemeSwitch />
-          <DropdownMenuSeparator className="h-[0.05rem]" />
-          <Button variant="ghost" size="icon" onClick={() => setDsnOpen(true)}>
-            <Database />
-          </Button>
-          <DropdownMenuSeparator className="h-[0.05rem]" />
-          <ImportJSON />
+          <div className="flex justify-center">
+            <ImportJSON />
+          </div>
         </DropdownMenuContent>
       </DropdownMenu>
     </>
@@ -262,143 +270,148 @@ export function DSNDialog() {
         setDsnOpen(dsnOpen && (await CheckEnvInExeDir()) ? false : true);
       }}
     >
-      <DialogContent>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="py-5 grid grid-cols-2 gap-8"
-          >
-            <h1 className="col-span-2 text-2xl font-bold">
-              {t("DSN FormTitle")}
-            </h1>
-            <p className="col-span-2">{t("DSN FormDescription")}</p>
-            <FormField
-              control={form.control}
-              name="Host"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("Host")}</FormLabel>
-                  <FormControl>
-                    <Input placeholder="localhost" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="Port"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("Port")}</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="1433" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="Database"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("DSN Database")}</FormLabel>
-                  <FormControl>
-                    <Input placeholder="db" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="User"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("DSN User")}</FormLabel>
-                  <FormControl>
-                    <Input placeholder="sa" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="Password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("DSN Password")}</FormLabel>
-                  <FormControl>
-                    <PasswordInput placeholder="" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <div className="flex flex-col justify-around ml-2">
-              <FormField
-                control={form.control}
-                name="Encrypted"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col space-y-1 justify-center">
-                    <div className="flex items-center space-x-2">
+      <DialogContent className="p-0">
+        <ScrollArea className="max-h-[90vh]">
+          <div className="p-6">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="py-5 grid grid-cols-2 gap-8"
+              >
+                <h1 className="col-span-2 text-2xl font-bold">
+                  {t("DSN FormTitle")}
+                </h1>
+                <p className="col-span-2">{t("DSN FormDescription")}</p>
+                <FormField
+                  control={form.control}
+                  name="Host"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("Host")}</FormLabel>
                       <FormControl>
-                        <input
-                          type="checkbox"
-                          checked={field.value}
-                          onChange={field.onChange}
-                          id="Encrypted"
-                          className="accent-black w-4 h-4"
-                        />
+                        <Input placeholder="localhost" {...field} />
                       </FormControl>
-                      <FormLabel
-                        htmlFor="Encrypted"
-                        className="mb-0 cursor-pointer"
-                      >
-                        {t("DSN Encrypted")}
-                      </FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="TrustServerCertificate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col space-y-1 justify-center">
-                    <div className="flex items-center space-x-2">
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="Port"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("Port")}</FormLabel>
                       <FormControl>
-                        <input
-                          type="checkbox"
-                          checked={field.value}
-                          onChange={field.onChange}
-                          id="TrustServerCertificate"
-                          className="accent-black w-4 h-4"
-                        />
+                        <Input type="number" placeholder="1433" {...field} />
                       </FormControl>
-                      <FormLabel
-                        htmlFor="TrustServerCertificate"
-                        className="mb-0 cursor-pointer"
-                      >
-                        {t("DSN TrustServer")}
-                      </FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-            <Button
-              variant="outline"
-              type="submit"
-              className="col-span-2 w-1/3 mx-auto"
-            >
-              {t("Submit")}
-            </Button>
-          </form>
-        </Form>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="Database"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("DSN Database")}</FormLabel>
+                      <FormControl>
+                        <Input placeholder="db" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="User"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("DSN User")}</FormLabel>
+                      <FormControl>
+                        <Input placeholder="sa" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="Password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("DSN Password")}</FormLabel>
+                      <FormControl>
+                        <PasswordInput placeholder="" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <div className="flex flex-col justify-around ml-2">
+                  <FormField
+                    control={form.control}
+                    name="Encrypted"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col space-y-1 justify-center">
+                        <div className="flex items-center space-x-2">
+                          <FormControl>
+                            <input
+                              type="checkbox"
+                              checked={field.value}
+                              onChange={field.onChange}
+                              id="Encrypted"
+                              className="accent-black w-4 h-4"
+                            />
+                          </FormControl>
+                          <FormLabel
+                            htmlFor="Encrypted"
+                            className="mb-0 cursor-pointer"
+                          >
+                            {t("DSN Encrypted")}
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="TrustServerCertificate"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col space-y-1 justify-center">
+                        <div className="flex items-center space-x-2">
+                          <FormControl>
+                            <input
+                              type="checkbox"
+                              checked={field.value}
+                              onChange={field.onChange}
+                              id="TrustServerCertificate"
+                              className="accent-black w-4 h-4"
+                            />
+                          </FormControl>
+                          <FormLabel
+                            htmlFor="TrustServerCertificate"
+                            className="mb-0 cursor-pointer"
+                          >
+                            {t("DSN TrustServer")}
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  type="submit"
+                  className="col-span-2 w-1/3 mx-auto"
+                >
+                  {t("Submit")}
+                </Button>
+              </form>
+            </Form>
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
 }
 
 import { useTheme } from "next-themes";
+import { ScrollArea } from "../ui/scroll-area";
 
 function ThemeSwitch() {
   const { setTheme } = useTheme();

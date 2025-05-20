@@ -13,14 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "react-i18next";
-import {
-  CalendarCog,
-  CalendarPlus,
-  Info,
-  StickyNote,
-  UserRoundPen,
-  UserRoundPlus,
-} from "lucide-react";
+import { Info, StickyNote } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -29,8 +22,6 @@ import {
 } from "../ui/tooltip";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { useState } from "react";
-import { Dock, DockIcon } from "../ui/dock";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const formSchema = z.object({
   Name: z.string().optional(),

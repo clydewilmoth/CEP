@@ -16,6 +16,7 @@ import { RefreshCcw } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { ThemeProvider } from "./components/ui/theme-provider";
 import { useTheme } from "next-themes";
+import { ScrollArea } from "./components/ui/scroll-area";
 
 const queryClient = new QueryClient();
 
@@ -56,43 +57,45 @@ function App() {
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
-        <div className="flex flex-col items-center justify-start w-full h-screen gap-10 p-12">
-          <Header />
-          {isLoading && (
-            <div className="flex flex-row items-center justify-center gap-4 font-semibold">
-              <Loader />
-              <p>{t("InitLoading")}</p>
-            </div>
-          )}
-          {initialised ? (
-            <div className="w-full">
-              <Route path={"/"}>
-                <Lines />
-              </Route>
-              <Route path={"/line/:luuid"}>
-                <Stations />
-              </Route>
-              <Route path={"/line/:luuid/station/:suuid"}>
-                <Tools />
-              </Route>
-              <Route path={"/line/:luuid/station/:suuid/tool/:tuuid"}>
-                <Operations />
-              </Route>
-            </div>
-          ) : (
-            !isLoading &&
-            !initialised && (
-              <Button
-                variant="outline"
-                onClick={() => (setIsLoading(true), appRerender())}
-              >
-                <RefreshCcw />
-                {t("InitReload")}
-              </Button>
-            )
-          )}
-          <Toaster />
-        </div>
+        <ScrollArea className="h-screen">
+          <div className="flex flex-col items-center justify-start w-full gap-10 p-12">
+            <Header />
+            {isLoading && (
+              <div className="flex flex-row items-center justify-center gap-4 font-semibold">
+                <Loader />
+                <p>{t("InitLoading")}</p>
+              </div>
+            )}
+            {initialised ? (
+              <div className="w-full">
+                <Route path={"/"}>
+                  <Lines />
+                </Route>
+                <Route path={"/line/:luuid"}>
+                  <Stations />
+                </Route>
+                <Route path={"/line/:luuid/station/:suuid"}>
+                  <Tools />
+                </Route>
+                <Route path={"/line/:luuid/station/:suuid/tool/:tuuid"}>
+                  <Operations />
+                </Route>
+              </div>
+            ) : (
+              !isLoading &&
+              !initialised && (
+                <Button
+                  variant="outline"
+                  onClick={() => (setIsLoading(true), appRerender())}
+                >
+                  <RefreshCcw />
+                  {t("InitReload")}
+                </Button>
+              )
+            )}
+            <Toaster />
+          </div>
+        </ScrollArea>
       </QueryClientProvider>
     </ThemeProvider>
   );
