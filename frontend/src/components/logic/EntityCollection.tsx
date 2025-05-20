@@ -186,7 +186,7 @@ function EntityCard({
           onClose={() => setKey((k) => k + 1)}
         />
         <ContextMenuSeparator />
-        <ExportEntityDialog
+        <ExportJSON
           entityType={entityType}
           entityId={entityId}
           onClick={() => setKey((k) => k + 1)}
@@ -240,13 +240,11 @@ function DeleteEntityDialog({
           <Trash2 />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[300px]">
-        <DialogHeader>
-          <DialogTitle>{t("DeleteDialog Title")}</DialogTitle>
-          <DialogDescription>{`${t("DeleteDialog Description1")} ${t(
-            entityType
-          )}${t("DeleteDialog Description2")}`}</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
+        <h1 className="text-2xl font-bold">{t("DeleteDialog Title")}</h1>
+        <p>{`${t("DeleteDialog Description1")} ${t(entityType)}${t(
+          "DeleteDialog Description2"
+        )}`}</p>
         <Button
           variant="outline"
           onClick={() => (
@@ -266,7 +264,7 @@ function DeleteEntityDialog({
   );
 }
 
-function ExportEntityDialog({
+function ExportJSON({
   entityType,
   entityId,
   onClick,

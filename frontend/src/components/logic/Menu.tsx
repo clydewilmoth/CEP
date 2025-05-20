@@ -10,7 +10,6 @@ import {
   Database,
   FileDown,
   Globe,
-  User,
   UserRound,
 } from "lucide-react";
 import {
@@ -50,6 +49,13 @@ import { useInit } from "@/App";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PasswordInput } from "../ui/password-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 export function Menu() {
   const { setDsnOpen } = useInit();
@@ -72,7 +78,7 @@ export function Menu() {
             <Database />
           </Button>
           <DropdownMenuSeparator className="h-[0.05rem]" />
-          <ImportDialog />
+          <ImportJSON />
         </DropdownMenuContent>
       </DropdownMenu>
     </>
@@ -104,22 +110,18 @@ function UserDialog() {
           <UserRound />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[300px]">
-        <DialogHeader>
-          <DialogTitle>{t("NameDialog Title")}</DialogTitle>
-          <DialogDescription>{t("NameDialog Description")}</DialogDescription>
-        </DialogHeader>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Input
-            id="name"
-            value={String(name)}
-            className="col-span-4"
-            onChange={(e) => (
-              setName(e.target.value),
-              localStorage.setItem("name", e.target.value)
-            )}
-          />
-        </div>
+      <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
+        <h1 className="text-2xl font-bold">{t("NameDialog Title")}</h1>
+        <p>{t("NameDialog Description")}</p>
+
+        <Input
+          id="name"
+          value={String(name)}
+          onChange={(e) => (
+            setName(e.target.value),
+            localStorage.setItem("name", e.target.value)
+          )}
+        />
       </DialogContent>
     </Dialog>
   );
@@ -136,32 +138,29 @@ function LangDialog() {
           <Globe />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[300px]">
-        <DialogHeader>
-          <DialogTitle>{t("LangDialog Title")}</DialogTitle>
-          <DialogDescription>{t("LangDialog Description")}</DialogDescription>
-        </DialogHeader>
-        <RadioGroup
-          value={String(lang)}
+      <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
+        <h1 className="text-2xl font-bold">{t("LangDialog Title")}</h1>
+        <p>{t("LangDialog Description")}</p>
+        <Select
           onValueChange={(e) => (
             setLang(e), i18n.changeLanguage(e), localStorage.setItem("lang", e)
           )}
+          defaultValue={String(lang)}
         >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="en" id="r1" />
-            <Label htmlFor="r1">English</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="de" id="r2" />
-            <Label htmlFor="r2">Deutsch</Label>
-          </div>
-        </RadioGroup>
+          <SelectTrigger>
+            <SelectValue placeholder="StatusColor" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="de">Deutsch</SelectItem>
+          </SelectContent>
+        </Select>
       </DialogContent>
     </Dialog>
   );
 }
 
-function ImportDialog() {
+function ImportJSON() {
   const queryClient = useQueryClient();
 
   const { mutateAsync: importEntity } = useMutation({
