@@ -34,6 +34,7 @@ import {
   SearchFieldInput,
 } from "../ui/searchfield";
 import { FieldGroup } from "../ui/field";
+import { ScrollArea } from "../ui/scroll-area";
 
 export function EntityCollection({
   entityType,
@@ -336,18 +337,23 @@ function FormDialog({
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent className="w-7xl">
-        {entityType == "line" ? (
-          <LineForm />
-        ) : entityType == "station" ? (
-          "stationform"
-        ) : entityType == "tool" ? (
-          "toolform"
-        ) : entityType == "operation" ? (
-          "operationform"
-        ) : (
-          ""
-        )}
+
+      <DialogContent className="w-7xl p-0">
+        <ScrollArea className="max-h-[90vh]">
+          <div className="p-6">
+            {entityType == "line" ? (
+              <LineForm />
+            ) : entityType == "station" ? (
+              "stationform"
+            ) : entityType == "tool" ? (
+              "toolform"
+            ) : entityType == "operation" ? (
+              "operationform"
+            ) : (
+              ""
+            )}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

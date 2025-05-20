@@ -55,7 +55,7 @@ type Tool struct {
 	ToolClass             *string                `gorm:"default:null"`
 	ToolType              *string                `gorm:"default:null"`
 	Description           *string                `gorm:"default:null"`
-	ipAddressDevice       *string                `gorm:"default:null"`
+	IpAddressDevice       *string                `gorm:"default:null"`
 	ToolWithSPS           *string                `gorm:"default:null"`
 	SPSPLCNameSPAService  *string                `gorm:"default:null"`
 	SPSDBNoSend           *string                `gorm:"default:null"`
