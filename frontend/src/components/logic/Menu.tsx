@@ -10,6 +10,8 @@ import {
   Database,
   FileDown,
   Globe,
+  Moon,
+  Sun,
   UserRound,
 } from "lucide-react";
 import {
@@ -73,6 +75,8 @@ export function Menu() {
           <UserDialog />
           <DropdownMenuSeparator className="h-[0.05rem]" />
           <LangDialog />
+          <DropdownMenuSeparator className="h-[0.05rem]" />
+          <ThemeSwitch />
           <DropdownMenuSeparator className="h-[0.05rem]" />
           <Button variant="ghost" size="icon" onClick={() => setDsnOpen(true)}>
             <Database />
@@ -381,8 +385,8 @@ export function DSNDialog() {
               />
             </div>
             <Button
-              type="submit"
               variant="outline"
+              type="submit"
               className="col-span-2 w-1/3 mx-auto"
             >
               {t("Submit")}
@@ -391,5 +395,23 @@ export function DSNDialog() {
         </Form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+import { useTheme } from "next-themes";
+
+function ThemeSwitch() {
+  const { setTheme } = useTheme();
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() =>
+        setTheme(localStorage.getItem("theme") == "light" ? "dark" : "light")
+      }
+    >
+      {localStorage.getItem("theme") == "light" ? <Moon /> : <Sun />}
+    </Button>
   );
 }

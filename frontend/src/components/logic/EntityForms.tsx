@@ -113,8 +113,8 @@ export function LineForm() {
           )}
         />
         <Button
-          type="submit"
           variant="outline"
+          type="submit"
           className="col-span-2 w-1/2 mx-auto"
         >
           {t("Submit")}

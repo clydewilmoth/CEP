@@ -56,7 +56,7 @@ export function EntityCollection({
   return (
     <div className="flex flex-col gap-7 w-full">
       <SearchField
-        className="max-w-sm rounded-3xl mx-auto"
+        className="max-w-sm rounded-3xl mx-auto shadow-muted-foreground"
         aria-labelledby="search-field"
       >
         <FieldGroup>
@@ -141,7 +141,7 @@ function CreateEntityCard({
 
   return (
     <Card
-      className="w-36 flex justify-center items-center hover:cursor-pointer hover:shadow-md transition-shadow"
+      className="w-36 flex justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all"
       onClick={async () => {
         await createEntity({
           name: String(localStorage.getItem("name")),
@@ -183,7 +183,7 @@ function EntityCard({
                 onClick={() => {
                   link != "" && navigate(`${link}${entityId}`);
                 }}
-                className="w-36 hover:cursor-pointer hover:shadow-md transition-shadow h-fit flex flex-col justify-center items-center px-5 py-1 gap-2"
+                className="w-36 hover:cursor-pointer hover:translate-y-1 transition-all h-fit flex flex-col justify-center items-center px-5 py-1 gap-2"
               >
                 <CardTitle className="break-words w-full max-w-full text-center">
                   {entityName}

@@ -95,7 +95,7 @@ export function Header() {
   }, [titles, links, i18n.language]);
 
   return (
-    <div className="text-black  w-full flex flex-col items-center justify-start gap-5">
+    <div className="w-full flex flex-col items-center justify-start gap-5">
       <div className="w-full flex justify-between items-center">
         <div className="flex gap-10  justify-center items-center">
           <div className="text-left font-bold text-5xl">CEP</div>

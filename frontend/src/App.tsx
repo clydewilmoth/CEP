@@ -14,6 +14,8 @@ import { useTranslation } from "react-i18next";
 import { Loader } from "./components/ui/loader";
 import { RefreshCcw } from "lucide-react";
 import { Button } from "./components/ui/button";
+import { ThemeProvider } from "./components/ui/theme-provider";
+import { useTheme } from "next-themes";
 
 const queryClient = new QueryClient();
 
@@ -22,11 +24,15 @@ function App() {
     useInit();
   const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
+  const { setTheme } = useTheme();
 
   useEffect(() => {
     localStorage.getItem("lang") == null
       ? i18n.changeLanguage("en")
       : i18n.changeLanguage(String(localStorage.getItem("lang")));
+    localStorage.getItem("theme") == null
+      ? setTheme("light")
+      : setTheme(String(localStorage.getItem("theme")));
     const init = async () => {
       (await CheckEnvInExeDir())
         ? (async () => {
@@ -43,45 +49,52 @@ function App() {
   }, [appRender]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <div className="flex flex-col items-center justify-start w-full h-screen gap-10 p-12">
-        <Header />
-        {isLoading && (
-          <div className="flex flex-row items-center justify-center gap-4 font-semibold">
-            <Loader />
-            <p>{t("InitLoading")}</p>
-          </div>
-        )}
-        {initialised ? (
-          <div className="w-full">
-            <Route path={"/"}>
-              <Lines />
-            </Route>
-            <Route path={"/line/:luuid"}>
-              <Stations />
-            </Route>
-            <Route path={"/line/:luuid/station/:suuid"}>
-              <Tools />
-            </Route>
-            <Route path={"/line/:luuid/station/:suuid/tool/:tuuid"}>
-              <Operations />
-            </Route>
-          </div>
-        ) : (
-          !isLoading &&
-          !initialised && (
-            <Button
-              variant="outline"
-              onClick={() => (setIsLoading(true), appRerender())}
-            >
-              <RefreshCcw />
-              {t("InitReload")}
-            </Button>
-          )
-        )}
-        <Toaster />
-      </div>
-    </QueryClientProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <QueryClientProvider client={queryClient}>
+        <div className="flex flex-col items-center justify-start w-full h-screen gap-10 p-12">
+          <Header />
+          {isLoading && (
+            <div className="flex flex-row items-center justify-center gap-4 font-semibold">
+              <Loader />
+              <p>{t("InitLoading")}</p>
+            </div>
+          )}
+          {initialised ? (
+            <div className="w-full">
+              <Route path={"/"}>
+                <Lines />
+              </Route>
+              <Route path={"/line/:luuid"}>
+                <Stations />
+              </Route>
+              <Route path={"/line/:luuid/station/:suuid"}>
+                <Tools />
+              </Route>
+              <Route path={"/line/:luuid/station/:suuid/tool/:tuuid"}>
+                <Operations />
+              </Route>
+            </div>
+          ) : (
+            !isLoading &&
+            !initialised && (
+              <Button
+                variant="outline"
+                onClick={() => (setIsLoading(true), appRerender())}
+              >
+                <RefreshCcw />
+                {t("InitReload")}
+              </Button>
+            )
+          )}
+          <Toaster />
+        </div>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 
