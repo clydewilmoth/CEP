@@ -68,12 +68,21 @@ export function LineForm({
     AssemblyArea: z.string().max(3).optional(),
   });
 
-  async function clearDrafts() {
+  function clearDrafts() {
     localStorage.removeItem(entityId + "Name");
     localStorage.removeItem(entityId + "Comment");
     localStorage.removeItem(entityId + "StatusColor");
     localStorage.removeItem(entityId + "AssemblyArea");
     setObserver((prev) => prev + 1);
+  }
+
+  function checkDraftsAvailable() {
+    return localStorage.getItem(entityId + "Name") != null ||
+      localStorage.getItem(entityId + "Comment") != null ||
+      localStorage.getItem(entityId + "StatusColor") != null ||
+      localStorage.getItem(entityId + "AssemblyArea") != null
+      ? true
+      : false;
   }
 
   const { t } = useTranslation();
@@ -119,6 +128,8 @@ export function LineForm({
   });
 
   async function onSubmit() {
+    if (!checkDraftsAvailable()) return toast(t("LineForm NoDrafts"));
+
     const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
 
