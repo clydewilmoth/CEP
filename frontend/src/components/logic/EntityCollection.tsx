@@ -359,7 +359,7 @@ function FormDialog({
         <ScrollArea className="max-h-[90vh]">
           <div className="p-6">
             {entityType == "line" ? (
-              <LineForm entityType={entityType} entityId={entityId} />
+              <LineForm entityId={entityId} />
             ) : entityType == "station" ? (
               "stationform"
             ) : entityType == "tool" ? (

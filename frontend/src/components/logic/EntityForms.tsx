@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "react-i18next";
-import { Info, SquarePen, StickyNote } from "lucide-react";
+import { ChevronDown, ChevronUp, SquarePen } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -29,13 +29,7 @@ import {
   UpdateEntityFieldsString,
 } from "../../../wailsjs/go/main/Core";
 
-export function LineForm({
-  entityId,
-  entityType,
-}: {
-  entityId: string;
-  entityType: string;
-}) {
+export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     {}
   );
@@ -43,20 +37,14 @@ export function LineForm({
 
   useEffect(() => {
     (async () => {
-      const line = await GetEntityDetails(entityType, entityId);
+      const line = await GetEntityDetails("line", entityId);
       setMeta({ UpdatedAt: line.UpdatedAt, UpdatedBy: line.UpdatedBy });
+      const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
       form.reset({
-        Name: localStorage.getItem(entityId + "Name") || line.Name || "",
-        Comment:
-          localStorage.getItem(entityId + "Comment") || line.Comment || "",
-        StatusColor:
-          localStorage.getItem(entityId + "StatusColor") ||
-          line.StatusColor ||
-          "empty",
-        AssemblyArea:
-          localStorage.getItem(entityId + "AssemblyArea") ||
-          line.AssemblyArea ||
-          "",
+        Name: json.Name ?? line.Name ?? "",
+        Comment: json.Comment ?? line.Comment ?? "",
+        StatusColor: json.StatusColor ?? line.StatusColor ?? "empty",
+        AssemblyArea: json.AssemblyArea ?? line.AssemblyArea ?? "",
       });
     })();
   }, [observer]);
@@ -69,20 +57,12 @@ export function LineForm({
   });
 
   function clearDrafts() {
-    localStorage.removeItem(entityId + "Name");
-    localStorage.removeItem(entityId + "Comment");
-    localStorage.removeItem(entityId + "StatusColor");
-    localStorage.removeItem(entityId + "AssemblyArea");
+    localStorage.removeItem(entityId);
     setObserver((prev) => prev + 1);
   }
 
   function checkDraftsAvailable() {
-    return localStorage.getItem(entityId + "Name") != null ||
-      localStorage.getItem(entityId + "Comment") != null ||
-      localStorage.getItem(entityId + "StatusColor") != null ||
-      localStorage.getItem(entityId + "AssemblyArea") != null
-      ? true
-      : false;
+    return localStorage.getItem(entityId) != null ? true : false;
   }
 
   const { t } = useTranslation();
@@ -95,7 +75,7 @@ export function LineForm({
       const values = form.getValues();
       const res: Record<string, any> = {};
       Object.entries(values).forEach(([key, value]) => {
-        return localStorage.getItem(entityId + key) != null
+        JSON.parse(localStorage.getItem(entityId) ?? "{}")[key] != null
           ? (res[key] = { data: value, draft: true })
           : { data: value, draft: false };
       });
@@ -142,7 +122,7 @@ export function LineForm({
 
     await UpdateEntityFieldsString(
       String(localStorage.getItem("name")),
-      entityType,
+      "line",
       entityId,
       lastKnownUpdate,
       changesRecord
@@ -159,19 +139,66 @@ export function LineForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(() => submitForm())}
-        className="py-5 grid grid-cols-2 gap-8"
+        className="py-5 pt-7 grid grid-cols-2 gap-8"
       >
         <div className="col-span-2 flex gap-3">
-          <div className="flex gap-3 items-center">
-            <h1 className="text-2xl font-bold">{t("line")}</h1>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info size="18" />
-                </TooltipTrigger>
-                <TooltipContent>{t("Line Description")}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <h1 className="text-xl font-bold">{t("line")}</h1>
+              </TooltipTrigger>
+              <TooltipContent>{t("Line Description")}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <div className="flex gap-3 items-center my-auto ml-auto">
+            {line?.StatusColor?.draft && <SquarePen size={15} />}
+            <FormField
+              control={form.control}
+              name="StatusColor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <RadioGroup
+                      className="flex gap-1.5"
+                      value={field.value ?? "empty"}
+                      onValueChange={(value: string) => {
+                        field.onChange(value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.StatusColor = value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["line", entityId],
+                        });
+                      }}
+                    >
+                      <RadioGroupItem
+                        value="empty"
+                        aria-label="empty"
+                        className="size-6 border-foreground bg-foreground shadow-none data-[state=checked]:border-foreground data-[state=checked]:bg-foreborder-foreground"
+                      />
+                      <RadioGroupItem
+                        value="red"
+                        aria-label="red"
+                        className="size-6 border-red-500 bg-red-500 shadow-none data-[state=checked]:border-red-500 data-[state=checked]:bg-red-500"
+                      />
+                      <RadioGroupItem
+                        value="amber"
+                        aria-label="amber"
+                        className="size-6 border-amber-500 bg-amber-500 shadow-none data-[state=checked]:border-amber-500 data-[state=checked]:bg-amber-500"
+                      />
+                      <RadioGroupItem
+                        value="emerald"
+                        aria-label="emerald"
+                        className="size-6 border-emerald-500 bg-emerald-500 shadow-none data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
           </div>
           <div className="flex gap-3 items-center">
             <Button
@@ -180,78 +207,44 @@ export function LineForm({
               onClick={() => setCommentOpen(commentOpen ? false : true)}
               type="button"
             >
-              <StickyNote />
+              {commentOpen ? <ChevronUp /> : <ChevronDown />}
             </Button>
-            {line?.Comment?.draft && <SquarePen size={15} />}
           </div>
-          <FormField
-            control={form.control}
-            name="StatusColor"
-            render={({ field }) => (
-              <FormItem className="my-auto ml-auto">
-                <FormControl>
-                  <RadioGroup
-                    className="flex gap-1.5"
-                    value={field.value ?? "empty"}
-                    onValueChange={(value: string) => (
-                      field.onChange(value),
-                      localStorage.setItem(entityId + "StatusColor", value),
-                      queryClient.invalidateQueries({
-                        queryKey: ["line", entityId],
-                      })
-                    )}
-                  >
-                    <RadioGroupItem
-                      value="empty"
-                      aria-label="empty"
-                      className="size-6 border-foreground bg-foreground shadow-none data-[state=checked]:border-foreground data-[state=checked]:bg-foreborder-foreground"
-                    />
-                    <RadioGroupItem
-                      value="red"
-                      aria-label="red"
-                      className="size-6 border-red-500 bg-red-500 shadow-none data-[state=checked]:border-red-500 data-[state=checked]:bg-red-500"
-                    />
-                    <RadioGroupItem
-                      value="amber"
-                      aria-label="amber"
-                      className="size-6 border-amber-500 bg-amber-500 shadow-none data-[state=checked]:border-amber-500 data-[state=checked]:bg-amber-500"
-                    />
-                    <RadioGroupItem
-                      value="emerald"
-                      aria-label="emerald"
-                      className="size-6 border-emerald-500 bg-emerald-500 shadow-none data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500"
-                    />
-                  </RadioGroup>
-                </FormControl>
-              </FormItem>
-            )}
-          />
         </div>
         {commentOpen && (
-          <FormField
-            control={form.control}
-            name="Comment"
-            render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormControl>
-                  <Textarea
-                    {...field}
-                    onChange={(e) => (
-                      field.onChange(e.target.value),
-                      localStorage.setItem(
-                        entityId + "Comment",
-                        e.target.value
-                      ),
-                      queryClient.invalidateQueries({
-                        queryKey: ["line", entityId],
-                      })
-                    )}
-                    className="h-32 resize-none"
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          <div className="col-span-2 flex flex-col gap-3">
+            <div className="flex gap-3 ">
+              <FormLabel>{t("Comment")}</FormLabel>
+              {line?.Comment?.draft && <SquarePen size={15} />}
+            </div>
+
+            <FormField
+              control={form.control}
+              name="Comment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.Comment = e.target.value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["line", entityId],
+                        });
+                      }}
+                      className="h-32 resize-none"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
         )}
 
         <FormField
@@ -266,13 +259,18 @@ export function LineForm({
               <FormControl>
                 <Input
                   {...field}
-                  onChange={(e) => (
-                    field.onChange(e.target.value),
-                    localStorage.setItem(entityId + "Name", e.target.value),
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.Name = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
                     queryClient.invalidateQueries({
                       queryKey: ["line", entityId],
-                    })
-                  )}
+                    });
+                  }}
                 />
               </FormControl>
             </FormItem>
@@ -291,16 +289,18 @@ export function LineForm({
               <FormControl>
                 <Input
                   {...field}
-                  onChange={(e) => (
-                    field.onChange(e.target.value),
-                    localStorage.setItem(
-                      entityId + "AssemblyArea",
-                      e.target.value
-                    ),
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.AssemblyArea = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
                     queryClient.invalidateQueries({
                       queryKey: ["line", entityId],
-                    })
-                  )}
+                    });
+                  }}
                 />
               </FormControl>
             </FormItem>

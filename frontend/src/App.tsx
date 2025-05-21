@@ -4,7 +4,11 @@ import Stations from "./pages/Stations";
 import Tools from "./pages/Tools";
 import Operations from "./pages/Operations";
 import { Header } from "./components/logic/Header";
-import { CheckEnvInExeDir, InitDB } from "../wailsjs/go/main/Core";
+import {
+  CheckEnvInExeDir,
+  GetPlatformSpecificUserName,
+  InitDB,
+} from "../wailsjs/go/main/Core";
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -34,6 +38,10 @@ function App() {
     localStorage.getItem("theme") == null
       ? setTheme("light")
       : setTheme(String(localStorage.getItem("theme")));
+    (async () => {
+      localStorage.getItem("name") == null &&
+        localStorage.setItem("name", await GetPlatformSpecificUserName());
+    })();
     const init = async () => {
       (await CheckEnvInExeDir())
         ? (async () => {
