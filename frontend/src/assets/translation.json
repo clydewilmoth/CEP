@@ -40,7 +40,8 @@
             "DSN FormDescription": "Set up an MSSQL database connection by entering the required connection information.",
             "Submit": "Submit",
             "DSN TrustServer": "Trust Server",
-            "DSN Encrypted": "Encrypted"
+            "DSN Encrypted": "Encrypted",
+            "EntityMetaData": "Last edited by {{name}} on {{date}} at {{time}}"
 
         }   
     },

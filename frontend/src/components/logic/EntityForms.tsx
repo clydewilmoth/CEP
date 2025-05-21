@@ -29,13 +29,6 @@ import {
   UpdateEntityFieldsString,
 } from "../../../wailsjs/go/main/Core";
 
-const formSchema = z.object({
-  Name: z.string().optional(),
-  Comment: z.string().optional(),
-  StatusColor: z.string().optional(),
-  AssemblyArea: z.string().optional(),
-});
-
 export function LineForm({
   entityId,
   entityType,
@@ -67,6 +60,13 @@ export function LineForm({
       });
     })();
   }, [observer]);
+
+  const formSchema = z.object({
+    Name: z.string().optional(),
+    Comment: z.string().optional(),
+    StatusColor: z.string().optional(),
+    AssemblyArea: z.string().optional(),
+  });
 
   async function clearDrafts() {
     localStorage.removeItem(entityId + "Name");
@@ -129,9 +129,7 @@ export function LineForm({
       }
     });
 
-    console.log(changesRecord);
-
-    const res = await UpdateEntityFieldsString(
+    await UpdateEntityFieldsString(
       String(localStorage.getItem("name")),
       entityType,
       entityId,
@@ -141,7 +139,7 @@ export function LineForm({
 
     discardDrafts();
 
-    toast("success");
+    toast(t("LineForm Success"));
   }
 
   const [commentOpen, setCommentOpen] = useState(false);
