@@ -13,7 +13,15 @@ import {
   DeleteEntityByIDString,
   HandleExport,
 } from "../../../wailsjs/go/main/Core";
-import { Eye, FileUp, Plus, SearchIcon, Trash2, XIcon } from "lucide-react";
+import {
+  Eye,
+  FileUp,
+  Plus,
+  SearchIcon,
+  SquarePen,
+  Trash2,
+  XIcon,
+} from "lucide-react";
 import { Button } from "../ui/button";
 import { useTranslation } from "react-i18next";
 import {
@@ -94,6 +102,9 @@ export function EntityCollection({
                 entityId={entity.ID}
                 entityName={entity.Name}
                 entityComment={entity.Comment}
+                entityStatusColor={
+                  entity.StatusColor != "empty" ? entity.StatusColor : null
+                }
                 link={link}
                 key={index}
               />
@@ -174,12 +185,14 @@ function EntityCard({
   entityId,
   entityName,
   entityComment,
+  entityStatusColor,
   link,
 }: {
   entityType: string;
   entityId: string;
   entityName: string;
   entityComment: string;
+  entityStatusColor?: string;
   link: string;
 }) {
   const [key, setKey] = useState(0);
@@ -195,11 +208,35 @@ function EntityCard({
                 onClick={() => {
                   link != "" && navigate(`${link}${entityId}`);
                 }}
-                className="w-36 hover:cursor-pointer hover:translate-y-1 transition-all h-fit flex flex-col justify-center items-center px-5 py-1 gap-2"
+                className="w-36 hover:cursor-pointer hover:translate-y-1 transition-all h-fit flex gap-3 justify-center items-center px-5 py-1"
               >
-                <CardTitle className="break-words w-full max-w-full text-center">
-                  {entityName}
-                </CardTitle>
+                {entityName && (
+                  <CardTitle className="break-words max-w-24 text-center">
+                    {entityName}
+                  </CardTitle>
+                )}
+                {(localStorage.getItem(entityId) || entityStatusColor) && (
+                  <div className="flex flex-col gap-3 justify-between items-center">
+                    {localStorage.getItem(entityId) && <SquarePen size={15} />}
+                    {entityStatusColor && (
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 6 6"
+                        fill={
+                          entityStatusColor == "red"
+                            ? "rgb(239, 68, 68)"
+                            : entityStatusColor == "amber"
+                            ? "rgb(245, 158, 11)"
+                            : "rgb(16, 185, 129)"
+                        }
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle cx="3" cy="3" r="3" />
+                      </svg>
+                    )}
+                  </div>
+                )}
               </Card>
             </TooltipTrigger>
             {typeof entityComment == "string" && entityComment != "" && (

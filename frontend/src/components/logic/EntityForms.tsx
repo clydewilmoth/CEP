@@ -34,6 +34,7 @@ export function LineForm({ entityId }: { entityId: string }) {
     {}
   );
   const [observer, setObserver] = useState(0);
+  const [formReady, setFormReady] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -46,6 +47,7 @@ export function LineForm({ entityId }: { entityId: string }) {
         StatusColor: json.StatusColor ?? line.StatusColor ?? "empty",
         AssemblyArea: json.AssemblyArea ?? line.AssemblyArea ?? "",
       });
+      setFormReady(true);
     })();
   }, [observer]);
 
@@ -81,6 +83,7 @@ export function LineForm({ entityId }: { entityId: string }) {
       });
       return res;
     },
+    enabled: formReady,
   });
 
   const { mutate: discardDrafts } = useMutation({
@@ -152,7 +155,7 @@ export function LineForm({ entityId }: { entityId: string }) {
           </TooltipProvider>
 
           <div className="flex gap-3 items-center my-auto ml-auto">
-            {line?.StatusColor?.draft && <SquarePen size={15} />}
+            {line && line.StatusColor?.draft && <SquarePen size={15} />}
             <FormField
               control={form.control}
               name="StatusColor"
@@ -215,7 +218,7 @@ export function LineForm({ entityId }: { entityId: string }) {
           <div className="col-span-2 flex flex-col gap-3">
             <div className="flex gap-3 ">
               <FormLabel>{t("Comment")}</FormLabel>
-              {line?.Comment?.draft && <SquarePen size={15} />}
+              {line && line.Comment?.draft && <SquarePen size={15} />}
             </div>
 
             <FormField
@@ -254,7 +257,7 @@ export function LineForm({ entityId }: { entityId: string }) {
             <FormItem>
               <div className="flex gap-3">
                 <FormLabel>{t("Name")}</FormLabel>
-                {line?.Name?.draft && <SquarePen size={15} />}
+                {line && line.Name?.draft && <SquarePen size={15} />}
               </div>
               <FormControl>
                 <Input
@@ -284,7 +287,7 @@ export function LineForm({ entityId }: { entityId: string }) {
             <FormItem>
               <div className="flex gap-3">
                 <FormLabel>{t("AssemblyArea")}</FormLabel>
-                {line?.AssemblyArea?.draft && <SquarePen size={15} />}
+                {line && line.AssemblyArea?.draft && <SquarePen size={15} />}
               </div>
               <FormControl>
                 <Input
