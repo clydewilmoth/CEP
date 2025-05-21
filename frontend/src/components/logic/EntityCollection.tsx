@@ -16,7 +16,12 @@ import {
 import { Eye, FileUp, Plus, SearchIcon, Trash2, XIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import { useTranslation } from "react-i18next";
-import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 import { useState } from "react";
 import {
   ContextMenu,
@@ -35,6 +40,8 @@ import {
 } from "../ui/searchfield";
 import { FieldGroup } from "../ui/field";
 import { ScrollArea } from "../ui/scroll-area";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 export function EntityCollection({
   entityType,
@@ -269,10 +276,14 @@ function DeleteEntityDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
-        <h1 className="text-2xl font-bold">{t("DeleteDialog Title")}</h1>
-        <p>{`${t("DeleteDialog Description1")} ${t(entityType)}${t(
-          "DeleteDialog Description2"
-        )}`}</p>
+        <DialogTitle>
+          <h1 className="text-2xl font-bold">{t("DeleteDialog Title")}</h1>
+        </DialogTitle>
+        <DialogDescription>
+          <p>{`${t("DeleteDialog Description1")} ${t(entityType)}${t(
+            "DeleteDialog Description2"
+          )}`}</p>
+        </DialogDescription>
         <Button
           variant="outline"
           onClick={() => (
@@ -328,6 +339,7 @@ function FormDialog({
   forceOpen?: boolean;
 }) {
   const [open, setOpen] = useState(forceOpen);
+  const { t } = useTranslation();
 
   return (
     <Dialog
@@ -342,11 +354,14 @@ function FormDialog({
         </DialogTrigger>
       )}
 
-      <DialogContent className="w-7xl p-0">
+      <DialogContent className="w-7xl p-0" aria-describedby={undefined}>
+        <VisuallyHidden>
+          <DialogTitle>{t("EntityForm Title")}</DialogTitle>
+        </VisuallyHidden>
         <ScrollArea className="max-h-[90vh]">
           <div className="p-6">
             {entityType == "line" ? (
-              <LineForm />
+              <LineForm entityType={entityType} entityId={entityId} />
             ) : entityType == "station" ? (
               "stationform"
             ) : entityType == "tool" ? (

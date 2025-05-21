@@ -123,9 +123,12 @@ function UserDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
-        <h1 className="text-2xl font-bold">{t("NameDialog Title")}</h1>
-        <p>{t("NameDialog Description")}</p>
-
+        <DialogTitle>
+          <h1 className="text-2xl font-bold">{t("NameDialog Title")}</h1>
+        </DialogTitle>
+        <DialogDescription>
+          <p>{t("NameDialog Description")}</p>
+        </DialogDescription>
         <Input
           id="name"
           value={String(name)}
@@ -151,8 +154,12 @@ function LangDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
-        <h1 className="text-2xl font-bold">{t("LangDialog Title")}</h1>
-        <p>{t("LangDialog Description")}</p>
+        <DialogTitle>
+          <h1 className="text-2xl font-bold">{t("LangDialog Title")}</h1>
+        </DialogTitle>
+        <DialogDescription>
+          <p>{t("LangDialog Description")}</p>
+        </DialogDescription>
         <Select
           onValueChange={(e) => (
             setLang(e), i18n.changeLanguage(e), localStorage.setItem("lang", e)
@@ -278,10 +285,12 @@ export function DSNDialog() {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="py-5 grid grid-cols-2 gap-8"
               >
-                <h1 className="col-span-2 text-2xl font-bold">
-                  {t("DSN FormTitle")}
-                </h1>
-                <p className="col-span-2">{t("DSN FormDescription")}</p>
+                <DialogTitle className="col-span-2">
+                  <h1 className=" text-2xl font-bold">{t("DSN FormTitle")}</h1>
+                </DialogTitle>
+                <DialogDescription className="col-span-2">
+                  <p>{t("DSN FormDescription")}</p>
+                </DialogDescription>
                 <FormField
                   control={form.control}
                   name="Host"

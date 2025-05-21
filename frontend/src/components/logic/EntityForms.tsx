@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "react-i18next";
-import { Info, StickyNote } from "lucide-react";
+import { Info, SquarePen, StickyNote } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -21,7 +21,13 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  GetEntityDetails,
+  GetGlobalLastUpdateTimestamp,
+  UpdateEntityFieldsString,
+} from "../../../wailsjs/go/main/Core";
 
 const formSchema = z.object({
   Name: z.string().optional(),
@@ -30,21 +36,112 @@ const formSchema = z.object({
   AssemblyArea: z.string().optional(),
 });
 
-export function LineForm() {
+export function LineForm({
+  entityId,
+  entityType,
+}: {
+  entityId: string;
+  entityType: string;
+}) {
+  const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
+    {}
+  );
+  const [observer, setObserver] = useState(0);
+
+  useEffect(() => {
+    (async () => {
+      const line = await GetEntityDetails(entityType, entityId);
+      setMeta({ UpdatedAt: line.UpdatedAt, UpdatedBy: line.UpdatedBy });
+      form.reset({
+        Name: localStorage.getItem(entityId + "Name") || line.Name || "",
+        Comment:
+          localStorage.getItem(entityId + "Comment") || line.Comment || "",
+        StatusColor:
+          localStorage.getItem(entityId + "StatusColor") ||
+          line.StatusColor ||
+          "empty",
+        AssemblyArea:
+          localStorage.getItem(entityId + "AssemblyArea") ||
+          line.AssemblyArea ||
+          "",
+      });
+    })();
+  }, [observer]);
+
+  async function clearDrafts() {
+    localStorage.removeItem(entityId + "Name");
+    localStorage.removeItem(entityId + "Comment");
+    localStorage.removeItem(entityId + "StatusColor");
+    localStorage.removeItem(entityId + "AssemblyArea");
+    setObserver((prev) => prev + 1);
+  }
+
   const { t } = useTranslation();
+
+  const queryClient = useQueryClient();
+
+  const { data: line } = useQuery({
+    queryKey: ["line", entityId],
+    queryFn: async () => {
+      const values = form.getValues();
+      const res: Record<string, any> = {};
+      Object.entries(values).forEach(([key, value]) => {
+        return localStorage.getItem(entityId + key) != null
+          ? (res[key] = { data: value, draft: true })
+          : { data: value, draft: false };
+      });
+      return res;
+    },
+  });
+
+  const { mutate: discardDrafts } = useMutation({
+    mutationFn: async () => {
+      await clearDrafts();
+    },
+    onSuccess: async () => {
+      queryClient.invalidateQueries({
+        queryKey: ["line", entityId],
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      console.log(values);
-      toast("Form submitted successfully");
-    } catch (error) {
-      console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
-    }
+  const { mutate: submitForm } = useMutation({
+    mutationFn: async () => {
+      await onSubmit();
+    },
+    onSuccess: async () => {
+      queryClient.invalidateQueries();
+    },
+  });
+
+  async function onSubmit() {
+    const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
+    let changesRecord: Record<string, string> = {};
+
+    if (!line) return;
+    Object.entries(line).forEach(([key, value]) => {
+      if (value.draft) {
+        changesRecord[key] = value.data;
+      }
+    });
+
+    console.log(changesRecord);
+
+    const res = await UpdateEntityFieldsString(
+      String(localStorage.getItem("name")),
+      entityType,
+      entityId,
+      lastKnownUpdate,
+      changesRecord
+    );
+
+    discardDrafts();
+
+    toast("success");
   }
 
   const [commentOpen, setCommentOpen] = useState(false);
@@ -52,7 +149,7 @@ export function LineForm() {
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(() => submitForm())}
         className="py-5 grid grid-cols-2 gap-8"
       >
         <div className="col-span-2 flex gap-3">
@@ -67,14 +164,17 @@ export function LineForm() {
               </Tooltip>
             </TooltipProvider>
           </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setCommentOpen(commentOpen ? false : true)}
-            type="button"
-          >
-            <StickyNote />
-          </Button>
+          <div className="flex gap-3 items-center">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setCommentOpen(commentOpen ? false : true)}
+              type="button"
+            >
+              <StickyNote />
+            </Button>
+            {line?.Comment?.draft && <SquarePen size={15} />}
+          </div>
           <FormField
             control={form.control}
             name="StatusColor"
@@ -83,8 +183,14 @@ export function LineForm() {
                 <FormControl>
                   <RadioGroup
                     className="flex gap-1.5"
-                    defaultValue="empty"
-                    onValueChange={field.onChange}
+                    value={field.value ?? "empty"}
+                    onValueChange={(value: string) => (
+                      field.onChange(value),
+                      localStorage.setItem(entityId + "StatusColor", value),
+                      queryClient.invalidateQueries({
+                        queryKey: ["line", entityId],
+                      })
+                    )}
                   >
                     <RadioGroupItem
                       value="empty"
@@ -120,8 +226,17 @@ export function LineForm() {
               <FormItem className="col-span-2">
                 <FormControl>
                   <Textarea
-                    placeholder="Comment"
                     {...field}
+                    onChange={(e) => (
+                      field.onChange(e.target.value),
+                      localStorage.setItem(
+                        entityId + "Comment",
+                        e.target.value
+                      ),
+                      queryClient.invalidateQueries({
+                        queryKey: ["line", entityId],
+                      })
+                    )}
                     className="h-32 resize-none"
                   />
                 </FormControl>
@@ -129,14 +244,27 @@ export function LineForm() {
             )}
           />
         )}
+
         <FormField
           control={form.control}
           name="Name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("Name")}</FormLabel>
+              <div className="flex gap-3">
+                <FormLabel>{t("Name")}</FormLabel>
+                {line?.Name?.draft && <SquarePen size={15} />}
+              </div>
               <FormControl>
-                <Input placeholder="Name" type="" {...field} />
+                <Input
+                  {...field}
+                  onChange={(e) => (
+                    field.onChange(e.target.value),
+                    localStorage.setItem(entityId + "Name", e.target.value),
+                    queryClient.invalidateQueries({
+                      queryKey: ["line", entityId],
+                    })
+                  )}
+                />
               </FormControl>
             </FormItem>
           )}
@@ -147,25 +275,52 @@ export function LineForm() {
           name="AssemblyArea"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("AssemblyArea")}</FormLabel>
+              <div className="flex gap-3">
+                <FormLabel>{t("AssemblyArea")}</FormLabel>
+                {line?.AssemblyArea?.draft && <SquarePen size={15} />}
+              </div>
               <FormControl>
-                <Input placeholder="AssemblyArea" type="" {...field} />
+                <Input
+                  {...field}
+                  onChange={(e) => (
+                    field.onChange(e.target.value),
+                    localStorage.setItem(
+                      entityId + "AssemblyArea",
+                      e.target.value
+                    ),
+                    queryClient.invalidateQueries({
+                      queryKey: ["line", entityId],
+                    })
+                  )}
+                />
               </FormControl>
             </FormItem>
           )}
         />
-
         <Button
           variant="outline"
-          type="submit"
-          className="col-span-2 w-1/2 mx-auto"
+          type="button"
+          onClick={async () => discardDrafts()}
         >
+          {t("Discard")}
+        </Button>
+        <Button variant="outline" type="submit">
           {t("Submit")}
         </Button>
         <div className="col-span-2 flex justify-center items-center">
           <div className="max-w-80 text-center italic text-sm">
-            Wurde zuletzt von Sandro Leuchter am 10.05.2025 um 17:00 Uhr
-            bearbeitet
+            {t("EntityMetaData", {
+              name: meta?.UpdatedBy,
+              date: meta?.UpdatedAt?.split("T")[0]
+                .split("-")
+                .reverse()
+                .join("."),
+              time: meta?.UpdatedAt?.split("T")[1]
+                .split(".")[0]
+                .split(":")
+                .slice(0, 2)
+                .join(":"),
+            })}
           </div>
         </div>
       </form>

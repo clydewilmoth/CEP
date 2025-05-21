@@ -27,6 +27,28 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+// Robust timestamp parsing helper for concurrency and DB compatibility
+func parseTimestampFlexible(ts string) (time.Time, error) {
+	// Try RFC3339Nano
+	t, err := time.Parse(time.RFC3339Nano, ts)
+	if err == nil {
+		return t, nil
+	}
+	// Try RFC3339
+	t, err = time.Parse(time.RFC3339, ts)
+	if err == nil {
+		return t, nil
+	}
+	// Try SQL Server datetime2 (no T, no timezone)
+	const mssqlFormat = "2006-01-02 15:04:05.9999999"
+	t, err = time.Parse(mssqlFormat, ts)
+	if err == nil {
+		return t, nil
+	}
+	log.Printf("Failed to parse timestamp '%s': %v", ts, err)
+	return time.Time{}, fmt.Errorf("unsupported timestamp format: %s", ts)
+}
+
 type Core struct {
 	ctx context.Context
 }
@@ -309,18 +331,15 @@ func (c *Core) GetChangesSince(clientLastKnownTimestampStr string) (*ChangeRespo
 	if DB == nil {
 		return nil, errors.New("DB not initialized")
 	}
-	clientLastKnownTime, err := time.Parse(time.RFC3339Nano, clientLastKnownTimestampStr)
+	clientLastKnownTime, err := parseTimestampFlexible(clientLastKnownTimestampStr)
 	if err != nil {
-		clientLastKnownTime, err = time.Parse(time.RFC3339, clientLastKnownTimestampStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid clientLastKnownTimestampStr format: %w", err)
-		}
+		return nil, fmt.Errorf("invalid clientLastKnownTimestampStr format: %w", err)
 	}
 	currentGlobalTsStr, err := c.GetGlobalLastUpdateTimestamp()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current global update timestamp: %w", err)
 	}
-	currentGlobalTime, _ := time.Parse(time.RFC3339Nano, currentGlobalTsStr)
+	currentGlobalTime, _ := parseTimestampFlexible(currentGlobalTsStr)
 	response := &ChangeResponse{NewGlobalLastUpdatedAt: currentGlobalTsStr, UpdatedEntities: make(map[string][]string), DeletedEntities: make(map[string][]string)}
 	if currentGlobalTime.After(clientLastKnownTime) {
 		var logs []EntityChangeLog
@@ -494,12 +513,9 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 	if err != nil {
 		return nil, err
 	}
-	lastKnownUpdatedAt, err := time.Parse(time.RFC3339Nano, lastKnownUpdatedAtStr)
+	lastKnownUpdatedAt, err := parseTimestampFlexible(lastKnownUpdatedAtStr)
 	if err != nil {
-		lastKnownUpdatedAt, err = time.Parse(time.RFC3339, lastKnownUpdatedAtStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid updated_at format ('%s'): %w", lastKnownUpdatedAtStr, err)
-		}
+		return nil, fmt.Errorf("invalid updated_at format ('%s'): %w", lastKnownUpdatedAtStr, err)
 	}
 	modelToUpdate, err := getModelInstance(entityTypeStr)
 	if err != nil {
@@ -519,19 +535,57 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 			return fmt.Errorf("error loading entity for update check: %w", errCheck)
 		}
 		var currentDBUpdatedAt time.Time
-		switch m := dbEntityForCheck.(type) {
-		case *Line:
+		switch strings.ToLower(entityTypeStr) {
+		case "line":
+			var m Line
+			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errors.New("record not found or already deleted")
+				}
+				return fmt.Errorf("error loading entity for update check: %w", err)
+			}
 			currentDBUpdatedAt = m.UpdatedAt
-		case *Station:
+		case "station":
+			var m Station
+			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errors.New("record not found or already deleted")
+				}
+				return fmt.Errorf("error loading entity for update check: %w", err)
+			}
 			currentDBUpdatedAt = m.UpdatedAt
-		case *Tool:
+		case "tool":
+			var m Tool
+			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errors.New("record not found or already deleted")
+				}
+				return fmt.Errorf("error loading entity for update check: %w", err)
+			}
 			currentDBUpdatedAt = m.UpdatedAt
-		case *Operation:
+		case "operation":
+			var m Operation
+			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errors.New("record not found or already deleted")
+				}
+				return fmt.Errorf("error loading entity for update check: %w", err)
+			}
 			currentDBUpdatedAt = m.UpdatedAt
 		default:
-			return fmt.Errorf("unknown type for timestamp extraction: %T", m)
+			return fmt.Errorf("unknown type for timestamp extraction: %s", entityTypeStr)
 		}
-		if !currentDBUpdatedAt.Truncate(time.Millisecond).Equal(lastKnownUpdatedAt.Truncate(time.Millisecond)) {
+		// Hole den aktuellen globalen Zeitstempel wie der Client
+		currentGlobalTsStr, err := c.GetGlobalLastUpdateTimestamp()
+		if err != nil {
+			return fmt.Errorf("failed to get global last update timestamp: %w", err)
+		}
+		currentDBUpdatedAt, err = parseTimestampFlexible(currentGlobalTsStr)
+		if err != nil {
+			return fmt.Errorf("failed to parse global last update timestamp: %w", err)
+		}
+		if currentDBUpdatedAt.UTC().Before(lastKnownUpdatedAt.UTC()) {
+			log.Printf("[Concurrency] Conflict detected: DB UpdatedAt=%s | Client UpdatedAt=%s", currentDBUpdatedAt.UTC().Format(time.RFC3339Nano), lastKnownUpdatedAt.UTC().Format(time.RFC3339Nano))
 			return errors.New("conflict: record was modified by another user")
 		}
 		gormUpdates := make(map[string]interface{})
@@ -1004,7 +1058,7 @@ func (c *Core) RestoreAsNewCurrentVersion(versionIDToRestoreStr string, userName
 				return nil, err
 			}
 			for i := range items {
-				tool := Tool{BaseModel: BaseModel{ID: items[i].ID, CreatedAt: items[i].CreatedAt, UpdatedAt: items[i].UpdatedAt, CreatedBy: items[i].CreatedBy, UpdatedBy: items[i].UpdatedBy}, Name: items[i].Name, Description: items[i].Description, ParentID: items[i].ParentID}
+				tool := Tool{BaseModel: BaseModel{ID: items[i].ID, CreatedAt: items[i].CreatedAt, UpdatedBy: items[i].UpdatedBy, CreatedBy: items[i].CreatedBy}, Name: items[i].Name, Description: items[i].Description, ParentID: items[i].ParentID}
 				results = append(results, &tool)
 			}
 		case "operation":

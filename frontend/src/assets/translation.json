@@ -86,7 +86,8 @@
             "DSN FormDescription": "Einrichtung einer MSSQL Datenbankverbindung durch Eingabe der erforderlichen Verbindungsinformationen.",
             "Submit": "Senden",
             "DSN TrustServer": "Server vertrauen",
-            "DSN Encrypted": "Verschlüsselt"
+            "DSN Encrypted": "Verschlüsselt",
+            "EntityMetaData" : "Wurde zuletzt von {{name}} am {{date}} um {{time}} Uhr bearbeitet"
 
         }
     }
