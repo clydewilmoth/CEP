@@ -65,7 +65,7 @@ export function LineForm({
     Name: z.string().optional(),
     Comment: z.string().optional(),
     StatusColor: z.string().optional(),
-    AssemblyArea: z.string().optional(),
+    AssemblyArea: z.string().max(3).optional(),
   });
 
   async function clearDrafts() {
