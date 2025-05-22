@@ -339,3 +339,15 @@ export function LineForm({ entityId }: { entityId: string }) {
     </Form>
   );
 }
+
+export function StationForm({ entityId }: { entityId: string }) {
+
+}
+
+export function ToolForm({ entityId }: { entityId: string }) {
+
+}
+
+export function OperationForm({ entityId }: { entityId: string }) {
+
+}
