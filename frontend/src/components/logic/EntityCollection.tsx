@@ -39,7 +39,7 @@ import {
 } from "../ui/context-menu";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { LineForm } from "./EntityForms";
+import { LineForm, OperationForm, StationForm, ToolForm } from "./EntityForms";
 import { useInit } from "@/App";
 import {
   SearchField,
@@ -398,11 +398,11 @@ function FormDialog({
             {entityType == "line" ? (
               <LineForm entityId={entityId} />
             ) : entityType == "station" ? (
-              "stationform"
+              <StationForm entityId={entityId} />
             ) : entityType == "tool" ? (
-              "toolform"
+              <ToolForm entityId={entityId} />
             ) : entityType == "operation" ? (
-              "operationform"
+              <OperationForm entityId={entityId} />
             ) : (
               ""
             )}

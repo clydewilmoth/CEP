@@ -29,6 +29,14 @@ import {
   UpdateEntityFieldsString,
 } from "../../../wailsjs/go/main/Core";
 import { Description } from "@radix-ui/react-dialog";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
+import OperationClasses from "../../assets/fertigeJSON.json";
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -358,6 +366,8 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         Comment: json.Comment ?? station.Comment ?? "",
         StatusColor: json.StatusColor ?? station.StatusColor ?? "empty",
         Description: json.Description ?? station.Description ?? "",
+        StationType: json.StationType ?? station.StationType ?? "",
+        SerialOrParallel: json.SerialOrParallel ?? station.SerialOrParallel ?? "",
       });
       setFormReady(true);
     })();
@@ -368,6 +378,8 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     Comment: z.string().optional(),
     StatusColor: z.string().optional(),
     Description: z.string().optional(),
+    StationType: z.string().optional(),
+    SerialOrParallel: z.string().optional(),
   });
 
   function clearDrafts() {
@@ -621,7 +633,72 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
             </FormItem>
           )}
         />
-        
+        <FormField
+          control={form.control}
+          name="StationType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("Station Type")}</FormLabel>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  json.StationType = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["station", entityId],
+                  });
+                }}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Stationstyp wählen" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="0">Datadump</SelectItem>
+                  <SelectItem value="1">Controller</SelectItem>
+                  <SelectItem value="10">PCS</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="SerialOrParallel"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("Serial / Parallel")}</FormLabel>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  json.SerialOrParallel = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["station", entityId],
+                  });
+                }}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="seriell oder parallel" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="0">seriell</SelectItem>
+                  <SelectItem value="1">parallel</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+
         <Button
           variant="outline"
           type="button"
@@ -678,6 +755,8 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         SPSPreCheck: json.SPSPreCheck ?? tool.SPSPreCheck ?? "",
         SPSAddressInReceiveDB: json.SPSAddressInReceiveDB ?? tool.SPSAddressInReceiveDB ?? "",
         SPSAddressInSendDB: json.SPSAddressInSendDB ?? tool.SPSAddressInSendDB ?? "",
+        ToolClass: json.ToolClass ?? tool.ToolClass ?? "",
+        ToolType: json.ToolType ?? tool.ToolType ?? "",
       });
       setFormReady(true);
     })();
@@ -689,13 +768,15 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     StatusColor: z.string().optional(),
     Description: z.string().optional(),
     IpAddressDevice: z.string().optional(),
-    ToolWithSPS: z.string().optional(),
+    ToolWithSPS: z.boolean().optional(),
     SPSPLCNameSPAService: z.string().optional(),
     SPSDBNoSend: z.string().optional(),
     SPSDBNoReceive: z.string().optional(),
     SPSPreCheck: z.string().optional(),
     SPSAddressInReceiveDB: z.string().optional(),
     SPSAddressInSendDB: z.string().optional(),
+    ToolClass: z.string().optional(),
+    ToolType: z.string().optional(),
   });
 
   function clearDrafts() {
@@ -952,6 +1033,193 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
 
         <FormField
           control={form.control}
+          name="ToolClass"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("Tool Class")}</FormLabel>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  json.ToolClass = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["tool", entityId],
+                  });
+                }}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Toolklasse wählen" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="1">Check</SelectItem>
+                  <SelectItem value="2">Scanner</SelectItem>
+                  <SelectItem value="3">Tightening</SelectItem>
+                  <SelectItem value="4">Stamping</SelectItem>
+                  <SelectItem value="5">Execution</SelectItem>
+                  <SelectItem value="6">Leak Test</SelectItem>
+                  <SelectItem value="7">PickBySystem</SelectItem>
+                  <SelectItem value="9">Measuring</SelectItem>
+                  <SelectItem value="12">LiquidFilling</SelectItem>
+                  <SelectItem value="15">Decision</SelectItem>
+                  <SelectItem value="16">CarrierMarriage</SelectItem>
+                  <SelectItem value="23">Manual</SelectItem>
+                  <SelectItem value="24">ShippingRack</SelectItem>
+                  <SelectItem value="25">FitIn</SelectItem>
+                  <SelectItem value="26">PositionClear</SelectItem>
+                  <SelectItem value="27">Testbench</SelectItem>
+                  <SelectItem value="28">SAP Upload</SelectItem>
+                  <SelectItem value="30">QGate</SelectItem>
+                  <SelectItem value="31">ProcessFlow</SelectItem>
+                  <SelectItem value="32">PictureCapture</SelectItem>
+                  <SelectItem value="33">Calculate</SelectItem>
+                  <SelectItem value="34">BuildCondition</SelectItem>
+                  <SelectItem value="35">TimeTracking</SelectItem>
+                  <SelectItem value="36">External</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="ToolType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("Tool Type")}</FormLabel>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  json.ToolType = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["tool", entityId],
+                  });
+                }}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tooltyp wählen" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="1">Check Manual</SelectItem>
+                  <SelectItem value="2">Wait</SelectItem>
+                  <SelectItem value="3">DS Check</SelectItem>
+                  <SelectItem value="4">Scanner (USB)</SelectItem>
+                  <SelectItem value="5">Scanner (PLC)</SelectItem>
+                  <SelectItem value="9">Tightening (AtlasCopco)</SelectItem>
+                  <SelectItem value="12">Tightening (PLC) Values</SelectItem>
+                  <SelectItem value="15">Execution (File)</SelectItem>
+                  <SelectItem value="16">Picture Viewer</SelectItem>
+                  <SelectItem value="18">LeakTest (External)</SelectItem>
+                  <SelectItem value="19">Commissioning (External)</SelectItem>
+                  <SelectItem value="20">Commissioning (Wibond)</SelectItem>
+                  <SelectItem value="22">Measuring (Manual) Value</SelectItem>
+                  <SelectItem value="23">Measuring (PLC) Status</SelectItem>
+                  <SelectItem value="24">Measuring (PLC) Values</SelectItem>
+                  <SelectItem value="27">CarrierMarriage (PLC)</SelectItem>
+                  <SelectItem value="28">Manual</SelectItem>
+                  <SelectItem value="29">Manual with user rights</SelectItem>
+                  <SelectItem value="32">ShippingRack (PLC)</SelectItem>
+                  <SelectItem value="33">Decision (Manual)</SelectItem>
+                  <SelectItem value="35">Qgate Decision</SelectItem>
+                  <SelectItem value="37">Execution (Procedure)</SelectItem>
+                  <SelectItem value="38">Check Multiple</SelectItem>
+                  <SelectItem value="39">Tightening (External)</SelectItem>
+                  <SelectItem value="40">FitIn (PLC)</SelectItem>
+                  <SelectItem value="41">PositionClear (External)</SelectItem>
+                  <SelectItem value="43">Tightening (AtlasCopco) Picture Repair</SelectItem>
+                  <SelectItem value="44">Check Multiple Rework</SelectItem>
+                  <SelectItem value="46">Measuring (Manual) Status Picture</SelectItem>
+                  <SelectItem value="47">Commissioning (SPA)</SelectItem>
+                  <SelectItem value="48">FitIn (SPA)</SelectItem>
+                  <SelectItem value="49">PositionClear (SPA)</SelectItem>
+                  <SelectItem value="50">Check Dynamic</SelectItem>
+                  <SelectItem value="51">Tightening (PLC) Status</SelectItem>
+                  <SelectItem value="54">OilFilling (Manual)</SelectItem>
+                  <SelectItem value="55">Scanner (Cognex)</SelectItem>
+                  <SelectItem value="56">Measuring (PLC) Status Multi OP</SelectItem>
+                  <SelectItem value="57">CarrierMarriage (SPA)</SelectItem>
+                  <SelectItem value="59">Measuring (SPA) Status</SelectItem>
+                  <SelectItem value="60">Tightening (SPA) Values</SelectItem>
+                  <SelectItem value="61">Scanner (SPA) Fisheye</SelectItem>
+                  <SelectItem value="62">Stamp (SPA)</SelectItem>
+                  <SelectItem value="63">PositionClear (PLC)</SelectItem>
+                  <SelectItem value="65">OilFilling (PLC)</SelectItem>
+                  <SelectItem value="66">Tightening (OpenProtocol)</SelectItem>
+                  <SelectItem value="67">Measuring (PLC) Values & Limits</SelectItem>
+                  <SelectItem value="68">Commissioning (Manual)</SelectItem>
+                  <SelectItem value="69">Execution (Procedure) with Return Value</SelectItem>
+                  <SelectItem value="70">SAP Upload (HTTP)</SelectItem>
+                  <SelectItem value="75">Measuring (WCF)</SelectItem>
+                  <SelectItem value="80">Scanner (PLC) Fisheye</SelectItem>
+                  <SelectItem value="81">Scanner (SPA)</SelectItem>
+                  <SelectItem value="82">Tightening (AtlasCopco) Picture</SelectItem>
+                  <SelectItem value="83">LeakTest (PLC)</SelectItem>
+                  <SelectItem value="84">Measuring (PLC) Status & Results</SelectItem>
+                  <SelectItem value="85">PositionClear (PLC) Destination Reloaded</SelectItem>
+                  <SelectItem value="86">PositionClear (SPA) Destination</SelectItem>
+                  <SelectItem value="87">Measuring (External)</SelectItem>
+                  <SelectItem value="89">LeakTest (WCF2)</SelectItem>
+                  <SelectItem value="90">Measuring (WCF2)</SelectItem>
+                  <SelectItem value="91">Picture Viewer DS Check</SelectItem>
+                  <SelectItem value="92">Measuring (PLC) Values Display</SelectItem>
+                  <SelectItem value="100">ResultSumDecision</SelectItem>
+                  <SelectItem value="101">ResultSumCheck</SelectItem>
+                  <SelectItem value="102">QGate Operations</SelectItem>
+                  <SelectItem value="104">PositionClear (PLC) Prisma</SelectItem>
+                  <SelectItem value="105">PositionClear (SPA) Prisma</SelectItem>
+                  <SelectItem value="106">Scanner (SPA PCS with PLC logic)</SelectItem>
+                  <SelectItem value="107">Check (SPA PCS with PLC logic)</SelectItem>
+                  <SelectItem value="108">OilFilling (SPA)</SelectItem>
+                  <SelectItem value="109">Commissioning (Wibond) Parts List</SelectItem>
+                  <SelectItem value="110">LeakTest (File) V12</SelectItem>
+                  <SelectItem value="111">PictureCapture</SelectItem>
+                  <SelectItem value="112">Calculate</SelectItem>
+                  <SelectItem value="119">MASIS values check</SelectItem>
+                  <SelectItem value="120">PositionClear (PLC) Picture</SelectItem>
+                  <SelectItem value="121">PositionClear (SPA) Picture</SelectItem>
+                  <SelectItem value="122">Measuring (File) AVL TDC</SelectItem>
+                  <SelectItem value="123">Check For Logged In User</SelectItem>
+                  <SelectItem value="124">PictureCapture FotoBox (WCF2)</SelectItem>
+                  <SelectItem value="126">Tightening (AtlasCopco) v2</SelectItem>
+                  <SelectItem value="127">Stamp (Ethernet) Werner</SelectItem>
+                  <SelectItem value="130">Tightening (File) Novotest</SelectItem>
+                  <SelectItem value="131">Testbench (File) Unipas/Novotest</SelectItem>
+                  <SelectItem value="132">Stamp (File) Gear</SelectItem>
+                  <SelectItem value="133">Measuring (PLC) With Reloaded OP</SelectItem>
+                  <SelectItem value="135">Tightening (Manual)</SelectItem>
+                  <SelectItem value="136">LeakTest (SPA)</SelectItem>
+                  <SelectItem value="137">Scanner (Cognex) With Reloaded OP</SelectItem>
+                  <SelectItem value="138">BuildingCondition (SPA)</SelectItem>
+                  <SelectItem value="139">InvisibleOperation</SelectItem>
+                  <SelectItem value="141">Testbench (File) UNIPAS 2</SelectItem>
+                  <SelectItem value="142">Measuring (SPA) Picture</SelectItem>
+                  <SelectItem value="143">Commissioning (WCF2)</SelectItem>
+                  <SelectItem value="144">TimeTracking (SPA)</SelectItem>
+                  <SelectItem value="145">Testbench (File) Unipas Axle</SelectItem>
+                  <SelectItem value="146">Check and Transfer Files</SelectItem>
+                  <SelectItem value="147">User Login</SelectItem>
+                  <SelectItem value="149">Call Web Api</SelectItem>
+                  <SelectItem value="150">Rework and Routing</SelectItem>
+                  <SelectItem value="152">PositionClear (WCF) Destination</SelectItem>
+                  <SelectItem value="154">ServiceLayer Tool</SelectItem>
+                  <SelectItem value="155">ShiftUser Login</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="IpAddressDevice"
           render={({ field }) => (
             <FormItem>
@@ -989,14 +1257,14 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                       <FormControl>
                         <input
                           type="checkbox"
-                          checked={field.value}
+                          checked={field.value ?? false}
                           onChange={field.onChange}
-                          id="TrustServerCertificate"
+                          id="ToolWithSPS"
                           className="accent-black w-4 h-4"
                       />
                       </FormControl>
                       <FormLabel
-                        htmlFor="TrustServerCertificate"
+                        htmlFor="ToolWithSPS"
                         className="mb-0 cursor-pointer"
                       >
                       {t("ToolWithSPS")}
@@ -1240,6 +1508,11 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         SequenceGroupe: json.SequenceGroupe ?? operation.SequenceGroupe ?? "",
         Sequence: json.Sequence ?? operation.Sequence ?? "",
         AlwaysPerform: json.AlwaysPerform ?? operation.AlwaysPerform ?? "",
+        templateId: operation?.templateId ?? "",
+        decisionClass: operation?.decisionClass ?? "",
+        verificationClass: operation?.verificationClass ?? "",
+        generationClass: operation?.generationClass ?? "",
+        savingClass: operation?.savingClass ?? "",
       });
       setFormReady(true);
     })();
@@ -1254,6 +1527,11 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     SequenceGroupe: z.string().optional(),
     Sequence: z.string().optional(),
     AlwaysPerform: z.string().optional(),
+    templateId: z.string().min(1, "Template ist erforderlich"),
+    decisionClass: z.string().optional(),
+    verificationClass: z.string().optional(),
+    generationClass: z.string().optional(),
+    savingClass: z.string().optional(),
   });
 
   function clearDrafts() {
@@ -1510,6 +1788,55 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
 
         <FormField
           control={form.control}
+          name="templateId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Template</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Wählen Sie ein Template" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="1">Check and Information Standard</SelectItem>
+                    <SelectItem value="2">Scanning Standard</SelectItem>
+                    <SelectItem value="3">Tightening Standard</SelectItem>
+                    <SelectItem value="4">Stamping Standard</SelectItem>
+                    <SelectItem value="5">Execution Standard</SelectItem>
+                    <SelectItem value="6">LeakTest Standard</SelectItem>
+                    <SelectItem value="7">Commissioning Standard</SelectItem>
+                    <SelectItem value="8">MCM Flashing Standard</SelectItem>
+                    <SelectItem value="9">Measuring Standard</SelectItem>
+                    <SelectItem value="10">TSKCheck Standard</SelectItem>
+                    <SelectItem value="11">Labelprint Standard</SelectItem>
+                    <SelectItem value="12">LiquidFilling Standard</SelectItem>
+                    <SelectItem value="13">ColdTestTausch Standard</SelectItem>
+                    <SelectItem value="14">Testing Standard</SelectItem>
+                    <SelectItem value="15">Decision Standard</SelectItem>
+                    <SelectItem value="16">CarrierMarriage Standard</SelectItem>
+                    <SelectItem value="17">Cooling Standard</SelectItem>
+                    <SelectItem value="18">ThreeDScann Standard</SelectItem>
+                    <SelectItem value="19">Painting Standard</SelectItem>
+                    <SelectItem value="20">Drying Standard</SelectItem>
+                    <SelectItem value="21">COTwoCleaning Standard</SelectItem>
+                    <SelectItem value="22">ValveLashCheck Standard</SelectItem>
+                    <SelectItem value="23">ShippingRack Standard</SelectItem>
+                    <SelectItem value="24">FitIn Standard</SelectItem>
+                    <SelectItem value="25">PositionClear Standard</SelectItem>
+                    <SelectItem value="26">EngineTest Standard</SelectItem>
+                    <SelectItem value="27">PictureCapture Standard</SelectItem>
+                    <SelectItem value="28">Calculate Standard</SelectItem>
+                    <SelectItem value="29">BuildingCondition Standard</SelectItem>
+                    <SelectItem value="30">TimeTracking Standard</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="DecisionCriteria"
           render={({ field }) => (
             <FormItem>
@@ -1624,6 +1951,224 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   }}
                 />
               </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="decisionClass"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Decision Class</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Wählen Sie eine Decision Class" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="1">01 - Immer ausführen</SelectItem>
+                  <SelectItem value="2">02 - Variante</SelectItem>
+                  <SelectItem value="3">03 - Baumuster</SelectItem>
+                  <SelectItem value="4">04 - Teil</SelectItem>
+                  <SelectItem value="5">05 - SAA</SelectItem>
+                  <SelectItem value="9">09 - Teil Referenz zu Scannerergebnis</SelectItem>
+                  <SelectItem value="11">11 - Teil mit Stationszuordnung (alle MU)</SelectItem>
+                  <SelectItem value="16">16 - RefOp ohne IO Ergebnis</SelectItem>
+                  <SelectItem value="17">17 - Teil und SAA</SelectItem>
+                  <SelectItem value="18">18 - Teil und Baumuster</SelectItem>
+                  <SelectItem value="21">21 - Montagelinie</SelectItem>
+                  <SelectItem value="22">22 - Teil mit Station und MU</SelectItem>
+                  <SelectItem value="23">23 - Baumuster und SAA</SelectItem>
+                  <SelectItem value="24">24 - Baumuster und SAA und Attribut</SelectItem>
+                  <SelectItem value="25">25 - SAA und SAA</SelectItem>
+                  <SelectItem value="26">26 - Attribut</SelectItem>
+                  <SelectItem value="27">27 - Station MU</SelectItem>
+                  <SelectItem value="28">28 - Baumuster und Attribut</SelectItem>
+                  <SelectItem value="29">29 - Kundennummer</SelectItem>
+                  <SelectItem value="30">30 - Kundennummer + Spezial</SelectItem>
+                  <SelectItem value="31">31 - Kundennummer + Variante</SelectItem>
+                  <SelectItem value="32">32 - Teilenummer + ZGS</SelectItem>
+                  <SelectItem value="33">33 - Teilenummer + Attribut</SelectItem>
+                  <SelectItem value="34">34 - Referenzoperation NIO + Teil</SelectItem>
+                  <SelectItem value="35">35 - Referenzoperation NIO + Variante Input Format</SelectItem>
+                  <SelectItem value="36">36 - Referenzoperation IO + Teil</SelectItem>
+                  <SelectItem value="37">37 - Referenzoperation IO + Variante Input Format</SelectItem>
+                  <SelectItem value="38">38 - Kundennummer + Baumuster + SAA</SelectItem>
+                  <SelectItem value="39">39 - Plangruppenzähler + Plangruppe</SelectItem>
+                  <SelectItem value="40">40 - Warenempfänger(RecipCustomerNo)</SelectItem>
+                  <SelectItem value="41">41 - Kundenmaterialnummer</SelectItem>
+                  <SelectItem value="42">42 - Teil und Variante</SelectItem>
+                  <SelectItem value="43">43 - Baumuster + Teil + Montagelinie</SelectItem>
+                  <SelectItem value="44">44 - Baumuster + Teil + Teil</SelectItem>
+                  <SelectItem value="45">45 - Lagerort</SelectItem>
+                  <SelectItem value="46">46 - Station MU + Montagelinie</SelectItem>
+                  <SelectItem value="47">47 - Orderstatus</SelectItem>
+                  <SelectItem value="48">48 - Berechnete RefOp ohne IO Ergebnis</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="verificationClass"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Verification Class</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Wählen Sie eine Verification Class" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="1">01 - Keine Prüfung</SelectItem>
+                  <SelectItem value="2">02 - Comparestring</SelectItem>
+                  <SelectItem value="3">03 - Subauftrag Reihenfolge</SelectItem>
+                  <SelectItem value="4">04 - Immer NOK</SelectItem>
+                  <SelectItem value="5">05 - Auftrag Reihenfolge</SelectItem>
+                  <SelectItem value="6">06 - Zuordnung Referenzoperation</SelectItem>
+                  <SelectItem value="7">07 - Sequenz Stations-FIFO</SelectItem>
+                  <SelectItem value="8">08 - !Teil in Stückliste ALT</SelectItem>
+                  <SelectItem value="9">09 - Motorlabel PKWT</SelectItem>
+                  <SelectItem value="10">10 - Stücklistenteil und Mehrfachverwendung</SelectItem>
+                  <SelectItem value="11">11 - Gegenscan auf mehrere Referenzoperationen</SelectItem>
+                  <SelectItem value="12">12 - Vormontageauftrag Verheiratung</SelectItem>
+                  <SelectItem value="13">13 - UnitEndNo in BS_ORDER</SelectItem>
+                  <SelectItem value="14">14 - UnitIdentNo in BS_ORDER</SelectItem>
+                  <SelectItem value="15">15 - Datum, Prodnummer, SNr als Ident</SelectItem>
+                  <SelectItem value="16">16 - JJTTTNNNNN Teilenr, Linie, Lieferant als Ident</SelectItem>
+                  <SelectItem value="17">17 - Gegenscan ReferenzOP und Prüfung Vormontageresults</SelectItem>
+                  <SelectItem value="18">18 - Comparestring und Prüfung Vormontageresults</SelectItem>
+                  <SelectItem value="19">19 - Stücklistenteil und Prüfung Vormontageresults</SelectItem>
+                  <SelectItem value="20">20 - Stücklistenteil</SelectItem>
+                  <SelectItem value="21">21 - Stücklistenteil und Mehrfachverbau über alle Operationen</SelectItem>
+                  <SelectItem value="22">22 - Vormontage in Hauptauftrag, prüfen OP Ergebnisse und Stückliste</SelectItem>
+                  <SelectItem value="23">23 - Stücklistenteil und Vormontage in Hauptauftrag, prüfen OP Ergebnisse und Stückliste</SelectItem>
+                  <SelectItem value="24">24 - Unitpump</SelectItem>
+                  <SelectItem value="25">25 - Unitidentno Format</SelectItem>
+                  <SelectItem value="26">26 - Comparestring + Vomo Verheiratung + Mehrfachverwendung</SelectItem>
+                  <SelectItem value="27">27 - Comparestring + Vomo Verheiratung + Mehrfachverwendung (Sonderbedingung)</SelectItem>
+                  <SelectItem value="28">28 - Auftragsident (ORDERNO, UNITENDNO, UNITIDENTNO)</SelectItem>
+                  <SelectItem value="29">29 - Stücklistenteil + Sperrliste + Mehrfachverwendung</SelectItem>
+                  <SelectItem value="30">30 - CustProdNo in VIEWORDER</SelectItem>
+                  <SelectItem value="31">31 - InjektorCode MDEG + Mehrfachverbau</SelectItem>
+                  <SelectItem value="32">32 - Über Referenz OP prüfe Stückliste + Mehrfach</SelectItem>
+                  <SelectItem value="33">33 - InjektorCode MDEG + Stücklistenteil + Mehrfachverbau</SelectItem>
+                  <SelectItem value="34">34 - Cylinderhead Marriage</SelectItem>
+                  <SelectItem value="35">35 - Comparestring + Mehrfachverwendung über alle Operationen</SelectItem>
+                  <SelectItem value="36">36 - Stücklistenteil + Mehrfachverwendung + KHR/ZK Prüfung</SelectItem>
+                  <SelectItem value="37">37 - Rescan reference operation</SelectItem>
+                  <SelectItem value="38">38 - Bruderauftrag FIN</SelectItem>
+                  <SelectItem value="39">39 - DMC-Paar prüfen</SelectItem>
+                  <SelectItem value="40">40 - Check GATS Unitidentno</SelectItem>
+                  <SelectItem value="41">41 - CarrierId für Linie</SelectItem>
+                  <SelectItem value="42">42 - Part in BOM and Container</SelectItem>
+                  <SelectItem value="43">43 - BOM, Container, Same supplier</SelectItem>
+                  <SelectItem value="44">44 - Orderno in BS_ORDER</SelectItem>
+                  <SelectItem value="45">45 - CarrierID Auftrag zugeordnet</SelectItem>
+                  <SelectItem value="46">46 - Sub Assembly Status OK</SelectItem>
+                  <SelectItem value="47">47 - Stücklistenteil mit MU</SelectItem>
+                  <SelectItem value="48">48 - Stücklistenteil mit MU + Mehrfachverbau</SelectItem>
+                  <SelectItem value="49">49 - Stücklistenteil mit MU, Mehrfachverbau, gleicher Lieferant</SelectItem>
+                  <SelectItem value="50">50 - Verifiziere Umrüster</SelectItem>
+                  <SelectItem value="51">51 - Comparestring mit Positions-/Längenprüfung</SelectItem>
+                  <SelectItem value="52">52 - unitidentno Format + Eindeutigkeit</SelectItem>
+                  <SelectItem value="53">53 - Prüfung ob Carrier zugeordnet</SelectItem>
+                  <SelectItem value="54">54 - Vomo Produkt in BOM</SelectItem>
+                  <SelectItem value="55">55 - Vomo Produkt Operationsstatus</SelectItem>
+                  <SelectItem value="56">56 - Teilstring in Referenz-OP</SelectItem>
+                  <SelectItem value="57">57 - Vomo Order FIN</SelectItem>
+                  <SelectItem value="58">58 - HDEP Injektor DMC Prüfung</SelectItem>
+                  <SelectItem value="59">59 - DMC nicht zugewiesen</SelectItem>
+                  <SelectItem value="60">60 - BOM + Mehrfachverbau + gleiche ProdNr in RefOPs</SelectItem>
+                  <SelectItem value="61">61 - Verifiziere Umrüster Teil</SelectItem>
+                  <SelectItem value="62">62 - BOM + ProdNr + Barcodelänge</SelectItem>
+                  <SelectItem value="63">63 - CustOrderno in VIEWORDER</SelectItem>
+                  <SelectItem value="97">97 - I-Beam (Spezialfall)</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="generationClass"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Generation Class</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Wählen Sie eine Generation Class" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="1">01 - Standard</SelectItem>
+                  <SelectItem value="2">02 - Auftragsziel</SelectItem>
+                  <SelectItem value="3">03 - Multi step calculation reference OP</SelectItem>
+                  <SelectItem value="4">04 - Teilenummer</SelectItem>
+                  <SelectItem value="5">05 - Ziel des Auftrags</SelectItem>
+                  <SelectItem value="6">06 - Alternative Teile</SelectItem>
+                  <SelectItem value="7">07 - Alternative Teile mit MU</SelectItem>
+                  <SelectItem value="8">08 - Show expected CarrierID</SelectItem>
+                  <SelectItem value="9">09 - Typschild GEAR</SelectItem>
+                  <SelectItem value="10">10 - Alternative Teile mit MU</SelectItem>
+                  <SelectItem value="11">11 - Vergleich RefOP-Teilenr mit Comparestring</SelectItem>
+                  <SelectItem value="12">12 - Attribut</SelectItem>
+                  <SelectItem value="13">13 - DDC Spezial 4 Zeilen</SelectItem>
+                  <SelectItem value="14">14 - Unterauftragsnummer als Comparestring</SelectItem>
+                  <SelectItem value="15">15 - CodeValue, CustMatNo, Unitidentno</SelectItem>
+                  <SelectItem value="16">16 - Typschild 5 Zeilen UnitEndNo 7 Stellig</SelectItem>
+                  <SelectItem value="17">17 - PTSI Typschild eAchse 7 Zeilen</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="savingClass"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Saving Class</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Wählen Sie eine Saving Class" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="1">01 - Standard</SelectItem>
+                  <SelectItem value="2">02 - Lösche KitcardId, Carrierid aus Auftrag</SelectItem>
+                  <SelectItem value="3">03 - Barcode als CarrierID</SelectItem>
+                  <SelectItem value="4">04 - Barcode als KitcartID</SelectItem>
+                  <SelectItem value="5">05 - Vormontageauftrag Verheiratung</SelectItem>
+                  <SelectItem value="6">06 - Vormontageoperationen Ergebnis übernehmen</SelectItem>
+                  <SelectItem value="7">07 - DMC speichern</SelectItem>
+                  <SelectItem value="8">08 - InjektorCode prüfen/speichern</SelectItem>
+                  <SelectItem value="9">09 - DMC für Labelprint</SelectItem>
+                  <SelectItem value="10">10 - VIN prüfen/speichern</SelectItem>
+                  <SelectItem value="11">11 - VIN + Injektor prüfen</SelectItem>
+                  <SelectItem value="12">12 - Ergebnis an nächstes System übertragen</SelectItem>
+                  <SelectItem value="13">13 - Injektorlabel speichern</SelectItem>
+                  <SelectItem value="14">14 - PKWT spezifisch</SelectItem>
+                  <SelectItem value="15">15 - Carrier-Zuordnung speichern</SelectItem>
+                  <SelectItem value="16">16 - OilFilling speichern</SelectItem>
+                  <SelectItem value="17">17 - Auftragsdaten zurückgeben</SelectItem>
+                  <SelectItem value="18">18 - SAP Upload</SelectItem>
+                  <SelectItem value="19">19 - Operationstatus übertragen</SelectItem>
+                  <SelectItem value="20">20 - UnitIdentNo speichern</SelectItem>
+                  <SelectItem value="21">21 - DMC-Nutzung markieren</SelectItem>
+                  <SelectItem value="22">22 - UnitIdentNo prüfen + speichern</SelectItem>
+                  <SelectItem value="23">23 - Speichern mit Sperrprüfung</SelectItem>
+                </SelectContent>
+              </Select>
             </FormItem>
           )}
         />
