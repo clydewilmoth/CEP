@@ -10,11 +10,14 @@ import (
 )
 
 type BaseModel struct {
-	ID        mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;primary_key"`
-	CreatedAt time.Time              `gorm:"type:datetime2"`
-	UpdatedAt time.Time              `gorm:"type:datetime2"`
-	CreatedBy *string                `gorm:"size:255;default:null"`
-	UpdatedBy *string                `gorm:"size:255;default:null"`
+	Name        *string                `gorm:"size:255;default:null"`
+	Comment     *string                `gorm:"default:null"`
+	StatusColor *string                `gorm:"size:255;default:null"`
+	ID          mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;primary_key"`
+	CreatedAt   time.Time              `gorm:"type:datetime2"`
+	UpdatedAt   time.Time              `gorm:"type:datetime2"`
+	CreatedBy   *string                `gorm:"size:255;default:null"`
+	UpdatedBy   *string                `gorm:"size:255;default:null"`
 }
 
 func (base *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
@@ -34,32 +37,51 @@ func (base *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
 
 type Line struct {
 	BaseModel
-	Name        *string   `gorm:"size:255;default:null"`
-	Description *string   `gorm:"default:null"`
-	Stations    []Station `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	AssemblyArea *string   `gorm:"size:3;default:null"`
+	Stations     []Station `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 type Station struct {
 	BaseModel
-	Name        *string                `gorm:"size:255;default:null"`
-	Description *string                `gorm:"default:null"`
-	ParentID    mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	Tools       []Tool                 `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Description          *string                `gorm:"default:null"`
+	StationType          *string                `gorm:"default:null"`
+	ConfigExplorerStatus *string                `gorm:"default:null"`
+	ParentID             mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+	Tools                []Tool                 `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 type Tool struct {
 	BaseModel
-	Name        *string                `gorm:"size:255;default:null"`
-	Description *string                `gorm:"default:null"`
-	ParentID    mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	Operations  []Operation            `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	ToolClass             *string                `gorm:"default:null"`
+	ToolType              *string                `gorm:"default:null"`
+	Description           *string                `gorm:"default:null"`
+	IpAddressDevice       *string                `gorm:"default:null"`
+	ToolWithSPS           *string                `gorm:"default:null"`
+	SPSPLCNameSPAService  *string                `gorm:"default:null"`
+	SPSDBNoSend           *string                `gorm:"default:null"`
+	SPSDBNoReceive        *string                `gorm:"default:null"`
+	SPSPreCheck           *string                `gorm:"default:null"`
+	SPSAddressInSendDB    *string                `gorm:"default:null"`
+	SPSAddressInReceiveDB *string                `gorm:"default:null"`
+	ParentID              mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+	Operations            []Operation            `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 type Operation struct {
 	BaseModel
-	Name        *string                `gorm:"size:255;default:null"`
-	Description *string                `gorm:"default:null"`
-	ParentID    mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+	Description        *string                `gorm:"default:null"`
+	DecisionCriteria   *string                `gorm:"default:null"`
+	SequenceGroup      *string                `gorm:"default:null"`
+	Sequence           *string                `gorm:"default:null"`
+	AlwaysPerform      *string                `gorm:"default:null"`
+	QGateRelevant      *string                `gorm:"default:null"`
+	DecisionClass      *string                `gorm:"default:null"`
+	SavingClass        *string                `gorm:"default:null"`
+	VerificationClass  *string                `gorm:"default:null"`
+	GenerationClass    *string                `gorm:"default:null"`
+	SeriallOrParallel  *string                `gorm:"default:null"`
+	OperationDecisions *string                `gorm:"default:null"`
+	ParentID           mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
 }
 
 type Version struct {
@@ -146,7 +168,7 @@ func (logEntry *EntityChangeLog) BeforeCreate(tx *gorm.DB) (err error) {
 		}
 		logEntry.LogID = newMsID
 	}
-	if logEntry.ChangeTime.IsZero() { // Setze ChangeTime, falls nicht schon gesetzt
+	if logEntry.ChangeTime.IsZero() {
 		logEntry.ChangeTime = time.Now()
 	}
 	return
