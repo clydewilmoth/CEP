@@ -28,6 +28,7 @@ import {
   GetGlobalLastUpdateTimestamp,
   UpdateEntityFieldsString,
 } from "../../../wailsjs/go/main/Core";
+import { Description } from "@radix-ui/react-dialog";
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -668,6 +669,9 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         Name: json.Name ?? tool.Name ?? "",
         Comment: json.Comment ?? tool.Comment ?? "",
         StatusColor: json.StatusColor ?? tool.StatusColor ?? "empty",
+        Description: json.Description ?? tool.Description ?? "",
+        IpAddressDevice: json.IpAddressDevice ?? tool.IpAddressDevice ?? "",
+        ToolWithSPS: json.ToolWithSPS ?? tool.ToolWithSPS ?? "",
       });
       setFormReady(true);
     })();
@@ -677,6 +681,9 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     Name: z.string().optional(),
     Comment: z.string().optional(),
     StatusColor: z.string().optional(),
+    Description: z.string().optional(),
+    IpAddressDevice: z.string().optional(),
+    ToolWithSPS: z.string().optional(),
   });
 
   function clearDrafts() {
@@ -901,6 +908,96 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="Description"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                <FormLabel>{t("Operation Description")}</FormLabel>
+                {tool && tool.Description?.draft && <SquarePen size={15} />}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.Description = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["tool", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="IpAddressDevice"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                <FormLabel>{t("IpAddressDevice")}</FormLabel>
+                {tool && tool.IpAddressDevice?.draft && <SquarePen size={15} />}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.IpAddressDevice = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["tool", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="ToolWithSPS"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                <FormLabel>{t("ToolWithSPS")}</FormLabel>
+                {tool && tool.ToolWithSPS?.draft && <SquarePen size={15} />}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.ToolWithSPS = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["tool", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
         
         <Button
           variant="outline"
@@ -949,6 +1046,11 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         Name: json.Name ?? operation.Name ?? "",
         Comment: json.Comment ?? operation.Comment ?? "",
         StatusColor: json.StatusColor ?? operation.StatusColor ?? "empty",
+        Description: json.Description ?? operation.Description ?? "",
+        DecisionCriteria: json.DecisionCriteria ?? operation.DecisionCriteria ?? "",
+        SequenceGroupe: json.SequenceGroupe ?? operation.SequenceGroupe ?? "",
+        Sequence: json.Sequence ?? operation.Sequence ?? "",
+        AlwaysPerform: json.AlwaysPerform ?? operation.AlwaysPerform ?? "",
       });
       setFormReady(true);
     })();
@@ -958,6 +1060,11 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     Name: z.string().optional(),
     Comment: z.string().optional(),
     StatusColor: z.string().optional(),
+    Description: z.string().optional(),
+    DecisionCriteria: z.string().optional(),
+    SequenceGroupe: z.string().optional(),
+    Sequence: z.string().optional(),
+    AlwaysPerform: z.string().optional(),
   });
 
   function clearDrafts() {
@@ -1182,7 +1289,156 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
           )}
         />
 
-        
+        <FormField
+          control={form.control}
+          name="Description"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                <FormLabel>{t("Operation Description")}</FormLabel>
+                {operation && operation.Description?.draft && <SquarePen size={15} />}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.Description = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["operation", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="DecisionCriteria"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                <FormLabel>{t("DecisionCriteria")}</FormLabel>
+                {operation && operation.Description?.draft && <SquarePen size={15} />}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.DecisionCriteria = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["operation", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="SequenceGroupe"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                <FormLabel>{t("SequenceGroupe")}</FormLabel>
+                {operation && operation.SequenceGroupe?.draft && <SquarePen size={15} />}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.SequenceGroupe = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["operation", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="Sequence"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                <FormLabel>{t("Sequence")}</FormLabel>
+                {operation && operation.Sequence?.draft && <SquarePen size={15} />}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.Sequence = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["operation", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="AlwaysPerform"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                <FormLabel>{t("AlwaysPerform")}</FormLabel>
+                {operation && operation.AlwaysPerform?.draft && <SquarePen size={15} />}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.AlwaysPerform = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["operation", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
         <Button
           variant="outline"
           type="button"
