@@ -671,7 +671,6 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         StatusColor: json.StatusColor ?? tool.StatusColor ?? "empty",
         Description: json.Description ?? tool.Description ?? "",
         IpAddressDevice: json.IpAddressDevice ?? tool.IpAddressDevice ?? "",
-        ToolWithSPS: json.ToolWithSPS ?? tool.ToolWithSPS ?? "",
         SPSPLCNameSPAService: json.SPSPLCNameSPAService ?? tool.SPSPLCNameSPAService ?? "",
         SPSDBNoSend: json.SPSDBNoSend ?? tool.SPSDBNoSend ?? "",
         SPSDBNoReceive: json.SPSDBNoReceive ?? tool.SPSDBNoReceive ?? "",
@@ -689,7 +688,6 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     StatusColor: z.string().optional(),
     Description: z.string().optional(),
     IpAddressDevice: z.string().optional(),
-    ToolWithSPS: z.string().optional(),
     SPSPLCNameSPAService: z.string().optional(),
     SPSDBNoSend: z.string().optional(),
     SPSDBNoReceive: z.string().optional(),
@@ -775,6 +773,8 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
 
     toast(t("ToolForm Success"));
   }
+
+  const [spsChecked, setSpsChecked] = useState(false);
 
   const [commentOpen, setCommentOpen] = useState(false);
 
@@ -980,32 +980,26 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
           )}
         />
 
-        <FormField
-            control={form.control}
-              name="ToolWithSPS"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col space-y-1 justify-center">
-                    <div className="flex items-center space-x-2">
-                      <FormControl>
+       
+                  <div className="flex flex-col space-y-1 justify-center">
+                    <div className="flex items-center space-x-2"> 
                         <input
                           type="checkbox"
-                          checked={field.value}
-                          onChange={field.onChange}
-                          id="TrustServerCertificate"
+                          checked={spsChecked}
+                          onChange={(event) => {setSpsChecked(event.target.checked)}}
+                          id="ToolWithSPS"
                           className="accent-black w-4 h-4"
                       />
-                      </FormControl>
                       <FormLabel
-                        htmlFor="TrustServerCertificate"
+                        htmlFor="ToolWithSPS"
                         className="mb-0 cursor-pointer"
                       >
                       {t("ToolWithSPS")}
                       </FormLabel>
                     </div>
-                  </FormItem>
-                  )}
-          />
-
+                  </div>
+        {spsChecked && 
+        <>
         <FormField
           control={form.control}
           name="SPSPLCNameSPAService"
@@ -1185,8 +1179,10 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
             </FormItem>
           )}
         />
+        </>
+  }
 
-        
+ 
         
         <Button
           variant="outline"
@@ -1237,7 +1233,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         StatusColor: json.StatusColor ?? operation.StatusColor ?? "empty",
         Description: json.Description ?? operation.Description ?? "",
         DecisionCriteria: json.DecisionCriteria ?? operation.DecisionCriteria ?? "",
-        SequenceGroupe: json.SequenceGroupe ?? operation.SequenceGroupe ?? "",
+        SequenceGroup: json.SequenceGroup ?? operation.SequenceGroup ?? "",
         Sequence: json.Sequence ?? operation.Sequence ?? "",
         AlwaysPerform: json.AlwaysPerform ?? operation.AlwaysPerform ?? "",
       });
@@ -1251,7 +1247,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     StatusColor: z.string().optional(),
     Description: z.string().optional(),
     DecisionCriteria: z.string().optional(),
-    SequenceGroupe: z.string().optional(),
+    SequenceGroup: z.string().optional(),
     Sequence: z.string().optional(),
     AlwaysPerform: z.string().optional(),
   });
@@ -1540,12 +1536,12 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
 
         <FormField
           control={form.control}
-          name="SequenceGroupe"
+          name="SequenceGroup"
           render={({ field }) => (
             <FormItem>
               <div className="flex gap-3">
-                <FormLabel>{t("SequenceGroupe")}</FormLabel>
-                {operation && operation.SequenceGroupe?.draft && <SquarePen size={15} />}
+                <FormLabel>{t("SequenceGroup")}</FormLabel>
+                {operation && operation.SequenceGroup?.draft && <SquarePen size={15} />}
               </div>
               <FormControl>
                 <Input
@@ -1556,7 +1552,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                     const json = JSON.parse(
                       localStorage.getItem(entityId) ?? "{}"
                     );
-                    json.SequenceGroupe = e.target.value;
+                    json.SequenceGroup = e.target.value;
                     localStorage.setItem(entityId, JSON.stringify(json));
                     queryClient.invalidateQueries({
                       queryKey: ["operation", entityId],
