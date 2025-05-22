@@ -672,6 +672,12 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         Description: json.Description ?? tool.Description ?? "",
         IpAddressDevice: json.IpAddressDevice ?? tool.IpAddressDevice ?? "",
         ToolWithSPS: json.ToolWithSPS ?? tool.ToolWithSPS ?? "",
+        SPSPLCNameSPAService: json.SPSPLCNameSPAService ?? tool.SPSPLCNameSPAService ?? "",
+        SPSDBNoSend: json.SPSDBNoSend ?? tool.SPSDBNoSend ?? "",
+        SPSDBNoReceive: json.SPSDBNoReceive ?? tool.SPSDBNoReceive ?? "",
+        SPSPreCheck: json.SPSPreCheck ?? tool.SPSPreCheck ?? "",
+        SPSAddressInReceiveDB: json.SPSAddressInReceiveDB ?? tool.SPSAddressInReceiveDB ?? "",
+        SPSAddressInSendDB: json.SPSAddressInSendDB ?? tool.SPSAddressInSendDB ?? "",
       });
       setFormReady(true);
     })();
@@ -684,6 +690,12 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     Description: z.string().optional(),
     IpAddressDevice: z.string().optional(),
     ToolWithSPS: z.string().optional(),
+    SPSPLCNameSPAService: z.string().optional(),
+    SPSDBNoSend: z.string().optional(),
+    SPSDBNoReceive: z.string().optional(),
+    SPSPreCheck: z.string().optional(),
+    SPSAddressInReceiveDB: z.string().optional(),
+    SPSAddressInSendDB: z.string().optional(),
   });
 
   function clearDrafts() {
@@ -969,13 +981,39 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         />
 
         <FormField
+            control={form.control}
+              name="ToolWithSPS"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col space-y-1 justify-center">
+                    <div className="flex items-center space-x-2">
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={field.onChange}
+                          id="TrustServerCertificate"
+                          className="accent-black w-4 h-4"
+                      />
+                      </FormControl>
+                      <FormLabel
+                        htmlFor="TrustServerCertificate"
+                        className="mb-0 cursor-pointer"
+                      >
+                      {t("ToolWithSPS")}
+                      </FormLabel>
+                    </div>
+                  </FormItem>
+                  )}
+          />
+
+        <FormField
           control={form.control}
-          name="ToolWithSPS"
+          name="SPSPLCNameSPAService"
           render={({ field }) => (
             <FormItem>
               <div className="flex gap-3">
-                <FormLabel>{t("ToolWithSPS")}</FormLabel>
-                {tool && tool.ToolWithSPS?.draft && <SquarePen size={15} />}
+                <FormLabel>{t("SPSPLCNameSPAService")}</FormLabel>
+                {tool && tool.SPSPLCNameSPAService?.draft && <SquarePen size={15} />}
               </div>
               <FormControl>
                 <Input
@@ -986,7 +1024,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                     const json = JSON.parse(
                       localStorage.getItem(entityId) ?? "{}"
                     );
-                    json.ToolWithSPS = e.target.value;
+                    json.SPSPLCNameSPAService = e.target.value;
                     localStorage.setItem(entityId, JSON.stringify(json));
                     queryClient.invalidateQueries({
                       queryKey: ["tool", entityId],
@@ -998,6 +1036,157 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="SPSDBNoSend"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                <FormLabel>{t("SPSDBNoSend")}</FormLabel>
+                {tool && tool.SPSDBNoSend?.draft && <SquarePen size={15} />}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.SPSDBNoSend = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["tool", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="SPSDBNoReceive"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                <FormLabel>{t("SPSDBNoReceive")}</FormLabel>
+                {tool && tool.SPSDBNoReceive?.draft && <SquarePen size={15} />}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.SPSDBNoReceive = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["tool", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="SPSPreCheck"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                <FormLabel>{t("SPSPreCheck")}</FormLabel>
+                {tool && tool.SPSPreCheck?.draft && <SquarePen size={15} />}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.SPSPreCheck = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["tool", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="SPSAddressInSendDB"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                <FormLabel>{t("SPSAddressInSendDB")}</FormLabel>
+                {tool && tool.SPSAddressInSendDB?.draft && <SquarePen size={15} />}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.SPSAddressInSendDB = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["tool", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="SPSAddressInReceiveDB"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                <FormLabel>{t("SPSAddressInReceiveDB")}</FormLabel>
+                {tool && tool.SPSAddressInReceiveDB?.draft && <SquarePen size={15} />}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.SPSAddressInReceiveDB = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["tool", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        
         
         <Button
           variant="outline"
