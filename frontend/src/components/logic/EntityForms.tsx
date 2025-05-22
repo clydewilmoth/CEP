@@ -36,7 +36,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
-import OperationClasses from "../../assets/fertigeJSON.json";
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -748,7 +747,6 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         StatusColor: json.StatusColor ?? tool.StatusColor ?? "empty",
         Description: json.Description ?? tool.Description ?? "",
         IpAddressDevice: json.IpAddressDevice ?? tool.IpAddressDevice ?? "",
-        ToolWithSPS: json.ToolWithSPS ?? tool.ToolWithSPS ?? "",
         SPSPLCNameSPAService: json.SPSPLCNameSPAService ?? tool.SPSPLCNameSPAService ?? "",
         SPSDBNoSend: json.SPSDBNoSend ?? tool.SPSDBNoSend ?? "",
         SPSDBNoReceive: json.SPSDBNoReceive ?? tool.SPSDBNoReceive ?? "",
@@ -856,6 +854,8 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
 
     toast(t("ToolForm Success"));
   }
+
+  const [spsChecked, setSpsChecked] = useState(false);
 
   const [commentOpen, setCommentOpen] = useState(false);
 
@@ -1454,8 +1454,6 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
           )}
         />
 
-        
-        
         <Button
           variant="outline"
           type="button"
@@ -1505,7 +1503,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         StatusColor: json.StatusColor ?? operation.StatusColor ?? "empty",
         Description: json.Description ?? operation.Description ?? "",
         DecisionCriteria: json.DecisionCriteria ?? operation.DecisionCriteria ?? "",
-        SequenceGroupe: json.SequenceGroupe ?? operation.SequenceGroupe ?? "",
+        SequenceGroup: json.SequenceGroup ?? operation.SequenceGroup ?? "",
         Sequence: json.Sequence ?? operation.Sequence ?? "",
         AlwaysPerform: json.AlwaysPerform ?? operation.AlwaysPerform ?? "",
         templateId: operation?.templateId ?? "",
@@ -1524,7 +1522,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     StatusColor: z.string().optional(),
     Description: z.string().optional(),
     DecisionCriteria: z.string().optional(),
-    SequenceGroupe: z.string().optional(),
+    SequenceGroup: z.string().optional(),
     Sequence: z.string().optional(),
     AlwaysPerform: z.string().optional(),
     templateId: z.string().min(1, "Template ist erforderlich"),
@@ -1867,12 +1865,12 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
 
         <FormField
           control={form.control}
-          name="SequenceGroupe"
+          name="SequenceGroup"
           render={({ field }) => (
             <FormItem>
               <div className="flex gap-3">
-                <FormLabel>{t("SequenceGroupe")}</FormLabel>
-                {operation && operation.SequenceGroupe?.draft && <SquarePen size={15} />}
+                <FormLabel>{t("SequenceGroup")}</FormLabel>
+                {operation && operation.SequenceGroup?.draft && <SquarePen size={15} />}
               </div>
               <FormControl>
                 <Input
@@ -1883,7 +1881,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                     const json = JSON.parse(
                       localStorage.getItem(entityId) ?? "{}"
                     );
-                    json.SequenceGroupe = e.target.value;
+                    json.SequenceGroup = e.target.value;
                     localStorage.setItem(entityId, JSON.stringify(json));
                     queryClient.invalidateQueries({
                       queryKey: ["operation", entityId],
