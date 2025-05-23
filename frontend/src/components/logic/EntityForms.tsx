@@ -666,7 +666,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                 <SelectContent>
                   {stationtypes.map((stationtype) => (
                     <SelectItem key={stationtype.id} value={stationtype.id}>
-                      {stationtype.name}
+                      {t("ST_" + String(stationtype.id) + "_Name")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -701,7 +701,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                 <SelectContent>
                   {serialorparallel.map((serialorparallel) => (
                     <SelectItem key={serialorparallel.id} value={serialorparallel.id}>
-                      {serialorparallel.name}
+                      {t("SOP_" + String(serialorparallel.id) + "_name")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1080,9 +1080,9 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                {toolClasses.map((toolClass :{toolClassesId:string; toolClassName: string})=>(
+                {toolClasses.map((toolClass :{toolClassesId:string; })=>(
                   <SelectItem key={toolClass.toolClassesId} value={String(toolClass.toolClassesId)}>
-                    {String(toolClass.toolClassName)}
+                    {t("TC_" + String(toolClass.toolClassesId) + "_ToolClassName")}
                   </SelectItem> 
                  ))}
                 </SelectContent>
@@ -1115,9 +1115,9 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {ToolTypes.map((toolType: { toolTypeId: string; description: string }) => (
+                  {ToolTypes.map((toolType: { toolTypeId: string; }) => (
                     <SelectItem key={toolType.toolTypeId} value={String(toolType.toolTypeId)}>
-                      {String(toolType.description)}
+                      {t("TT_" + String(toolType.toolTypeId) + "_" + String(toolType.toolTypeId) + "_Description")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1758,7 +1758,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 <SelectContent>
                   {templates.map((template: { templateId: string; Description: string }) => (
                     <SelectItem key={template.templateId} value={String(template.templateId)}>
-                      {String(template.Description)}
+                      {t("T_" + String(template.templateId) + "_Description")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1912,9 +1912,9 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 </FormControl>
                 <SelectContent>
                  {
-                  decisionClasses.map((decisionClass: { classId: string; classDescription: string }) => (
+                  decisionClasses.map((decisionClass: { classId: string; templateId: string }) => (
                     <SelectItem key={decisionClass.classId} value={String(decisionClass.classId)}>
-                      {String(decisionClass.classDescription)}
+                      {t("OC_DECISION" + String(decisionClass.classId) + "_" + String(decisionClass.templateId) + "_ClassDescription")}
                     </SelectItem>
                   ))
                  }
@@ -1948,9 +1948,9 @@ export function OperationForm({ entityId }: { entityId: string }) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                 {verificationClasses.map((verificationClass: { classId: string; classDescription: string }) => (
+                 {verificationClasses.map((verificationClass: { classId: string; templateId: string }) => (
                     <SelectItem key={verificationClass.classId} value={String(verificationClass.classId)}>
-                      {String(verificationClass.classDescription)}
+                      {t("OC_VERIFICATION" + String(verificationClass.classId) + "_" + String(verificationClass.templateId) + "_ClassDescription")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1983,9 +1983,9 @@ export function OperationForm({ entityId }: { entityId: string }) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                {generationnClasses.map((generationClass: { classId: string; classDescription: string }) => (
+                {generationnClasses.map((generationClass: { classId: string; templateId: string }) => (
                     <SelectItem key={generationClass.classId} value={String(generationClass.classId)}>
-                      {String(generationClass.classDescription)}
+                      {t("OC_GENERATION" + String(generationClass.classId) + "_" + String(generationClass.templateId) + "_ClassDescription")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -2018,9 +2018,9 @@ export function OperationForm({ entityId }: { entityId: string }) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                 {savingClasses.map((savingClass: { classId: string; classDescription: string }) => (
+                 {savingClasses.map((savingClass: { classId: string; templateId: string; }) => (
                     <SelectItem key={savingClass.classId} value={String(savingClass.classId)}>
-                      {String(savingClass.classDescription)}
+                      {t("OC_SAVING" + String(savingClass.classId) + "_" + String(savingClass.templateId) + "_ClassDescription")}
                     </SelectItem>
                   ))}
                 </SelectContent>
