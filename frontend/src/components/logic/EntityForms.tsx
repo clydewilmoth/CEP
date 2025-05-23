@@ -1069,30 +1069,11 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="1">Check</SelectItem>
-                  <SelectItem value="2">Scanner</SelectItem>
-                  <SelectItem value="3">Tightening</SelectItem>
-                  <SelectItem value="4">Stamping</SelectItem>
-                  <SelectItem value="5">Execution</SelectItem>
-                  <SelectItem value="6">Leak Test</SelectItem>
-                  <SelectItem value="7">PickBySystem</SelectItem>
-                  <SelectItem value="9">Measuring</SelectItem>
-                  <SelectItem value="12">LiquidFilling</SelectItem>
-                  <SelectItem value="15">Decision</SelectItem>
-                  <SelectItem value="16">CarrierMarriage</SelectItem>
-                  <SelectItem value="23">Manual</SelectItem>
-                  <SelectItem value="24">ShippingRack</SelectItem>
-                  <SelectItem value="25">FitIn</SelectItem>
-                  <SelectItem value="26">PositionClear</SelectItem>
-                  <SelectItem value="27">Testbench</SelectItem>
-                  <SelectItem value="28">SAP Upload</SelectItem>
-                  <SelectItem value="30">QGate</SelectItem>
-                  <SelectItem value="31">ProcessFlow</SelectItem>
-                  <SelectItem value="32">PictureCapture</SelectItem>
-                  <SelectItem value="33">Calculate</SelectItem>
-                  <SelectItem value="34">BuildCondition</SelectItem>
-                  <SelectItem value="35">TimeTracking</SelectItem>
-                  <SelectItem value="36">External</SelectItem>
+                {toolClasses.map((toolClass :{toolClassesId:string; toolClassName: string})=>(
+                  <SelectItem key={toolClass.toolClassesId} value={String(toolClass.toolClassesId)}>
+                    {String(toolClass.toolClassName)}
+                  </SelectItem> 
+                 ))}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1404,11 +1385,18 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
 }
 
 export function OperationForm({ entityId }: { entityId: string }) {
+const operationClasses = fertigeJSON.OperationClasses;
+const decisionClasses = operationClasses.filter(operationClass => operationClass.classType === "DECISION");
+const generationnClasses = operationClasses.filter(operationClass => operationClass.classType === "GENERATION");
+const verificationClasses = operationClasses.filter(operationClass => operationClass.classType === "VERIFICATION");
+const savingClasses = operationClasses.filter(operationClass => operationClass.classType === "SAVING");
+const templates = fertigeJSON.Template;
 const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     {}
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
+
 
   useEffect(() => {
     (async () => {
@@ -1715,36 +1703,12 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="1">Check and Information Standard</SelectItem>
-                    <SelectItem value="2">Scanning Standard</SelectItem>
-                    <SelectItem value="3">Tightening Standard</SelectItem>
-                    <SelectItem value="4">Stamping Standard</SelectItem>
-                    <SelectItem value="5">Execution Standard</SelectItem>
-                    <SelectItem value="6">LeakTest Standard</SelectItem>
-                    <SelectItem value="7">Commissioning Standard</SelectItem>
-                    <SelectItem value="8">MCM Flashing Standard</SelectItem>
-                    <SelectItem value="9">Measuring Standard</SelectItem>
-                    <SelectItem value="10">TSKCheck Standard</SelectItem>
-                    <SelectItem value="11">Labelprint Standard</SelectItem>
-                    <SelectItem value="12">LiquidFilling Standard</SelectItem>
-                    <SelectItem value="13">ColdTestTausch Standard</SelectItem>
-                    <SelectItem value="14">Testing Standard</SelectItem>
-                    <SelectItem value="15">Decision Standard</SelectItem>
-                    <SelectItem value="16">CarrierMarriage Standard</SelectItem>
-                    <SelectItem value="17">Cooling Standard</SelectItem>
-                    <SelectItem value="18">ThreeDScann Standard</SelectItem>
-                    <SelectItem value="19">Painting Standard</SelectItem>
-                    <SelectItem value="20">Drying Standard</SelectItem>
-                    <SelectItem value="21">COTwoCleaning Standard</SelectItem>
-                    <SelectItem value="22">ValveLashCheck Standard</SelectItem>
-                    <SelectItem value="23">ShippingRack Standard</SelectItem>
-                    <SelectItem value="24">FitIn Standard</SelectItem>
-                    <SelectItem value="25">PositionClear Standard</SelectItem>
-                    <SelectItem value="26">EngineTest Standard</SelectItem>
-                    <SelectItem value="27">PictureCapture Standard</SelectItem>
-                    <SelectItem value="28">Calculate Standard</SelectItem>
-                    <SelectItem value="29">BuildingCondition Standard</SelectItem>
-                    <SelectItem value="30">TimeTracking Standard</SelectItem>
+
+                  {templates.map((template: { templateId: string; Description: string }) => (
+                    <SelectItem key={template.templateId} value={String(template.templateId)}>
+                      {String(template.Description)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1884,44 +1848,13 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="1">01 - Immer ausführen</SelectItem>
-                  <SelectItem value="2">02 - Variante</SelectItem>
-                  <SelectItem value="3">03 - Baumuster</SelectItem>
-                  <SelectItem value="4">04 - Teil</SelectItem>
-                  <SelectItem value="5">05 - SAA</SelectItem>
-                  <SelectItem value="9">09 - Teil Referenz zu Scannerergebnis</SelectItem>
-                  <SelectItem value="11">11 - Teil mit Stationszuordnung (alle MU)</SelectItem>
-                  <SelectItem value="16">16 - RefOp ohne IO Ergebnis</SelectItem>
-                  <SelectItem value="17">17 - Teil und SAA</SelectItem>
-                  <SelectItem value="18">18 - Teil und Baumuster</SelectItem>
-                  <SelectItem value="21">21 - Montagelinie</SelectItem>
-                  <SelectItem value="22">22 - Teil mit Station und MU</SelectItem>
-                  <SelectItem value="23">23 - Baumuster und SAA</SelectItem>
-                  <SelectItem value="24">24 - Baumuster und SAA und Attribut</SelectItem>
-                  <SelectItem value="25">25 - SAA und SAA</SelectItem>
-                  <SelectItem value="26">26 - Attribut</SelectItem>
-                  <SelectItem value="27">27 - Station MU</SelectItem>
-                  <SelectItem value="28">28 - Baumuster und Attribut</SelectItem>
-                  <SelectItem value="29">29 - Kundennummer</SelectItem>
-                  <SelectItem value="30">30 - Kundennummer + Spezial</SelectItem>
-                  <SelectItem value="31">31 - Kundennummer + Variante</SelectItem>
-                  <SelectItem value="32">32 - Teilenummer + ZGS</SelectItem>
-                  <SelectItem value="33">33 - Teilenummer + Attribut</SelectItem>
-                  <SelectItem value="34">34 - Referenzoperation NIO + Teil</SelectItem>
-                  <SelectItem value="35">35 - Referenzoperation NIO + Variante Input Format</SelectItem>
-                  <SelectItem value="36">36 - Referenzoperation IO + Teil</SelectItem>
-                  <SelectItem value="37">37 - Referenzoperation IO + Variante Input Format</SelectItem>
-                  <SelectItem value="38">38 - Kundennummer + Baumuster + SAA</SelectItem>
-                  <SelectItem value="39">39 - Plangruppenzähler + Plangruppe</SelectItem>
-                  <SelectItem value="40">40 - Warenempfänger(RecipCustomerNo)</SelectItem>
-                  <SelectItem value="41">41 - Kundenmaterialnummer</SelectItem>
-                  <SelectItem value="42">42 - Teil und Variante</SelectItem>
-                  <SelectItem value="43">43 - Baumuster + Teil + Montagelinie</SelectItem>
-                  <SelectItem value="44">44 - Baumuster + Teil + Teil</SelectItem>
-                  <SelectItem value="45">45 - Lagerort</SelectItem>
-                  <SelectItem value="46">46 - Station MU + Montagelinie</SelectItem>
-                  <SelectItem value="47">47 - Orderstatus</SelectItem>
-                  <SelectItem value="48">48 - Berechnete RefOp ohne IO Ergebnis</SelectItem>
+                 {
+                  decisionClasses.map((decisionClass: { classId: string; classDescription: string }) => (
+                    <SelectItem key={decisionClass.classId} value={String(decisionClass.classId)}>
+                      {String(decisionClass.classDescription)}
+                    </SelectItem>
+                  ))
+                 }
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1941,70 +1874,11 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="1">01 - Keine Prüfung</SelectItem>
-                  <SelectItem value="2">02 - Comparestring</SelectItem>
-                  <SelectItem value="3">03 - Subauftrag Reihenfolge</SelectItem>
-                  <SelectItem value="4">04 - Immer NOK</SelectItem>
-                  <SelectItem value="5">05 - Auftrag Reihenfolge</SelectItem>
-                  <SelectItem value="6">06 - Zuordnung Referenzoperation</SelectItem>
-                  <SelectItem value="7">07 - Sequenz Stations-FIFO</SelectItem>
-                  <SelectItem value="8">08 - !Teil in Stückliste ALT</SelectItem>
-                  <SelectItem value="9">09 - Motorlabel PKWT</SelectItem>
-                  <SelectItem value="10">10 - Stücklistenteil und Mehrfachverwendung</SelectItem>
-                  <SelectItem value="11">11 - Gegenscan auf mehrere Referenzoperationen</SelectItem>
-                  <SelectItem value="12">12 - Vormontageauftrag Verheiratung</SelectItem>
-                  <SelectItem value="13">13 - UnitEndNo in BS_ORDER</SelectItem>
-                  <SelectItem value="14">14 - UnitIdentNo in BS_ORDER</SelectItem>
-                  <SelectItem value="15">15 - Datum, Prodnummer, SNr als Ident</SelectItem>
-                  <SelectItem value="16">16 - JJTTTNNNNN Teilenr, Linie, Lieferant als Ident</SelectItem>
-                  <SelectItem value="17">17 - Gegenscan ReferenzOP und Prüfung Vormontageresults</SelectItem>
-                  <SelectItem value="18">18 - Comparestring und Prüfung Vormontageresults</SelectItem>
-                  <SelectItem value="19">19 - Stücklistenteil und Prüfung Vormontageresults</SelectItem>
-                  <SelectItem value="20">20 - Stücklistenteil</SelectItem>
-                  <SelectItem value="21">21 - Stücklistenteil und Mehrfachverbau über alle Operationen</SelectItem>
-                  <SelectItem value="22">22 - Vormontage in Hauptauftrag, prüfen OP Ergebnisse und Stückliste</SelectItem>
-                  <SelectItem value="23">23 - Stücklistenteil und Vormontage in Hauptauftrag, prüfen OP Ergebnisse und Stückliste</SelectItem>
-                  <SelectItem value="24">24 - Unitpump</SelectItem>
-                  <SelectItem value="25">25 - Unitidentno Format</SelectItem>
-                  <SelectItem value="26">26 - Comparestring + Vomo Verheiratung + Mehrfachverwendung</SelectItem>
-                  <SelectItem value="27">27 - Comparestring + Vomo Verheiratung + Mehrfachverwendung (Sonderbedingung)</SelectItem>
-                  <SelectItem value="28">28 - Auftragsident (ORDERNO, UNITENDNO, UNITIDENTNO)</SelectItem>
-                  <SelectItem value="29">29 - Stücklistenteil + Sperrliste + Mehrfachverwendung</SelectItem>
-                  <SelectItem value="30">30 - CustProdNo in VIEWORDER</SelectItem>
-                  <SelectItem value="31">31 - InjektorCode MDEG + Mehrfachverbau</SelectItem>
-                  <SelectItem value="32">32 - Über Referenz OP prüfe Stückliste + Mehrfach</SelectItem>
-                  <SelectItem value="33">33 - InjektorCode MDEG + Stücklistenteil + Mehrfachverbau</SelectItem>
-                  <SelectItem value="34">34 - Cylinderhead Marriage</SelectItem>
-                  <SelectItem value="35">35 - Comparestring + Mehrfachverwendung über alle Operationen</SelectItem>
-                  <SelectItem value="36">36 - Stücklistenteil + Mehrfachverwendung + KHR/ZK Prüfung</SelectItem>
-                  <SelectItem value="37">37 - Rescan reference operation</SelectItem>
-                  <SelectItem value="38">38 - Bruderauftrag FIN</SelectItem>
-                  <SelectItem value="39">39 - DMC-Paar prüfen</SelectItem>
-                  <SelectItem value="40">40 - Check GATS Unitidentno</SelectItem>
-                  <SelectItem value="41">41 - CarrierId für Linie</SelectItem>
-                  <SelectItem value="42">42 - Part in BOM and Container</SelectItem>
-                  <SelectItem value="43">43 - BOM, Container, Same supplier</SelectItem>
-                  <SelectItem value="44">44 - Orderno in BS_ORDER</SelectItem>
-                  <SelectItem value="45">45 - CarrierID Auftrag zugeordnet</SelectItem>
-                  <SelectItem value="46">46 - Sub Assembly Status OK</SelectItem>
-                  <SelectItem value="47">47 - Stücklistenteil mit MU</SelectItem>
-                  <SelectItem value="48">48 - Stücklistenteil mit MU + Mehrfachverbau</SelectItem>
-                  <SelectItem value="49">49 - Stücklistenteil mit MU, Mehrfachverbau, gleicher Lieferant</SelectItem>
-                  <SelectItem value="50">50 - Verifiziere Umrüster</SelectItem>
-                  <SelectItem value="51">51 - Comparestring mit Positions-/Längenprüfung</SelectItem>
-                  <SelectItem value="52">52 - unitidentno Format + Eindeutigkeit</SelectItem>
-                  <SelectItem value="53">53 - Prüfung ob Carrier zugeordnet</SelectItem>
-                  <SelectItem value="54">54 - Vomo Produkt in BOM</SelectItem>
-                  <SelectItem value="55">55 - Vomo Produkt Operationsstatus</SelectItem>
-                  <SelectItem value="56">56 - Teilstring in Referenz-OP</SelectItem>
-                  <SelectItem value="57">57 - Vomo Order FIN</SelectItem>
-                  <SelectItem value="58">58 - HDEP Injektor DMC Prüfung</SelectItem>
-                  <SelectItem value="59">59 - DMC nicht zugewiesen</SelectItem>
-                  <SelectItem value="60">60 - BOM + Mehrfachverbau + gleiche ProdNr in RefOPs</SelectItem>
-                  <SelectItem value="61">61 - Verifiziere Umrüster Teil</SelectItem>
-                  <SelectItem value="62">62 - BOM + ProdNr + Barcodelänge</SelectItem>
-                  <SelectItem value="63">63 - CustOrderno in VIEWORDER</SelectItem>
-                  <SelectItem value="97">97 - I-Beam (Spezialfall)</SelectItem>
+                 {verificationClasses.map((verificationClass: { classId: string; classDescription: string }) => (
+                    <SelectItem key={verificationClass.classId} value={String(verificationClass.classId)}>
+                      {String(verificationClass.classDescription)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -2024,23 +1898,11 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="1">01 - Standard</SelectItem>
-                  <SelectItem value="2">02 - Auftragsziel</SelectItem>
-                  <SelectItem value="3">03 - Multi step calculation reference OP</SelectItem>
-                  <SelectItem value="4">04 - Teilenummer</SelectItem>
-                  <SelectItem value="5">05 - Ziel des Auftrags</SelectItem>
-                  <SelectItem value="6">06 - Alternative Teile</SelectItem>
-                  <SelectItem value="7">07 - Alternative Teile mit MU</SelectItem>
-                  <SelectItem value="8">08 - Show expected CarrierID</SelectItem>
-                  <SelectItem value="9">09 - Typschild GEAR</SelectItem>
-                  <SelectItem value="10">10 - Alternative Teile mit MU</SelectItem>
-                  <SelectItem value="11">11 - Vergleich RefOP-Teilenr mit Comparestring</SelectItem>
-                  <SelectItem value="12">12 - Attribut</SelectItem>
-                  <SelectItem value="13">13 - DDC Spezial 4 Zeilen</SelectItem>
-                  <SelectItem value="14">14 - Unterauftragsnummer als Comparestring</SelectItem>
-                  <SelectItem value="15">15 - CodeValue, CustMatNo, Unitidentno</SelectItem>
-                  <SelectItem value="16">16 - Typschild 5 Zeilen UnitEndNo 7 Stellig</SelectItem>
-                  <SelectItem value="17">17 - PTSI Typschild eAchse 7 Zeilen</SelectItem>
+                {generationnClasses.map((generationClass: { classId: string; classDescription: string }) => (
+                    <SelectItem key={generationClass.classId} value={String(generationClass.classId)}>
+                      {String(generationClass.classDescription)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -2060,29 +1922,11 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="1">01 - Standard</SelectItem>
-                  <SelectItem value="2">02 - Lösche KitcardId, Carrierid aus Auftrag</SelectItem>
-                  <SelectItem value="3">03 - Barcode als CarrierID</SelectItem>
-                  <SelectItem value="4">04 - Barcode als KitcartID</SelectItem>
-                  <SelectItem value="5">05 - Vormontageauftrag Verheiratung</SelectItem>
-                  <SelectItem value="6">06 - Vormontageoperationen Ergebnis übernehmen</SelectItem>
-                  <SelectItem value="7">07 - DMC speichern</SelectItem>
-                  <SelectItem value="8">08 - InjektorCode prüfen/speichern</SelectItem>
-                  <SelectItem value="9">09 - DMC für Labelprint</SelectItem>
-                  <SelectItem value="10">10 - VIN prüfen/speichern</SelectItem>
-                  <SelectItem value="11">11 - VIN + Injektor prüfen</SelectItem>
-                  <SelectItem value="12">12 - Ergebnis an nächstes System übertragen</SelectItem>
-                  <SelectItem value="13">13 - Injektorlabel speichern</SelectItem>
-                  <SelectItem value="14">14 - PKWT spezifisch</SelectItem>
-                  <SelectItem value="15">15 - Carrier-Zuordnung speichern</SelectItem>
-                  <SelectItem value="16">16 - OilFilling speichern</SelectItem>
-                  <SelectItem value="17">17 - Auftragsdaten zurückgeben</SelectItem>
-                  <SelectItem value="18">18 - SAP Upload</SelectItem>
-                  <SelectItem value="19">19 - Operationstatus übertragen</SelectItem>
-                  <SelectItem value="20">20 - UnitIdentNo speichern</SelectItem>
-                  <SelectItem value="21">21 - DMC-Nutzung markieren</SelectItem>
-                  <SelectItem value="22">22 - UnitIdentNo prüfen + speichern</SelectItem>
-                  <SelectItem value="23">23 - Speichern mit Sperrprüfung</SelectItem>
+                 {savingClasses.map((savingClass: { classId: string; classDescription: string }) => (
+                    <SelectItem key={savingClass.classId} value={String(savingClass.classId)}>
+                      {String(savingClass.classDescription)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormItem>
