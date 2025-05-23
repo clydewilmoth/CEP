@@ -1749,7 +1749,7 @@ const template = data.Template.filter((template: { templateId: string | number }
                   getVerificationClass(templateId);
                   getSavingClass(templateId);
                   const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
-                  json.templateId = value;
+                  json.TemplateId = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
                     queryKey: ["operation", entityId],
@@ -1899,11 +1899,11 @@ const template = data.Template.filter((template: { templateId: string | number }
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("OperationClassDecision")}</FormLabel>
-              <Select 
-              onValueChange={(value) => {
+              <Select
+                onValueChange={(value) => {
                   field.onChange(value);
                   const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
-                  json.decisionClass = value;
+                  json.DecisionClass = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
                     queryKey: ["operation", entityId],
@@ -1937,10 +1937,10 @@ const template = data.Template.filter((template: { templateId: string | number }
             <FormItem>
               <FormLabel>{t("OperationClassVerification")}</FormLabel>
               <Select 
-              onValueChange={(value) => {
+                onValueChange={(value) => {
                   field.onChange(value);
                   const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
-                  json.verificationClass = value;
+                  json.VerificationClass = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
                     queryKey: ["operation", entityId],
@@ -1971,11 +1971,11 @@ const template = data.Template.filter((template: { templateId: string | number }
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("OperationClassGeneration")}</FormLabel>
-              <Select 
-              onValueChange={(value) => {
+              <Select
+                onValueChange={(value) => {
                   field.onChange(value);
                   const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
-                  json.generationClass = value;
+                  json.GenerationClass = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
                     queryKey: ["operation", entityId],
@@ -2006,11 +2006,11 @@ const template = data.Template.filter((template: { templateId: string | number }
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("OperationClassSaving")}</FormLabel>
-              <Select 
-              onValueChange={(value) => {
+              <Select
+                onValueChange={(value) => {
                   field.onChange(value);
                   const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
-                  json.savingClass = value;
+                  json.SavingClass = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
                     queryKey: ["operation", entityId],
