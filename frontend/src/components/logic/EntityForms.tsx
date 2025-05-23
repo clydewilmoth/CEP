@@ -36,6 +36,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
+// @ts-ignore
+import fertigeJSON from "../../assets/fertigeJSON.json"
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -735,7 +737,17 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
-
+  const [toolClassId, setToolClassId] = useState("");
+  const [ToolTypes, setToolTypes] = useState<any>([]);  
+  const toolClasses = fertigeJSON.ToolClasses;
+  function getToolTypes(ToolClassId: string) {
+      const ToolTypes = fertigeJSON.ToolTypes;
+      
+      const filteredToolTypes = ToolClassId ? (ToolTypes.filter(
+        (toolType: { toolClassificationId: string; }) => toolType.toolClassificationId === ToolClassId
+      )) : ToolTypes;
+      setToolTypes(filteredToolTypes);
+  }
   useEffect(() => {
     (async () => {
       const tool = await GetEntityDetails("tool", entityId);
@@ -1040,6 +1052,8 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
+                  setToolClassId(value);
+                  getToolTypes(value);
                   const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
                   json.ToolClass = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
@@ -1109,109 +1123,13 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="1">Check Manual</SelectItem>
-                  <SelectItem value="2">Wait</SelectItem>
-                  <SelectItem value="3">DS Check</SelectItem>
-                  <SelectItem value="4">Scanner (USB)</SelectItem>
-                  <SelectItem value="5">Scanner (PLC)</SelectItem>
-                  <SelectItem value="9">Tightening (AtlasCopco)</SelectItem>
-                  <SelectItem value="12">Tightening (PLC) Values</SelectItem>
-                  <SelectItem value="15">Execution (File)</SelectItem>
-                  <SelectItem value="16">Picture Viewer</SelectItem>
-                  <SelectItem value="18">LeakTest (External)</SelectItem>
-                  <SelectItem value="19">Commissioning (External)</SelectItem>
-                  <SelectItem value="20">Commissioning (Wibond)</SelectItem>
-                  <SelectItem value="22">Measuring (Manual) Value</SelectItem>
-                  <SelectItem value="23">Measuring (PLC) Status</SelectItem>
-                  <SelectItem value="24">Measuring (PLC) Values</SelectItem>
-                  <SelectItem value="27">CarrierMarriage (PLC)</SelectItem>
-                  <SelectItem value="28">Manual</SelectItem>
-                  <SelectItem value="29">Manual with user rights</SelectItem>
-                  <SelectItem value="32">ShippingRack (PLC)</SelectItem>
-                  <SelectItem value="33">Decision (Manual)</SelectItem>
-                  <SelectItem value="35">Qgate Decision</SelectItem>
-                  <SelectItem value="37">Execution (Procedure)</SelectItem>
-                  <SelectItem value="38">Check Multiple</SelectItem>
-                  <SelectItem value="39">Tightening (External)</SelectItem>
-                  <SelectItem value="40">FitIn (PLC)</SelectItem>
-                  <SelectItem value="41">PositionClear (External)</SelectItem>
-                  <SelectItem value="43">Tightening (AtlasCopco) Picture Repair</SelectItem>
-                  <SelectItem value="44">Check Multiple Rework</SelectItem>
-                  <SelectItem value="46">Measuring (Manual) Status Picture</SelectItem>
-                  <SelectItem value="47">Commissioning (SPA)</SelectItem>
-                  <SelectItem value="48">FitIn (SPA)</SelectItem>
-                  <SelectItem value="49">PositionClear (SPA)</SelectItem>
-                  <SelectItem value="50">Check Dynamic</SelectItem>
-                  <SelectItem value="51">Tightening (PLC) Status</SelectItem>
-                  <SelectItem value="54">OilFilling (Manual)</SelectItem>
-                  <SelectItem value="55">Scanner (Cognex)</SelectItem>
-                  <SelectItem value="56">Measuring (PLC) Status Multi OP</SelectItem>
-                  <SelectItem value="57">CarrierMarriage (SPA)</SelectItem>
-                  <SelectItem value="59">Measuring (SPA) Status</SelectItem>
-                  <SelectItem value="60">Tightening (SPA) Values</SelectItem>
-                  <SelectItem value="61">Scanner (SPA) Fisheye</SelectItem>
-                  <SelectItem value="62">Stamp (SPA)</SelectItem>
-                  <SelectItem value="63">PositionClear (PLC)</SelectItem>
-                  <SelectItem value="65">OilFilling (PLC)</SelectItem>
-                  <SelectItem value="66">Tightening (OpenProtocol)</SelectItem>
-                  <SelectItem value="67">Measuring (PLC) Values & Limits</SelectItem>
-                  <SelectItem value="68">Commissioning (Manual)</SelectItem>
-                  <SelectItem value="69">Execution (Procedure) with Return Value</SelectItem>
-                  <SelectItem value="70">SAP Upload (HTTP)</SelectItem>
-                  <SelectItem value="75">Measuring (WCF)</SelectItem>
-                  <SelectItem value="80">Scanner (PLC) Fisheye</SelectItem>
-                  <SelectItem value="81">Scanner (SPA)</SelectItem>
-                  <SelectItem value="82">Tightening (AtlasCopco) Picture</SelectItem>
-                  <SelectItem value="83">LeakTest (PLC)</SelectItem>
-                  <SelectItem value="84">Measuring (PLC) Status & Results</SelectItem>
-                  <SelectItem value="85">PositionClear (PLC) Destination Reloaded</SelectItem>
-                  <SelectItem value="86">PositionClear (SPA) Destination</SelectItem>
-                  <SelectItem value="87">Measuring (External)</SelectItem>
-                  <SelectItem value="89">LeakTest (WCF2)</SelectItem>
-                  <SelectItem value="90">Measuring (WCF2)</SelectItem>
-                  <SelectItem value="91">Picture Viewer DS Check</SelectItem>
-                  <SelectItem value="92">Measuring (PLC) Values Display</SelectItem>
-                  <SelectItem value="100">ResultSumDecision</SelectItem>
-                  <SelectItem value="101">ResultSumCheck</SelectItem>
-                  <SelectItem value="102">QGate Operations</SelectItem>
-                  <SelectItem value="104">PositionClear (PLC) Prisma</SelectItem>
-                  <SelectItem value="105">PositionClear (SPA) Prisma</SelectItem>
-                  <SelectItem value="106">Scanner (SPA PCS with PLC logic)</SelectItem>
-                  <SelectItem value="107">Check (SPA PCS with PLC logic)</SelectItem>
-                  <SelectItem value="108">OilFilling (SPA)</SelectItem>
-                  <SelectItem value="109">Commissioning (Wibond) Parts List</SelectItem>
-                  <SelectItem value="110">LeakTest (File) V12</SelectItem>
-                  <SelectItem value="111">PictureCapture</SelectItem>
-                  <SelectItem value="112">Calculate</SelectItem>
-                  <SelectItem value="119">MASIS values check</SelectItem>
-                  <SelectItem value="120">PositionClear (PLC) Picture</SelectItem>
-                  <SelectItem value="121">PositionClear (SPA) Picture</SelectItem>
-                  <SelectItem value="122">Measuring (File) AVL TDC</SelectItem>
-                  <SelectItem value="123">Check For Logged In User</SelectItem>
-                  <SelectItem value="124">PictureCapture FotoBox (WCF2)</SelectItem>
-                  <SelectItem value="126">Tightening (AtlasCopco) v2</SelectItem>
-                  <SelectItem value="127">Stamp (Ethernet) Werner</SelectItem>
-                  <SelectItem value="130">Tightening (File) Novotest</SelectItem>
-                  <SelectItem value="131">Testbench (File) Unipas/Novotest</SelectItem>
-                  <SelectItem value="132">Stamp (File) Gear</SelectItem>
-                  <SelectItem value="133">Measuring (PLC) With Reloaded OP</SelectItem>
-                  <SelectItem value="135">Tightening (Manual)</SelectItem>
-                  <SelectItem value="136">LeakTest (SPA)</SelectItem>
-                  <SelectItem value="137">Scanner (Cognex) With Reloaded OP</SelectItem>
-                  <SelectItem value="138">BuildingCondition (SPA)</SelectItem>
-                  <SelectItem value="139">InvisibleOperation</SelectItem>
-                  <SelectItem value="141">Testbench (File) UNIPAS 2</SelectItem>
-                  <SelectItem value="142">Measuring (SPA) Picture</SelectItem>
-                  <SelectItem value="143">Commissioning (WCF2)</SelectItem>
-                  <SelectItem value="144">TimeTracking (SPA)</SelectItem>
-                  <SelectItem value="145">Testbench (File) Unipas Axle</SelectItem>
-                  <SelectItem value="146">Check and Transfer Files</SelectItem>
-                  <SelectItem value="147">User Login</SelectItem>
-                  <SelectItem value="149">Call Web Api</SelectItem>
-                  <SelectItem value="150">Rework and Routing</SelectItem>
-                  <SelectItem value="152">PositionClear (WCF) Destination</SelectItem>
-                  <SelectItem value="154">ServiceLayer Tool</SelectItem>
-                  <SelectItem value="155">ShiftUser Login</SelectItem>
+                  {
+                  ToolTypes.map((toolType: { toolTypeId: string; description: string }) => (
+                    <SelectItem key={toolType.toolTypeId} value={String(toolType.toolTypeId)}>
+                      {String(toolType.description)}
+                    </SelectItem>
+                  ))
+                  }
                 </SelectContent>
               </Select>
             </FormItem>
