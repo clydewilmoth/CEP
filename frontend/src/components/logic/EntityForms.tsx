@@ -1420,19 +1420,19 @@ export function OperationForm({ entityId }: { entityId: string }) {
   }
   function getGenerationClass(TemplateId: string) {
     const filteredGenerationClasses = TemplateId ? (generationnClasses.filter(
-      (generationClass: { templateId: string; }) => generationClass.templateId === TemplateId || generationClass.templateId === "0"
+      (generationClass: { templateId: string; }) => generationClass.templateId === TemplateId 
     )) : generationnClasses;
     setGenerationClassId(filteredGenerationClasses);
   }
   function getVerificationClass(TemplateId: string) {
     const filteredVerificationClasses = TemplateId ? (verificationClasses.filter(
-      (verificationClass: { templateId: string; }) => verificationClass.templateId === TemplateId || verificationClass.templateId === "0"
+      (verificationClass: { templateId: string; }) => verificationClass.templateId === TemplateId 
     )) : verificationClasses;
     setVerificationClassId(filteredVerificationClasses);
   }
   function getSavingClass(TemplateId: string) {
     const filteredSavingClasses = TemplateId ? (savingClasses.filter(
-      (savingClass: { templateId: string; }) => savingClass.templateId === TemplateId || savingClass.templateId === "0"
+      (savingClass: { templateId: string; }) => savingClass.templateId === TemplateId 
     )) : savingClasses;
     setSavingClassId(filteredSavingClasses);
   }
