@@ -748,11 +748,11 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
-  const [toolClassId, setToolClassId] = useState("");
+  const [toolClass, setToolClassId] = useState<any>([]);
   const [ToolTypes, setToolTypes] = useState<any>([]);  
-  const toolClasses = fertigeJSON.ToolClasses;
+  const toolClasses = data.ToolClasses;
   function getToolTypes(ToolClassId: string) {
-      const ToolTypes = fertigeJSON.ToolTypes;
+      const ToolTypes = data.ToolTypes;
       
       const filteredToolTypes = ToolClassId ? (ToolTypes.filter(
         (toolType: { toolClassificationId: string; }) => toolType.toolClassificationId === ToolClassId
@@ -799,9 +799,6 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     ToolClass: z.string().optional(),
     ToolType: z.string().optional(),
   });
-
-  const toolclass = data.ToolClasses
-  const tooltype = data.ToolTypes
 
   function clearDrafts() {
     localStorage.removeItem(entityId);
@@ -1118,15 +1115,11 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-
-                  {
-                  ToolTypes.map((toolType: { toolTypeId: string; description: string }) => (
+                  {ToolTypes.map((toolType: { toolTypeId: string; description: string }) => (
                     <SelectItem key={toolType.toolTypeId} value={String(toolType.toolTypeId)}>
                       {String(toolType.description)}
                     </SelectItem>
-                  ))
-                  }
-
+                  ))}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1401,20 +1394,48 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
 }
 
 export function OperationForm({ entityId }: { entityId: string }) {
-const operationClasses = fertigeJSON.OperationClasses;
-const decisionClasses = operationClasses.filter(operationClass => operationClass.classType === "DECISION");
-const generationnClasses = operationClasses.filter(operationClass => operationClass.classType === "GENERATION");
-const verificationClasses = operationClasses.filter(operationClass => operationClass.classType === "VERIFICATION");
-const savingClasses = operationClasses.filter(operationClass => operationClass.classType === "SAVING");
-const templates = fertigeJSON.Template;
+  const operationClasses = data.OperationClasses;
+  const decisionClasses = operationClasses.filter(operationClass => operationClass.classType === "DECISION");
+  const generationnClasses = operationClasses.filter(operationClass => operationClass.classType === "GENERATION");
+  const verificationClasses = operationClasses.filter(operationClass => operationClass.classType === "VERIFICATION");
+  const savingClasses = operationClasses.filter(operationClass => operationClass.classType === "SAVING");
+  const templates = data.Template;
 
-const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
+  const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     {}
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
+  const [decisionClass, setDecisionClassId] = useState<any>([]);
+  const [generationClass, setGenerationClassId] = useState<any>([]);
+  const [verificationClass, setVerificationClassId] = useState<any>([]);
+  const [savingClass, setSavingClassId] = useState<any>([]);
+  const [templateId, setTemplateId] = useState<any>([]);
 
-
+  function getDecisionClass(TemplateId: string) {
+    const filteredDecisionClasses = TemplateId ? (decisionClasses.filter(
+      (decisionClass: { templateId: string; }) => decisionClass.templateId === TemplateId
+    )) : decisionClasses;
+    setDecisionClassId(filteredDecisionClasses);
+  }
+  function getGenerationClass(TemplateId: string) {
+    const filteredGenerationClasses = TemplateId ? (generationnClasses.filter(
+      (generationClass: { templateId: string; }) => generationClass.templateId === TemplateId
+    )) : generationnClasses;
+    setGenerationClassId(filteredGenerationClasses);
+  }
+  function getVerificationClass(TemplateId: string) {
+    const filteredVerificationClasses = TemplateId ? (verificationClasses.filter(
+      (verificationClass: { templateId: string; }) => verificationClass.templateId === TemplateId
+    )) : verificationClasses;
+    setVerificationClassId(filteredVerificationClasses);
+  }
+  function getSavingClass(TemplateId: string) {
+    const filteredSavingClasses = TemplateId ? (savingClasses.filter(
+      (savingClass: { templateId: string; }) => savingClass.templateId === TemplateId
+    )) : savingClasses;
+    setSavingClassId(filteredSavingClasses);
+  }
 
   useEffect(() => {
     (async () => {
@@ -1712,15 +1733,29 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
           name="templateId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Template</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <FormLabel>{t("Template")}</FormLabel>
+              <Select 
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  setTemplateId(value);
+                  getDecisionClass(value);
+                  getGenerationClass(value);
+                  getVerificationClass(value);
+                  getSavingClass(value);
+                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  json.templateId = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["operation", entityId],
+                  });
+                }}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Wählen Sie ein Template" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-
                   {templates.map((template: { templateId: string; Description: string }) => (
                     <SelectItem key={template.templateId} value={String(template.templateId)}>
                       {String(template.Description)}
@@ -1858,7 +1893,18 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
           render={({ field }) => (
             <FormItem>
               <FormLabel>Decision Class</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select 
+              onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  json.decisionClass = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["operation", entityId],
+                  });
+                }}
+                defaultValue={field.value}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Wählen Sie eine Decision Class" />
@@ -1884,7 +1930,18 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
           render={({ field }) => (
             <FormItem>
               <FormLabel>Verification Class</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select 
+              onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  json.verificationClass = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["operation", entityId],
+                  });
+                }}
+                defaultValue={field.value}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Wählen Sie eine Verification Class" />
@@ -1908,7 +1965,18 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
           render={({ field }) => (
             <FormItem>
               <FormLabel>Generation Class</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select 
+              onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  json.generationClass = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["operation", entityId],
+                  });
+                }}
+                defaultValue={field.value}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Wählen Sie eine Generation Class" />
@@ -1932,7 +2000,18 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
           render={({ field }) => (
             <FormItem>
               <FormLabel>Saving Class</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select 
+              onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  json.savingClass = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["operation", entityId],
+                  });
+                }}
+                defaultValue={field.value}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Wählen Sie eine Saving Class" />
