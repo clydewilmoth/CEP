@@ -36,12 +36,11 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
-<<<<<<< HEAD
+
 // @ts-ignore
 import fertigeJSON from "../../assets/fertigeJSON.json"
-=======
+
 import data from "@/assets/fertigeJSON.json"
->>>>>>> 9c459fd7c13826dd325c1df50a786617dcbc96da
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -1084,19 +1083,11 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-<<<<<<< HEAD
                 {toolClasses.map((toolClass :{toolClassesId:string; toolClassName: string})=>(
                   <SelectItem key={toolClass.toolClassesId} value={String(toolClass.toolClassesId)}>
                     {String(toolClass.toolClassName)}
                   </SelectItem> 
                  ))}
-=======
-                  {toolclass.map((toolclass) => (
-                    <SelectItem key={toolclass.toolClassesId} value={toolclass.toolClassesId}>
-                      {toolclass.toolClassName}
-                    </SelectItem>
-                  ))}
->>>>>>> 9c459fd7c13826dd325c1df50a786617dcbc96da
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1127,7 +1118,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-<<<<<<< HEAD
+
                   {
                   ToolTypes.map((toolType: { toolTypeId: string; description: string }) => (
                     <SelectItem key={toolType.toolTypeId} value={String(toolType.toolTypeId)}>
@@ -1135,13 +1126,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                     </SelectItem>
                   ))
                   }
-=======
-                  {tooltype.map((tooltype) => (
-                    <SelectItem key={tooltype.toolTypeId} value={tooltype.toolTypeId}>
-                      {tooltype.description}
-                    </SelectItem>
-                  ))}
->>>>>>> 9c459fd7c13826dd325c1df50a786617dcbc96da
+
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1422,11 +1407,13 @@ const generationnClasses = operationClasses.filter(operationClass => operationCl
 const verificationClasses = operationClasses.filter(operationClass => operationClass.classType === "VERIFICATION");
 const savingClasses = operationClasses.filter(operationClass => operationClass.classType === "SAVING");
 const templates = fertigeJSON.Template;
+
 const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     {}
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
+
 
 
   useEffect(() => {
@@ -1468,21 +1455,6 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     generationClass: z.string().optional(),
     savingClass: z.string().optional(),
   });
-
-  const template = data.Template
-  const decisionClass = data.OperationClasses.filter(
-    (operationClass) => operationClass.classType === "DECISION"
-  );
-  const verificationClass = data.OperationClasses.filter(
-    (operationClass) => operationClass.classType === "VERIFICATION"
-  );
-  const generationClass = data.OperationClasses.filter(
-    (operationClass) => operationClass.classType === "GENERATION"
-  );
-  const savingClass = data.OperationClasses.filter(
-    (operationClass) => operationClass.classType === "SAVING"
-  );
-
   function clearDrafts() {
     localStorage.removeItem(entityId);
     setObserver((prev) => prev + 1);
@@ -1748,16 +1720,10 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-<<<<<<< HEAD
 
                   {templates.map((template: { templateId: string; Description: string }) => (
                     <SelectItem key={template.templateId} value={String(template.templateId)}>
                       {String(template.Description)}
-=======
-                  {template.map((template) => (
-                    <SelectItem key={template.templateId} value={template.templateId}>
-                      {template.ShortName}
->>>>>>> 9c459fd7c13826dd325c1df50a786617dcbc96da
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1899,7 +1865,6 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-<<<<<<< HEAD
                  {
                   decisionClasses.map((decisionClass: { classId: string; classDescription: string }) => (
                     <SelectItem key={decisionClass.classId} value={String(decisionClass.classId)}>
@@ -1907,13 +1872,6 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                     </SelectItem>
                   ))
                  }
-=======
-                  {decisionClass.map((operationClass) => (
-                    <SelectItem key={operationClass.classId} value={operationClass.classId}>
-                      {operationClass.classDescription}
-                    </SelectItem>
-                  ))}
->>>>>>> 9c459fd7c13826dd325c1df50a786617dcbc96da
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1933,15 +1891,9 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-<<<<<<< HEAD
                  {verificationClasses.map((verificationClass: { classId: string; classDescription: string }) => (
                     <SelectItem key={verificationClass.classId} value={String(verificationClass.classId)}>
                       {String(verificationClass.classDescription)}
-=======
-                  {verificationClass.map((operationClass) => (
-                    <SelectItem key={operationClass.classId} value={operationClass.classId}>
-                      {operationClass.classDescription}
->>>>>>> 9c459fd7c13826dd325c1df50a786617dcbc96da
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1963,15 +1915,9 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-<<<<<<< HEAD
                 {generationnClasses.map((generationClass: { classId: string; classDescription: string }) => (
                     <SelectItem key={generationClass.classId} value={String(generationClass.classId)}>
                       {String(generationClass.classDescription)}
-=======
-                  {generationClass.map((operationClass) => (
-                    <SelectItem key={operationClass.classId} value={operationClass.classId}>
-                      {operationClass.classDescription}
->>>>>>> 9c459fd7c13826dd325c1df50a786617dcbc96da
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1993,15 +1939,9 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-<<<<<<< HEAD
                  {savingClasses.map((savingClass: { classId: string; classDescription: string }) => (
                     <SelectItem key={savingClass.classId} value={String(savingClass.classId)}>
                       {String(savingClass.classDescription)}
-=======
-                  {savingClass.map((operationClass) => (
-                    <SelectItem key={operationClass.classId} value={operationClass.classId}>
-                      {operationClass.classDescription}
->>>>>>> 9c459fd7c13826dd325c1df50a786617dcbc96da
                     </SelectItem>
                   ))}
                 </SelectContent>
