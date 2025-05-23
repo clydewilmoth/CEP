@@ -1414,25 +1414,25 @@ export function OperationForm({ entityId }: { entityId: string }) {
 
   function getDecisionClass(TemplateId: string) {
     const filteredDecisionClasses = TemplateId ? (decisionClasses.filter(
-      (decisionClass: { templateId: string; }) => decisionClass.templateId === TemplateId
+      (decisionClass: { templateId: string; }) => decisionClass.templateId === TemplateId || decisionClass.templateId === "0"
     )) : decisionClasses;
     setDecisionClassId(filteredDecisionClasses);
   }
   function getGenerationClass(TemplateId: string) {
     const filteredGenerationClasses = TemplateId ? (generationnClasses.filter(
-      (generationClass: { templateId: string; }) => generationClass.templateId === TemplateId
+      (generationClass: { templateId: string; }) => generationClass.templateId === TemplateId || generationClass.templateId === "0"
     )) : generationnClasses;
     setGenerationClassId(filteredGenerationClasses);
   }
   function getVerificationClass(TemplateId: string) {
     const filteredVerificationClasses = TemplateId ? (verificationClasses.filter(
-      (verificationClass: { templateId: string; }) => verificationClass.templateId === TemplateId
+      (verificationClass: { templateId: string; }) => verificationClass.templateId === TemplateId || verificationClass.templateId === "0"
     )) : verificationClasses;
     setVerificationClassId(filteredVerificationClasses);
   }
   function getSavingClass(TemplateId: string) {
     const filteredSavingClasses = TemplateId ? (savingClasses.filter(
-      (savingClass: { templateId: string; }) => savingClass.templateId === TemplateId
+      (savingClass: { templateId: string; }) => savingClass.templateId === TemplateId || savingClass.templateId === "0"
     )) : savingClasses;
     setSavingClassId(filteredSavingClasses);
   }
@@ -1738,10 +1738,10 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 onValueChange={(value) => {
                   field.onChange(value);
                   setTemplateId(value);
-                  getDecisionClass(value);
-                  getGenerationClass(value);
-                  getVerificationClass(value);
-                  getSavingClass(value);
+                  getDecisionClass(templateId);
+                  getGenerationClass(templateId);
+                  getVerificationClass(templateId);
+                  getSavingClass(templateId);
                   const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
                   json.templateId = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
@@ -1912,7 +1912,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 </FormControl>
                 <SelectContent>
                  {
-                  decisionClasses.map((decisionClass: { classId: string; classDescription: string }) => (
+                  decisionClass.map((decisionClass: { classId: string; classDescription: string }) => (
                     <SelectItem key={decisionClass.classId} value={String(decisionClass.classId)}>
                       {String(decisionClass.classDescription)}
                     </SelectItem>
@@ -1948,7 +1948,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                 {verificationClasses.map((verificationClass: { classId: string; classDescription: string }) => (
+                 {verificationClass.map((verificationClass: { classId: string; classDescription: string }) => (
                     <SelectItem key={verificationClass.classId} value={String(verificationClass.classId)}>
                       {String(verificationClass.classDescription)}
                     </SelectItem>
@@ -1983,7 +1983,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                {generationnClasses.map((generationClass: { classId: string; classDescription: string }) => (
+                {generationClass.map((generationClass: { classId: string; classDescription: string }) => (
                     <SelectItem key={generationClass.classId} value={String(generationClass.classId)}>
                       {String(generationClass.classDescription)}
                     </SelectItem>
@@ -2018,7 +2018,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                 {savingClasses.map((savingClass: { classId: string; classDescription: string }) => (
+                 {savingClass.map((savingClass: { classId: string; classDescription: string }) => (
                     <SelectItem key={savingClass.classId} value={String(savingClass.classId)}>
                       {String(savingClass.classDescription)}
                     </SelectItem>
