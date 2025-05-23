@@ -1414,25 +1414,25 @@ export function OperationForm({ entityId }: { entityId: string }) {
 
   function getDecisionClass(TemplateId: string) {
     const filteredDecisionClasses = TemplateId ? (decisionClasses.filter(
-      (decisionClass: { templateId: string; }) => decisionClass.templateId === TemplateId
+      (decisionClass: { templateId: string; }) => decisionClass.templateId === TemplateId || decisionClass.templateId === "0"
     )) : decisionClasses;
     setDecisionClassId(filteredDecisionClasses);
   }
   function getGenerationClass(TemplateId: string) {
     const filteredGenerationClasses = TemplateId ? (generationnClasses.filter(
-      (generationClass: { templateId: string; }) => generationClass.templateId === TemplateId
+      (generationClass: { templateId: string; }) => generationClass.templateId === TemplateId 
     )) : generationnClasses;
     setGenerationClassId(filteredGenerationClasses);
   }
   function getVerificationClass(TemplateId: string) {
     const filteredVerificationClasses = TemplateId ? (verificationClasses.filter(
-      (verificationClass: { templateId: string; }) => verificationClass.templateId === TemplateId
+      (verificationClass: { templateId: string; }) => verificationClass.templateId === TemplateId 
     )) : verificationClasses;
     setVerificationClassId(filteredVerificationClasses);
   }
   function getSavingClass(TemplateId: string) {
     const filteredSavingClasses = TemplateId ? (savingClasses.filter(
-      (savingClass: { templateId: string; }) => savingClass.templateId === TemplateId
+      (savingClass: { templateId: string; }) => savingClass.templateId === TemplateId 
     )) : savingClasses;
     setSavingClassId(filteredSavingClasses);
   }
@@ -1738,10 +1738,10 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 onValueChange={(value) => {
                   field.onChange(value);
                   setTemplateId(value);
-                  getDecisionClass(value);
-                  getGenerationClass(value);
-                  getVerificationClass(value);
-                  getSavingClass(value);
+                  getDecisionClass(templateId);
+                  getGenerationClass(templateId);
+                  getVerificationClass(templateId);
+                  getSavingClass(templateId);
                   const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
                   json.templateId = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
@@ -1892,7 +1892,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
           name="decisionClass"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Decision Class</FormLabel>
+              <FormLabel>{t("OperationClassDecision")}</FormLabel>
               <Select 
               onValueChange={(value) => {
                   field.onChange(value);
@@ -1929,7 +1929,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
           name="verificationClass"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Verification Class</FormLabel>
+              <FormLabel>{t("OperationClassVerification")}</FormLabel>
               <Select 
               onValueChange={(value) => {
                   field.onChange(value);
@@ -1964,7 +1964,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
           name="generationClass"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Generation Class</FormLabel>
+              <FormLabel>{t("OperationClassGeneration")}</FormLabel>
               <Select 
               onValueChange={(value) => {
                   field.onChange(value);
@@ -1999,7 +1999,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
           name="savingClass"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Saving Class</FormLabel>
+              <FormLabel>{t("OperationClassSaving")}</FormLabel>
               <Select 
               onValueChange={(value) => {
                   field.onChange(value);

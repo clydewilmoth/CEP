@@ -49,6 +49,10 @@
             "ExportError": "Export failed.",
             "InitLoading": "Establishing database connection",
             "InitReload": "Retry database connection",
+            "OperationClassVerification": "Verification Class",
+            "OperationClassGeneration": "Generation Class",
+            "OperationClassSaving": "Saving Class",
+            "OperationClassDecision": "Decision Class",
             "DSN User": "User",
             "DSN Password": "Password",
             "DSN Database": "Database",
@@ -907,6 +911,10 @@
             "DSN TrustServer": "Server vertrauen",
             "DSN Encrypted": "Verschlüsselt",
             "EntityMetaData" : "Wurde zuletzt von {{name}} am {{date}} um {{time}} Uhr bearbeitet",
+            "OperationClassVerification": "Verifikations Klasse",
+            "OperationClassGeneration": "Erstellungs Klasse",
+            "OperationClassSaving": "Speicher Klasse",
+            "OperationClassDecision": "Entscheidungs Klasse",
             "SOP_0_name": "seriell",
             "SOP_1_name": "parallel",
             "QR_0_name": "Nicht relevant",
@@ -1693,7 +1701,7 @@
             "OC_VERIFICATION_63_2_HelpText": "CustOrderno prüfen. Barcode über Barcodetype definiert: UserDataStart und UserDataLength legen dabei fest, wo die Kunden-Orderno im Barcode steht.",
             "OC_VERIFICATION_97_2_ClassDescription": "97 - I-Beam",
             "OC_VERIFICATION_97_2_HelpText": "Spezialfall Redford Achse: nur temporäre Lösung, da Teilenummer nicht korrekt in der Stückliste ist."
-            
+
         }
     }
 }
