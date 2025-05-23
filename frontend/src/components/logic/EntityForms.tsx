@@ -1914,7 +1914,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                  {
                   decisionClasses.map((decisionClass: { classId: string; templateId: string }) => (
                     <SelectItem key={decisionClass.classId} value={String(decisionClass.classId)}>
-                      {t("OC_DECISION" + String(decisionClass.classId) + "_" + String(decisionClass.templateId) + "_ClassDescription")}
+                      {t("OC_DECISION_" + String(decisionClass.classId) + "_" + String(decisionClass.templateId) + "_ClassDescription")}
                     </SelectItem>
                   ))
                  }
@@ -1950,7 +1950,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 <SelectContent>
                  {verificationClasses.map((verificationClass: { classId: string; templateId: string }) => (
                     <SelectItem key={verificationClass.classId} value={String(verificationClass.classId)}>
-                      {t("OC_VERIFICATION" + String(verificationClass.classId) + "_" + String(verificationClass.templateId) + "_ClassDescription")}
+                      {t("OC_VERIFICATION_" + String(verificationClass.classId) + "_" + String(verificationClass.templateId) + "_ClassDescription")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1985,7 +1985,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 <SelectContent>
                 {generationnClasses.map((generationClass: { classId: string; templateId: string }) => (
                     <SelectItem key={generationClass.classId} value={String(generationClass.classId)}>
-                      {t("OC_GENERATION" + String(generationClass.classId) + "_" + String(generationClass.templateId) + "_ClassDescription")}
+                      {t("OC_GENERATION_" + String(generationClass.classId) + "_" + String(generationClass.templateId) + "_ClassDescription")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -2020,7 +2020,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 <SelectContent>
                  {savingClasses.map((savingClass: { classId: string; templateId: string; }) => (
                     <SelectItem key={savingClass.classId} value={String(savingClass.classId)}>
-                      {t("OC_SAVING" + String(savingClass.classId) + "_" + String(savingClass.templateId) + "_ClassDescription")}
+                      {t("OC_SAVING_" + String(savingClass.classId) + "_" + String(savingClass.templateId) + "_ClassDescription")}
                     </SelectItem>
                   ))}
                 </SelectContent>
