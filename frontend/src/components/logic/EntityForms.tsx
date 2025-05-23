@@ -860,7 +860,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
 
     if (!tool) return;
     Object.entries(tool).forEach(([key, value]) => {
-      if (tool.draft) {
+      if (value.draft) {
         changesRecord[key] = value.data;
       }
     });
@@ -1457,11 +1457,11 @@ const template = data.Template.filter((template: { templateId: string | number }
         SequenceGroup: json.SequenceGroup ?? operation.SequenceGroup ?? "",
         Sequence: json.Sequence ?? operation.Sequence ?? "",
         AlwaysPerform: json.AlwaysPerform ?? operation.AlwaysPerform ?? "",
-        templateId: operation?.templateId ?? "",
-        decisionClass: operation?.decisionClass ?? "",
-        verificationClass: operation?.verificationClass ?? "",
-        generationClass: operation?.generationClass ?? "",
-        savingClass: operation?.savingClass ?? "",
+        TemplateId: json.TemplateId ?? operation.TemplateId ?? "",
+        DecisionClass: json.DecisionClass ?? operation.DecisionClass ?? "",
+        VerificationClass: json.VerificationClass ?? operation.VerificationClass ?? "",
+        GenerationClass: json.GenerationClass ?? operation.GenerationClass ?? "",
+        SavingClass: json.SavingClass ?? operation.SavingClass ?? "",
       });
       setFormReady(true);
     })();
@@ -1476,11 +1476,11 @@ const template = data.Template.filter((template: { templateId: string | number }
     SequenceGroup: z.string().optional(),
     Sequence: z.string().optional(),
     AlwaysPerform: z.string().optional(),
-    templateId: z.string().min(1, "Template ist erforderlich"),
-    decisionClass: z.string().optional(),
-    verificationClass: z.string().optional(),
-    generationClass: z.string().optional(),
-    savingClass: z.string().optional(),
+    TemplateId: z.string().min(1, "Template ist erforderlich"),
+    DecisionClass: z.string().optional(),
+    VerificationClass: z.string().optional(),
+    GenerationClass: z.string().optional(),
+    SavingClass: z.string().optional(),
   });
   function clearDrafts() {
     localStorage.removeItem(entityId);
@@ -1736,7 +1736,7 @@ const template = data.Template.filter((template: { templateId: string | number }
 
         <FormField
           control={form.control}
-          name="templateId"
+          name="TemplateId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("Template")}</FormLabel>
@@ -1895,7 +1895,7 @@ const template = data.Template.filter((template: { templateId: string | number }
 
         <FormField
           control={form.control}
-          name="decisionClass"
+          name="DecisionClass"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("OperationClassDecision")}</FormLabel>
@@ -1932,7 +1932,7 @@ const template = data.Template.filter((template: { templateId: string | number }
 
         <FormField
           control={form.control}
-          name="verificationClass"
+          name="VerificationClass"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("OperationClassVerification")}</FormLabel>
@@ -1967,7 +1967,7 @@ const template = data.Template.filter((template: { templateId: string | number }
 
         <FormField
           control={form.control}
-          name="generationClass"
+          name="GenerationClass"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("OperationClassGeneration")}</FormLabel>
@@ -2002,7 +2002,7 @@ const template = data.Template.filter((template: { templateId: string | number }
 
         <FormField
           control={form.control}
-          name="savingClass"
+          name="SavingClass"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("OperationClassSaving")}</FormLabel>
