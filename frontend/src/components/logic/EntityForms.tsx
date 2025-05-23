@@ -982,7 +982,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                         json.Comment = e.target.value;
                         localStorage.setItem(entityId, JSON.stringify(json));
                         queryClient.invalidateQueries({
-                          queryKey: ["operaation", entityId],
+                          queryKey: ["operation", entityId],
                         });
                       }}
                       className="h-32 resize-none"
@@ -1065,6 +1065,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   field.onChange(value);
                   setToolClassId(value);
                   getToolTypes(value);
+                  localStorage.setItem("ToolClassId", value);
                   const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
                   json.ToolClass = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
@@ -1399,8 +1400,13 @@ export function OperationForm({ entityId }: { entityId: string }) {
   const generationnClasses = operationClasses.filter(operationClass => operationClass.classType === "GENERATION");
   const verificationClasses = operationClasses.filter(operationClass => operationClass.classType === "VERIFICATION");
   const savingClasses = operationClasses.filter(operationClass => operationClass.classType === "SAVING");
-  const templates = data.Template;
-
+  let ToolClassId = localStorage.getItem("ToolClassId") ?? "";
+  const toolClasses = data.ToolClasses;
+  const toolClass = toolClasses.find((toolClass: { toolClassesId: string }) => toolClass.toolClassesId === ToolClassId);
+ const templtId = toolClass?.templateIds;
+const template = data.Template.filter((template: { templateId: string | number }) =>
+  Array.isArray(templtId) && templtId.map(String).includes(String(template.templateId))
+);
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     {}
   );
@@ -1756,7 +1762,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {templates.map((template: { templateId: string; Description: string }) => (
+                  {template.map((template: { templateId: string; Description: string }) => (
                     <SelectItem key={template.templateId} value={String(template.templateId)}>
                       {t("T_" + String(template.templateId) + "_Description")}
                     </SelectItem>
