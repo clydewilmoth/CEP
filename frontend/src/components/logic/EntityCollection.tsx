@@ -12,9 +12,11 @@ import {
   CreateEntity,
   DeleteEntityByIDString,
   HandleExport,
+  HandleImport,
 } from "../../../wailsjs/go/main/Core";
 import {
   Eye,
+  FileDown,
   FileUp,
   Plus,
   SearchIcon,
@@ -162,21 +164,32 @@ function CreateEntityCard({
     ),
   });
 
+  const [key, setKey] = useState(0);
+
   return (
-    <Card
-      className="w-36 flex justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all"
-      onClick={async () => {
-        await createEntity({
-          name: String(localStorage.getItem("name")),
-          entityType: entityType,
-          parentId: parentId,
-        });
-      }}
-    >
-      <Button variant="ghost" size="icon" className="hover:bg-background">
-        <Plus />
-      </Button>
-    </Card>
+    <ContextMenu key={key}>
+      <ContextMenuTrigger>
+        <Card
+          className="w-36 flex justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all"
+          onClick={async () => {
+            await createEntity({
+              name: String(localStorage.getItem("name")),
+              entityType: entityType,
+              parentId: parentId,
+            });
+          }}
+        >
+          <Button variant="ghost" size="icon" className="hover:bg-background">
+            <Plus />
+          </Button>
+        </Card>
+      </ContextMenuTrigger>
+      {entityType == "line" && (
+        <ContextMenuContent className="min-w-0">
+          <ImportJSON onClick={() => setKey((k) => k + 1)} />
+        </ContextMenuContent>
+      )}
+    </ContextMenu>
   );
 }
 
@@ -257,12 +270,17 @@ function EntityCard({
           entityId={entityId}
           onClose={() => setKey((k) => k + 1)}
         />
-        <ContextMenuSeparator />
-        <ExportJSON
-          entityType={entityType}
-          entityId={entityId}
-          onClick={() => setKey((k) => k + 1)}
-        />
+
+        {entityType == "line" && (
+          <>
+            <ContextMenuSeparator />
+            <ExportJSON
+              entityType={entityType}
+              entityId={entityId}
+              onClick={() => setKey((k) => k + 1)}
+            />
+          </>
+        )}
       </ContextMenuContent>
     </ContextMenu>
   );
@@ -358,6 +376,27 @@ function ExportJSON({
       )}
     >
       <FileUp />
+    </Button>
+  );
+}
+
+function ImportJSON({ onClick }: { onClick?: () => void }) {
+  const queryClient = useQueryClient();
+
+  const { mutateAsync: importEntity } = useMutation({
+    mutationFn: async () =>
+      toast(t(await HandleImport(String(localStorage.getItem("name"))))),
+    onSuccess: () => queryClient.invalidateQueries(),
+  });
+  const { t } = useTranslation();
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => (importEntity(), onClick && onClick())}
+    >
+      <FileDown />
     </Button>
   );
 }

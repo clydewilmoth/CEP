@@ -1871,7 +1871,12 @@ export function OperationForm({ entityId }: { entityId: string }) {
           name="TemplateId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("Template")}</FormLabel>
+              <div className="flex gap-3">
+                <FormLabel>{t("Template")}</FormLabel>
+                {operation && operation.Template?.draft && (
+                  <SquarePen size={15} />
+                )}
+              </div>
               <Select
                 value={field.value ?? ""}
                 onValueChange={(value) => {
@@ -1920,7 +1925,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
             <FormItem>
               <div className="flex gap-3">
                 <FormLabel>{t("DecisionCriteria")}</FormLabel>
-                {operation && operation.Description?.draft && (
+                {operation && operation.DecisionCriteria?.draft && (
                   <SquarePen size={15} />
                 )}
               </div>
@@ -2046,7 +2051,12 @@ export function OperationForm({ entityId }: { entityId: string }) {
           name="DecisionClass"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("OperationClassDecision")}</FormLabel>
+              <div className="flex gap-3">
+                <FormLabel>{t("OperationClassDecision")}</FormLabel>
+                {operation && operation.OperationClassDecision?.draft && (
+                  <SquarePen size={15} />
+                )}
+              </div>
               <Select
                 value={field.value ?? ""}
                 onValueChange={(value) => {
@@ -2097,7 +2107,12 @@ export function OperationForm({ entityId }: { entityId: string }) {
           name="VerificationClass"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("OperationClassVerification")}</FormLabel>
+              <div className="flex gap-3">
+                <FormLabel>{t("OperationClassVerification")}</FormLabel>
+                {operation && operation.OperationClassVerification?.draft && (
+                  <SquarePen size={15} />
+                )}
+              </div>
               <Select
                 value={field.value ?? ""}
                 onValueChange={(value) => {
@@ -2148,7 +2163,12 @@ export function OperationForm({ entityId }: { entityId: string }) {
           name="GenerationClass"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("OperationClassGeneration")}</FormLabel>
+              <div className="flex gap-3">
+                <FormLabel>{t("OperationClassGeneration")}</FormLabel>
+                {operation && operation.OperationClassGeneration?.draft && (
+                  <SquarePen size={15} />
+                )}
+              </div>
               <Select
                 value={field.value ?? ""}
                 onValueChange={(value) => {
@@ -2199,7 +2219,12 @@ export function OperationForm({ entityId }: { entityId: string }) {
           name="SavingClass"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("OperationClassSaving")}</FormLabel>
+              <div className="flex gap-3">
+                <FormLabel>{t("OperationClassSaving")}</FormLabel>
+                {operation && operation.OperationClassSaving?.draft && (
+                  <SquarePen size={15} />
+                )}
+              </div>
               <Select
                 value={field.value ?? ""}
                 onValueChange={(value) => {
@@ -2241,7 +2266,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
             </FormItem>
           )}
         />
-
+        <div></div>
         <Button
           variant="outline"
           type="button"
@@ -2252,6 +2277,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
         <Button variant="outline" type="submit">
           {t("Submit")}
         </Button>
+
         <div className="col-span-2 flex justify-center items-center">
           <div className="max-w-80 text-center italic text-sm">
             {t("EntityMetaData", {
