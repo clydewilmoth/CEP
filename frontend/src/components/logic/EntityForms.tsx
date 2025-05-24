@@ -657,7 +657,7 @@ export function StationForm({ entityId }: { entityId: string }) {
                 )}
               </div>
               <Select
-                {...field}
+                value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
                   const json = JSON.parse(
@@ -669,7 +669,6 @@ export function StationForm({ entityId }: { entityId: string }) {
                     queryKey: ["station", entityId],
                   });
                 }}
-                defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -700,7 +699,7 @@ export function StationForm({ entityId }: { entityId: string }) {
                 )}
               </div>
               <Select
-                {...field}
+                value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
                   const json = JSON.parse(
@@ -712,7 +711,6 @@ export function StationForm({ entityId }: { entityId: string }) {
                     queryKey: ["station", entityId],
                   });
                 }}
-                defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -796,10 +794,6 @@ export function ToolForm({ entityId }: { entityId: string }) {
         StatusColor: json.StatusColor ?? tool.StatusColor ?? "empty",
         Description: json.Description ?? tool.Description ?? "",
         IpAddressDevice: json.IpAddressDevice ?? tool.IpAddressDevice ?? "",
-        ToolWithSPS:
-          (json.ToolWithSPS && json.ToolWithSPS == "true" ? true : false) ||
-          (tool.ToolWithSPS && tool.ToolWithSPS == "true" ? true : false) ||
-          false,
         SPSPLCNameSPAService:
           json.SPSPLCNameSPAService ?? tool.SPSPLCNameSPAService ?? "",
         SPSDBNoSend: json.SPSDBNoSend ?? tool.SPSDBNoSend ?? "",
@@ -812,9 +806,38 @@ export function ToolForm({ entityId }: { entityId: string }) {
         ToolClass: json.ToolClass ?? tool.ToolClass ?? "",
         ToolType: json.ToolType ?? tool.ToolType ?? "",
       });
+      setSpsChecked(
+        json.SPSPLCNameSPAService ||
+          tool.SPSPLCNameSPAService ||
+          json.SPSDBNoSend ||
+          tool.SPSDBNoSend ||
+          json.SPSDBNoReceive ||
+          tool.SPSDBNoReceive ||
+          json.SPSPreCheck ||
+          tool.SPSPreCheck ||
+          json.SPSAddressInReceiveDB ||
+          tool.SPSAddressInReceiveDB ||
+          json.SPSAddressInSendDB ||
+          tool.SPSAddressInSendDB
+      );
       setFormReady(true);
+      queryClient.invalidateQueries({
+        queryKey: ["tool", entityId],
+      });
     })();
   }, [observer]);
+
+  function resetSps() {
+    const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+    json.SPSPLCNameSPAService = "";
+    json.SPSDBNoSend = "";
+    json.SPSDBNoReceive = "";
+    json.SPSPreCheck = "";
+    json.SPSAddressInReceiveDB = "";
+    json.SPSAddressInSendDB = "";
+    localStorage.setItem(entityId, JSON.stringify(json));
+    setObserver((prev) => prev + 1);
+  }
 
   const formSchema = z.object({
     Name: z.string().optional(),
@@ -822,7 +845,6 @@ export function ToolForm({ entityId }: { entityId: string }) {
     StatusColor: z.string().optional(),
     Description: z.string().optional(),
     IpAddressDevice: z.string().optional(),
-    ToolWithSPS: z.boolean().optional(),
     SPSPLCNameSPAService: z.string().optional(),
     SPSDBNoSend: z.string().optional(),
     SPSDBNoReceive: z.string().optional(),
@@ -912,6 +934,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
   }
 
   const [commentOpen, setCommentOpen] = useState(false);
+  const [spsChecked, setSpsChecked] = useState(false);
 
   return (
     <Form {...form}>
@@ -1095,7 +1118,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                 {tool && tool.ToolClass?.draft && <SquarePen size={15} />}
               </div>
               <Select
-                {...field}
+                value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
                   setToolClassId(value);
@@ -1110,7 +1133,6 @@ export function ToolForm({ entityId }: { entityId: string }) {
                     queryKey: ["tool", entityId],
                   });
                 }}
-                defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -1146,7 +1168,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                 {tool && tool.ToolType?.draft && <SquarePen size={15} />}
               </div>
               <Select
-                {...field}
+                value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
                   const json = JSON.parse(
@@ -1158,7 +1180,6 @@ export function ToolForm({ entityId }: { entityId: string }) {
                     queryKey: ["tool", entityId],
                   });
                 }}
-                defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -1221,34 +1242,24 @@ export function ToolForm({ entityId }: { entityId: string }) {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="ToolWithSPS"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-              <FormControl>
-                <Checkbox
-                  checked={field.value as CheckedState}
-                  onCheckedChange={(checked) => {
-                    field.onChange(checked);
-                    const json = JSON.parse(
-                      localStorage.getItem(entityId) ?? "{}"
-                    );
-                    json.ToolWithSPS = String(checked);
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    queryClient.invalidateQueries({
-                      queryKey: ["tool", entityId],
-                    });
-                  }}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>{t("ToolWithSPS")}</FormLabel>
-              </div>
-            </FormItem>
+        <div
+          className="flex flex-row items-center gap-2 rounded-md pl-4 border hover:cursor-pointer"
+          onClick={async () => (
+            spsChecked && resetSps(), setSpsChecked((checked) => !checked)
           )}
-        />
-        {form.getValues().ToolWithSPS && (
+        >
+          <input
+            type="checkbox"
+            checked={spsChecked}
+            readOnly
+            id="Encrypted"
+            className="hover:cursor-pointer"
+          />
+          <FormLabel className="hover:cursor-pointer">
+            {t("DSN Encrypted")}
+          </FormLabel>
+        </div>
+        {spsChecked && (
           <>
             <FormField
               control={form.control}
@@ -1862,7 +1873,6 @@ export function OperationForm({ entityId }: { entityId: string }) {
             <FormItem>
               <FormLabel>{t("Template")}</FormLabel>
               <Select
-                {...field}
                 value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
@@ -2038,7 +2048,6 @@ export function OperationForm({ entityId }: { entityId: string }) {
             <FormItem>
               <FormLabel>{t("OperationClassDecision")}</FormLabel>
               <Select
-                {...field}
                 value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
@@ -2051,7 +2060,6 @@ export function OperationForm({ entityId }: { entityId: string }) {
                     queryKey: ["operation", entityId],
                   });
                 }}
-                defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -2091,6 +2099,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
             <FormItem>
               <FormLabel>{t("OperationClassVerification")}</FormLabel>
               <Select
+                value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
                   const json = JSON.parse(
@@ -2102,7 +2111,6 @@ export function OperationForm({ entityId }: { entityId: string }) {
                     queryKey: ["operation", entityId],
                   });
                 }}
-                defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -2142,6 +2150,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
             <FormItem>
               <FormLabel>{t("OperationClassGeneration")}</FormLabel>
               <Select
+                value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
                   const json = JSON.parse(
@@ -2153,7 +2162,6 @@ export function OperationForm({ entityId }: { entityId: string }) {
                     queryKey: ["operation", entityId],
                   });
                 }}
-                defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -2193,6 +2201,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
             <FormItem>
               <FormLabel>{t("OperationClassSaving")}</FormLabel>
               <Select
+                value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
                   const json = JSON.parse(
@@ -2204,7 +2213,6 @@ export function OperationForm({ entityId }: { entityId: string }) {
                     queryKey: ["operation", entityId],
                   });
                 }}
-                defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>

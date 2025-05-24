@@ -343,29 +343,23 @@ export function DSNDialog() {
                     </FormItem>
                   )}
                 />
-                <div className="flex flex-col justify-around ml-2">
+                <div className="flex flex-col items-start justify-center gap-2 rounded-md pl-4 border">
                   <FormField
                     control={form.control}
                     name="Encrypted"
                     render={({ field }) => (
-                      <FormItem className="flex flex-col space-y-1 justify-center">
-                        <div className="flex items-center space-x-2">
-                          <FormControl>
-                            <input
-                              type="checkbox"
-                              checked={field.value}
-                              onChange={field.onChange}
-                              id="Encrypted"
-                              className="accent-black w-4 h-4"
-                            />
-                          </FormControl>
-                          <FormLabel
-                            htmlFor="Encrypted"
-                            className="mb-0 cursor-pointer"
-                          >
-                            {t("DSN Encrypted")}
-                          </FormLabel>
-                        </div>
+                      <FormItem className="flex gap-2 justify-center space-y-0">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="hover:cursor-pointer"
+                          />
+                        </FormControl>
+                        <FormLabel className="hover:cursor-pointer">
+                          {t("DSN Encrypted")}
+                        </FormLabel>
                       </FormItem>
                     )}
                   />
@@ -373,24 +367,18 @@ export function DSNDialog() {
                     control={form.control}
                     name="TrustServerCertificate"
                     render={({ field }) => (
-                      <FormItem className="flex flex-col space-y-1 justify-center">
-                        <div className="flex items-center space-x-2">
-                          <FormControl>
-                            <input
-                              type="checkbox"
-                              checked={field.value}
-                              onChange={field.onChange}
-                              id="TrustServerCertificate"
-                              className="accent-black w-4 h-4"
-                            />
-                          </FormControl>
-                          <FormLabel
-                            htmlFor="TrustServerCertificate"
-                            className="mb-0 cursor-pointer"
-                          >
-                            {t("DSN TrustServer")}
-                          </FormLabel>
-                        </div>
+                      <FormItem className="flex gap-2 justify-center space-y-0">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="hover:cursor-pointer"
+                          />
+                        </FormControl>
+                        <FormLabel className="hover:cursor-pointer">
+                          {t("DSN TrustServer")}
+                        </FormLabel>
                       </FormItem>
                     )}
                   />
