@@ -660,7 +660,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Stationstyp wählen" />
+                    <SelectValue placeholder={t("StationTypePlaceholder")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -695,7 +695,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="seriell oder parallel" />
+                    <SelectValue placeholder={t("SOPPlaceholder")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -1077,7 +1077,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Toolklasse wählen" />
+                    <SelectValue placeholder={t("ToolClassPlaceholder")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -1112,7 +1112,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Tooltyp wählen" />
+                    <SelectValue placeholder={t("ToolTypePlaceholder")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -1419,53 +1419,71 @@ const template = data.Template.filter((template: { templateId: string | number }
   const [templateId, setTemplateId] = useState<any>([]);
 
   function getDecisionClass(TemplateId: string) {
-    const filteredDecisionClasses = TemplateId ? (decisionClasses.filter(
+    const filteredDecisionClasses = (decisionClasses.filter(
       (decisionClass: { templateId: string; }) => decisionClass.templateId === TemplateId || decisionClass.templateId === "0"
-    )) : decisionClasses;
+    ));
     setDecisionClassId(filteredDecisionClasses);
   }
   function getGenerationClass(TemplateId: string) {
-    const filteredGenerationClasses = TemplateId ? (generationnClasses.filter(
+    const filteredGenerationClasses = (generationnClasses.filter(
       (generationClass: { templateId: string; }) => generationClass.templateId === TemplateId 
-    )) : generationnClasses;
+    ));
     setGenerationClassId(filteredGenerationClasses);
   }
   function getVerificationClass(TemplateId: string) {
-    const filteredVerificationClasses = TemplateId ? (verificationClasses.filter(
+    const filteredVerificationClasses = (verificationClasses.filter(
       (verificationClass: { templateId: string; }) => verificationClass.templateId === TemplateId 
-    )) : verificationClasses;
+    ));
     setVerificationClassId(filteredVerificationClasses);
   }
   function getSavingClass(TemplateId: string) {
-    const filteredSavingClasses = TemplateId ? (savingClasses.filter(
+    const filteredSavingClasses = (savingClasses.filter(
       (savingClass: { templateId: string; }) => savingClass.templateId === TemplateId 
-    )) : savingClasses;
+    ));
     setSavingClassId(filteredSavingClasses);
   }
 
   useEffect(() => {
-    (async () => {
-      const operation = await GetEntityDetails("operation", entityId);
-      setMeta({ UpdatedAt: operation.UpdatedAt, UpdatedBy: operation.UpdatedBy });
-      const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
-      form.reset({
-        Name: json.Name ?? operation.Name ?? "",
-        Comment: json.Comment ?? operation.Comment ?? "",
-        StatusColor: json.StatusColor ?? operation.StatusColor ?? "empty",
-        Description: json.Description ?? operation.Description ?? "",
-        DecisionCriteria: json.DecisionCriteria ?? operation.DecisionCriteria ?? "",
-        SequenceGroup: json.SequenceGroup ?? operation.SequenceGroup ?? "",
-        Sequence: json.Sequence ?? operation.Sequence ?? "",
-        AlwaysPerform: json.AlwaysPerform ?? operation.AlwaysPerform ?? "",
-        TemplateId: json.TemplateId ?? operation.TemplateId ?? "",
-        DecisionClass: json.DecisionClass ?? operation.DecisionClass ?? "",
-        VerificationClass: json.VerificationClass ?? operation.VerificationClass ?? "",
-        GenerationClass: json.GenerationClass ?? operation.GenerationClass ?? "",
-        SavingClass: json.SavingClass ?? operation.SavingClass ?? "",
-      });
-      setFormReady(true);
-    })();
-  }, [observer]);
+  (async () => {
+    const operation = await GetEntityDetails("operation", entityId);
+    setMeta({ UpdatedAt: operation.UpdatedAt, UpdatedBy: operation.UpdatedBy });
+    const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+
+    const initialTemplateId = json.TemplateId ?? operation.TemplateId ?? "";
+    form.reset({
+      Name: json.Name ?? operation.Name ?? "",
+      Comment: json.Comment ?? operation.Comment ?? "",
+      StatusColor: json.StatusColor ?? operation.StatusColor ?? "empty",
+      Description: json.Description ?? operation.Description ?? "",
+      DecisionCriteria: json.DecisionCriteria ?? operation.DecisionCriteria ?? "",
+      SequenceGroup: json.SequenceGroup ?? operation.SequenceGroup ?? "",
+      Sequence: json.Sequence ?? operation.Sequence ?? "",
+      AlwaysPerform: json.AlwaysPerform ?? operation.AlwaysPerform ?? "",
+      TemplateId: initialTemplateId, 
+      DecisionClass: json.DecisionClass ?? operation.DecisionClass ?? "",
+      VerificationClass: json.VerificationClass ?? operation.VerificationClass ?? "",
+      GenerationClass: json.GenerationClass ?? operation.GenerationClass ?? "",
+      SavingClass: json.SavingClass ?? operation.SavingClass ?? "",
+    });
+
+    setTemplateId(initialTemplateId);
+
+    if (initialTemplateId) {
+      getDecisionClass(initialTemplateId);
+      getGenerationClass(initialTemplateId);
+      getVerificationClass(initialTemplateId);
+      getSavingClass(initialTemplateId);
+    } else {
+      setDecisionClassId([]);
+      setGenerationClassId([]);
+      setVerificationClassId([]);
+      setSavingClassId([]);
+    }
+
+    setFormReady(true);
+  })();
+
+}, [observer, entityId]);
 
   const formSchema = z.object({
     Name: z.string().optional(),
@@ -1741,6 +1759,8 @@ const template = data.Template.filter((template: { templateId: string | number }
             <FormItem>
               <FormLabel>{t("Template")}</FormLabel>
               <Select 
+              {...field}
+                  value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
                   setTemplateId(value);
@@ -1758,7 +1778,7 @@ const template = data.Template.filter((template: { templateId: string | number }
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Wählen Sie ein Template" />
+                    <SelectValue placeholder={t("TemplatePlaceholder")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -1900,6 +1920,8 @@ const template = data.Template.filter((template: { templateId: string | number }
             <FormItem>
               <FormLabel>{t("OperationClassDecision")}</FormLabel>
               <Select
+              {...field}
+                  value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
                   const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
@@ -1913,7 +1935,7 @@ const template = data.Template.filter((template: { templateId: string | number }
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Wählen Sie eine Decision Class" />
+                    <SelectValue placeholder={t("DecisionPlaceholder")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -1950,7 +1972,7 @@ const template = data.Template.filter((template: { templateId: string | number }
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Wählen Sie eine Verification Class" />
+                    <SelectValue placeholder={t("VerificationPlaceholder")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -1985,7 +2007,7 @@ const template = data.Template.filter((template: { templateId: string | number }
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Wählen Sie eine Generation Class" />
+                    <SelectValue placeholder={t("GenerationPlaceholder")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -2020,7 +2042,7 @@ const template = data.Template.filter((template: { templateId: string | number }
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Wählen Sie eine Saving Class" />
+                    <SelectValue placeholder={t("SavingPlaceholder")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

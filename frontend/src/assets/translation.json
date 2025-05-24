@@ -2,6 +2,15 @@
     "en": {
         
             "translation": {
+            "StationTypePlaceholder": "Select a Station Type",
+            "TemplatePlaceholder": "Select a Template",
+            "SOPPlaceholder": "Select between Seriell or Parallel",
+            "ToolClassPlaceholder": "Select a Tool Class",
+            "ToolTypePlaceholder": "Select a Tool Type",    
+            "DecisionPlaceholder": "Select a Decision Class",
+            "GenerationPlaceholder": "Select a Generation Class",
+            "VerificationPlaceholder": "Select a Verification Class",
+            "SavingPlaceholder": "Select a Saving Class",
             "Mythical": "Unicorn",
             "line" : "Line",
             "station" : "Station",
@@ -854,6 +863,15 @@
 
     "de": {
         "translation": {
+            "StationTypePlaceholder": "Wählen Sie eine Station Typ",
+            "TemplatePlaceholder": "Wählen Sie eine Vorlage",
+            "SOPPlaceholder": "Wählen Sie zwischen Seriell oder Parallel",
+            "ToolClassPlaceholder": "Wählen Sie eine Werkzeug Klasse",
+            "ToolTypePlaceholder": "Wählen Sie einen Werkzeug Typ",
+            "DecisionPlaceholder": "Wählen Sie eine Entscheidungs Klasse",
+            "GenerationPlaceholder": "Wählen Sie eine Erstellungs Klasse",
+            "VerificationPlaceholder": "Wählen Sie eine Verifikations Klasse",
+            "SavingPlaceholder": "Wählen Sie eine Speicher Klasse",
             "Mythical": "Einhorn",
             "line" : "Linie",
             "station" : "Station",
