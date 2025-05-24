@@ -389,7 +389,7 @@ function FormDialog({
         </DialogTrigger>
       )}
 
-      <DialogContent className="w-7xl p-0" aria-describedby={undefined}>
+      <DialogContent className="w-1/2 p-0" aria-describedby={undefined}>
         <VisuallyHidden>
           <DialogTitle>{t("EntityForm Title")}</DialogTitle>
         </VisuallyHidden>

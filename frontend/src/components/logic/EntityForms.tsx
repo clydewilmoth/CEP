@@ -35,12 +35,12 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
 // @ts-ignore
-import fertigeJSON from "../../assets/fertigeJSON.json"
+import fertigeJSON from "../../assets/fertigeJSON.json";
 
-import data from "@/assets/fertigeJSON.json"
+import data from "@/assets/fertigeJSON.json";
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -354,7 +354,7 @@ export function LineForm({ entityId }: { entityId: string }) {
 }
 
 export function StationForm({ entityId }: { entityId: string }) {
-const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
+  const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     {}
   );
   const [observer, setObserver] = useState(0);
@@ -371,7 +371,8 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         StatusColor: json.StatusColor ?? station.StatusColor ?? "empty",
         Description: json.Description ?? station.Description ?? "",
         StationType: json.StationType ?? station.StationType ?? "",
-        SerialOrParallel: json.SerialOrParallel ?? station.SerialOrParallel ?? "",
+        SerialOrParallel:
+          json.SerialOrParallel ?? station.SerialOrParallel ?? "",
       });
       setFormReady(true);
     })();
@@ -386,8 +387,8 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     SerialOrParallel: z.string().optional(),
   });
 
-  const stationtypes = data.StationTypes
-  const serialorparallel = data.SerialOrParallel
+  const stationtypes = data.StationTypes;
+  const serialorparallel = data.SerialOrParallel;
 
   function clearDrafts() {
     localStorage.removeItem(entityId);
@@ -457,7 +458,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     await UpdateEntityFieldsString(
       String(localStorage.getItem("name")),
       "station",
-      entityId, 
+      entityId,
       lastKnownUpdate,
       changesRecord
     );
@@ -618,7 +619,9 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
             <FormItem>
               <div className="flex gap-3">
                 <FormLabel>{t("Station Description")}</FormLabel>
-                {station && station.Description?.draft && <SquarePen size={15} />}
+                {station && station.Description?.draft && (
+                  <SquarePen size={15} />
+                )}
               </div>
               <FormControl>
                 <Input
@@ -645,11 +648,19 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
           name="StationType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("Station Type")}</FormLabel>
+              <div className="flex gap-3">
+                <FormLabel>{t("Station Type")}</FormLabel>
+                {station && station.StationType?.draft && (
+                  <SquarePen size={15} />
+                )}
+              </div>
               <Select
+                {...field}
                 onValueChange={(value) => {
                   field.onChange(value);
-                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
                   json.StationType = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
@@ -660,7 +671,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder={t("StationTypePlaceholder")} />
+                    <SelectValue placeholder={t("StationType Placeholder")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -680,11 +691,19 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
           name="SerialOrParallel"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("Serial / Parallel")}</FormLabel>
+              <div className="flex gap-3">
+                <FormLabel>{t("Serial / Parallel")}</FormLabel>
+                {station && station.SerialOrParallel?.draft && (
+                  <SquarePen size={15} />
+                )}
+              </div>
               <Select
+                {...field}
                 onValueChange={(value) => {
                   field.onChange(value);
-                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
                   json.SerialOrParallel = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
@@ -695,12 +714,15 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder={t("SOPPlaceholder")} />
+                    <SelectValue placeholder={t("SOP Placeholder")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   {serialorparallel.map((serialorparallel) => (
-                    <SelectItem key={serialorparallel.id} value={serialorparallel.id}>
+                    <SelectItem
+                      key={serialorparallel.id}
+                      value={serialorparallel.id}
+                    >
                       {t("SOP_" + String(serialorparallel.id) + "_name")}
                     </SelectItem>
                   ))}
@@ -709,7 +731,6 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
             </FormItem>
           )}
         />
-
 
         <Button
           variant="outline"
@@ -743,21 +764,24 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
 }
 
 export function ToolForm({ entityId }: { entityId: string }) {
-const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
+  const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     {}
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
   const [toolClass, setToolClassId] = useState<any>([]);
-  const [ToolTypes, setToolTypes] = useState<any>([]);  
+  const [ToolTypes, setToolTypes] = useState<any>([]);
   const toolClasses = data.ToolClasses;
   function getToolTypes(ToolClassId: string) {
-      const ToolTypes = data.ToolTypes;
-      
-      const filteredToolTypes = ToolClassId ? (ToolTypes.filter(
-        (toolType: { toolClassificationId: string; }) => toolType.toolClassificationId === ToolClassId
-      )) : ToolTypes;
-      setToolTypes(filteredToolTypes);
+    const ToolTypes = data.ToolTypes;
+
+    const filteredToolTypes = ToolClassId
+      ? ToolTypes.filter(
+          (toolType: { toolClassificationId: string }) =>
+            toolType.toolClassificationId === ToolClassId
+        )
+      : ToolTypes;
+    setToolTypes(filteredToolTypes);
   }
   useEffect(() => {
     (async () => {
@@ -770,12 +794,15 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         StatusColor: json.StatusColor ?? tool.StatusColor ?? "empty",
         Description: json.Description ?? tool.Description ?? "",
         IpAddressDevice: json.IpAddressDevice ?? tool.IpAddressDevice ?? "",
-        SPSPLCNameSPAService: json.SPSPLCNameSPAService ?? tool.SPSPLCNameSPAService ?? "",
+        SPSPLCNameSPAService:
+          json.SPSPLCNameSPAService ?? tool.SPSPLCNameSPAService ?? "",
         SPSDBNoSend: json.SPSDBNoSend ?? tool.SPSDBNoSend ?? "",
         SPSDBNoReceive: json.SPSDBNoReceive ?? tool.SPSDBNoReceive ?? "",
         SPSPreCheck: json.SPSPreCheck ?? tool.SPSPreCheck ?? "",
-        SPSAddressInReceiveDB: json.SPSAddressInReceiveDB ?? tool.SPSAddressInReceiveDB ?? "",
-        SPSAddressInSendDB: json.SPSAddressInSendDB ?? tool.SPSAddressInSendDB ?? "",
+        SPSAddressInReceiveDB:
+          json.SPSAddressInReceiveDB ?? tool.SPSAddressInReceiveDB ?? "",
+        SPSAddressInSendDB:
+          json.SPSAddressInSendDB ?? tool.SPSAddressInSendDB ?? "",
         ToolClass: json.ToolClass ?? tool.ToolClass ?? "",
         ToolType: json.ToolType ?? tool.ToolType ?? "",
       });
@@ -868,7 +895,7 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     await UpdateEntityFieldsString(
       String(localStorage.getItem("name")),
       "tool",
-      entityId, 
+      entityId,
       lastKnownUpdate,
       changesRecord
     );
@@ -1066,7 +1093,9 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   setToolClassId(value);
                   getToolTypes(value);
                   localStorage.setItem("ToolClassId", value);
-                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
                   json.ToolClass = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
@@ -1081,11 +1110,18 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                {toolClasses.map((toolClass :{toolClassesId:string; })=>(
-                  <SelectItem key={toolClass.toolClassesId} value={String(toolClass.toolClassesId)}>
-                    {t("TC_" + String(toolClass.toolClassesId) + "_ToolClassName")}
-                  </SelectItem> 
-                 ))}
+                  {toolClasses.map((toolClass: { toolClassesId: string }) => (
+                    <SelectItem
+                      key={toolClass.toolClassesId}
+                      value={String(toolClass.toolClassesId)}
+                    >
+                      {t(
+                        "TC_" +
+                          String(toolClass.toolClassesId) +
+                          "_ToolClassName"
+                      )}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1101,7 +1137,9 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
-                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
                   json.ToolType = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
@@ -1116,11 +1154,25 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {ToolTypes.map((toolType: { toolTypeId: string; toolClassificationId :string }) => (
-                    <SelectItem key={toolType.toolTypeId} value={String(toolType.toolTypeId)}>
-                      {t("TT_" + String(toolType.toolTypeId) + "_" + String(toolType.toolClassificationId) + "_Description")}
-                    </SelectItem>
-                  ))}
+                  {ToolTypes.map(
+                    (toolType: {
+                      toolTypeId: string;
+                      toolClassificationId: string;
+                    }) => (
+                      <SelectItem
+                        key={toolType.toolTypeId}
+                        value={String(toolType.toolTypeId)}
+                      >
+                        {t(
+                          "TT_" +
+                            String(toolType.toolTypeId) +
+                            "_" +
+                            String(toolType.toolClassificationId) +
+                            "_Description"
+                        )}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1158,30 +1210,30 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
         />
 
         <FormField
-            control={form.control}
-              name="ToolWithSPS"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col space-y-1 justify-center">
-                    <div className="flex items-center space-x-2">
-                      <FormControl>
-                        <input
-                          type="checkbox"
-                          checked={field.value ?? false}
-                          onChange={field.onChange}
-                          id="ToolWithSPS"
-                          className="accent-black w-4 h-4"
-                      />
-                      </FormControl>
-                      <FormLabel
-                        htmlFor="ToolWithSPS"
-                        className="mb-0 cursor-pointer"
-                      >
-                      {t("ToolWithSPS")}
-                      </FormLabel>
-                    </div>
-                  </FormItem>
-                  )}
-          />
+          control={form.control}
+          name="ToolWithSPS"
+          render={({ field }) => (
+            <FormItem className="flex flex-col space-y-1 justify-center">
+              <div className="flex items-center space-x-2">
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    checked={field.value ?? false}
+                    onChange={field.onChange}
+                    id="ToolWithSPS"
+                    className="accent-black w-4 h-4"
+                  />
+                </FormControl>
+                <FormLabel
+                  htmlFor="ToolWithSPS"
+                  className="mb-0 cursor-pointer"
+                >
+                  {t("ToolWithSPS")}
+                </FormLabel>
+              </div>
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -1190,7 +1242,9 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
             <FormItem>
               <div className="flex gap-3">
                 <FormLabel>{t("SPSPLCNameSPAService")}</FormLabel>
-                {tool && tool.SPSPLCNameSPAService?.draft && <SquarePen size={15} />}
+                {tool && tool.SPSPLCNameSPAService?.draft && (
+                  <SquarePen size={15} />
+                )}
               </div>
               <FormControl>
                 <Input
@@ -1310,7 +1364,9 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
             <FormItem>
               <div className="flex gap-3">
                 <FormLabel>{t("SPSAddressInSendDB")}</FormLabel>
-                {tool && tool.SPSAddressInSendDB?.draft && <SquarePen size={15} />}
+                {tool && tool.SPSAddressInSendDB?.draft && (
+                  <SquarePen size={15} />
+                )}
               </div>
               <FormControl>
                 <Input
@@ -1340,7 +1396,9 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
             <FormItem>
               <div className="flex gap-3">
                 <FormLabel>{t("SPSAddressInReceiveDB")}</FormLabel>
-                {tool && tool.SPSAddressInReceiveDB?.draft && <SquarePen size={15} />}
+                {tool && tool.SPSAddressInReceiveDB?.draft && (
+                  <SquarePen size={15} />
+                )}
               </div>
               <FormControl>
                 <Input
@@ -1396,17 +1454,30 @@ const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
 
 export function OperationForm({ entityId }: { entityId: string }) {
   const operationClasses = data.OperationClasses;
-  const decisionClasses = operationClasses.filter(operationClass => operationClass.classType === "DECISION");
-  const generationnClasses = operationClasses.filter(operationClass => operationClass.classType === "GENERATION");
-  const verificationClasses = operationClasses.filter(operationClass => operationClass.classType === "VERIFICATION");
-  const savingClasses = operationClasses.filter(operationClass => operationClass.classType === "SAVING");
+  const decisionClasses = operationClasses.filter(
+    (operationClass) => operationClass.classType === "DECISION"
+  );
+  const generationnClasses = operationClasses.filter(
+    (operationClass) => operationClass.classType === "GENERATION"
+  );
+  const verificationClasses = operationClasses.filter(
+    (operationClass) => operationClass.classType === "VERIFICATION"
+  );
+  const savingClasses = operationClasses.filter(
+    (operationClass) => operationClass.classType === "SAVING"
+  );
   let ToolClassId = localStorage.getItem("ToolClassId") ?? "";
   const toolClasses = data.ToolClasses;
-  const toolClass = toolClasses.find((toolClass: { toolClassesId: string }) => toolClass.toolClassesId === ToolClassId);
- const templtId = toolClass?.templateIds;
-const template = data.Template.filter((template: { templateId: string | number }) =>
-  Array.isArray(templtId) && templtId.map(String).includes(String(template.templateId))
-);
+  const toolClass = toolClasses.find(
+    (toolClass: { toolClassesId: string }) =>
+      toolClass.toolClassesId === ToolClassId
+  );
+  const templtId = toolClass?.templateIds;
+  const template = data.Template.filter(
+    (template: { templateId: string | number }) =>
+      Array.isArray(templtId) &&
+      templtId.map(String).includes(String(template.templateId))
+  );
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     {}
   );
@@ -1419,71 +1490,81 @@ const template = data.Template.filter((template: { templateId: string | number }
   const [templateId, setTemplateId] = useState<any>([]);
 
   function getDecisionClass(TemplateId: string) {
-    const filteredDecisionClasses = (decisionClasses.filter(
-      (decisionClass: { templateId: string; }) => decisionClass.templateId === TemplateId || decisionClass.templateId === "0"
-    ));
+    const filteredDecisionClasses = decisionClasses.filter(
+      (decisionClass: { templateId: string }) =>
+        decisionClass.templateId === TemplateId ||
+        decisionClass.templateId === "0"
+    );
     setDecisionClassId(filteredDecisionClasses);
   }
   function getGenerationClass(TemplateId: string) {
-    const filteredGenerationClasses = (generationnClasses.filter(
-      (generationClass: { templateId: string; }) => generationClass.templateId === TemplateId 
-    ));
+    const filteredGenerationClasses = generationnClasses.filter(
+      (generationClass: { templateId: string }) =>
+        generationClass.templateId === TemplateId
+    );
     setGenerationClassId(filteredGenerationClasses);
   }
   function getVerificationClass(TemplateId: string) {
-    const filteredVerificationClasses = (verificationClasses.filter(
-      (verificationClass: { templateId: string; }) => verificationClass.templateId === TemplateId 
-    ));
+    const filteredVerificationClasses = verificationClasses.filter(
+      (verificationClass: { templateId: string }) =>
+        verificationClass.templateId === TemplateId
+    );
     setVerificationClassId(filteredVerificationClasses);
   }
   function getSavingClass(TemplateId: string) {
-    const filteredSavingClasses = (savingClasses.filter(
-      (savingClass: { templateId: string; }) => savingClass.templateId === TemplateId 
-    ));
+    const filteredSavingClasses = savingClasses.filter(
+      (savingClass: { templateId: string }) =>
+        savingClass.templateId === TemplateId
+    );
     setSavingClassId(filteredSavingClasses);
   }
 
   useEffect(() => {
-  (async () => {
-    const operation = await GetEntityDetails("operation", entityId);
-    setMeta({ UpdatedAt: operation.UpdatedAt, UpdatedBy: operation.UpdatedBy });
-    const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+    (async () => {
+      const operation = await GetEntityDetails("operation", entityId);
+      setMeta({
+        UpdatedAt: operation.UpdatedAt,
+        UpdatedBy: operation.UpdatedBy,
+      });
+      const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
 
-    const initialTemplateId = json.TemplateId ?? operation.TemplateId ?? "";
-    form.reset({
-      Name: json.Name ?? operation.Name ?? "",
-      Comment: json.Comment ?? operation.Comment ?? "",
-      StatusColor: json.StatusColor ?? operation.StatusColor ?? "empty",
-      Description: json.Description ?? operation.Description ?? "",
-      DecisionCriteria: json.DecisionCriteria ?? operation.DecisionCriteria ?? "",
-      SequenceGroup: json.SequenceGroup ?? operation.SequenceGroup ?? "",
-      Sequence: json.Sequence ?? operation.Sequence ?? "",
-      AlwaysPerform: json.AlwaysPerform ?? operation.AlwaysPerform ?? "",
-      TemplateId: initialTemplateId, 
-      DecisionClass: json.DecisionClass ?? operation.DecisionClass ?? "",
-      VerificationClass: json.VerificationClass ?? operation.VerificationClass ?? "",
-      GenerationClass: json.GenerationClass ?? operation.GenerationClass ?? "",
-      SavingClass: json.SavingClass ?? operation.SavingClass ?? "",
-    });
+      const initialTemplateId = json.TemplateId ?? operation.TemplateId ?? "";
+      form.reset({
+        Name: json.Name ?? operation.Name ?? "",
+        Comment: json.Comment ?? operation.Comment ?? "",
+        StatusColor: json.StatusColor ?? operation.StatusColor ?? "empty",
+        Description: json.Description ?? operation.Description ?? "",
+        DecisionCriteria:
+          json.DecisionCriteria ?? operation.DecisionCriteria ?? "",
+        SequenceGroup: json.SequenceGroup ?? operation.SequenceGroup ?? "",
+        Sequence: json.Sequence ?? operation.Sequence ?? "",
+        AlwaysPerform: json.AlwaysPerform ?? operation.AlwaysPerform ?? "",
+        TemplateId: initialTemplateId,
+        DecisionClass: json.DecisionClass ?? operation.DecisionClass ?? "",
+        VerificationClass:
+          json.VerificationClass ?? operation.VerificationClass ?? "",
+        GenerationClass:
+          json.GenerationClass ?? operation.GenerationClass ?? "",
+        SavingClass: json.SavingClass ?? operation.SavingClass ?? "",
+      });
 
-    setTemplateId(initialTemplateId);
+      setTemplateId(initialTemplateId);
 
-    if (initialTemplateId) {
-      getDecisionClass(initialTemplateId);
-      getGenerationClass(initialTemplateId);
-      getVerificationClass(initialTemplateId);
-      getSavingClass(initialTemplateId);
-    } else {
-      setDecisionClassId([]);
-      setGenerationClassId([]);
-      setVerificationClassId([]);
-      setSavingClassId([]);
-    }
+      if (initialTemplateId) {
+        getDecisionClass(initialTemplateId);
+        getGenerationClass(initialTemplateId);
+        getVerificationClass(initialTemplateId);
+        getSavingClass(initialTemplateId);
+      } else {
+        setDecisionClassId([]);
+        setGenerationClassId([]);
+        setVerificationClassId([]);
+        setSavingClassId([]);
+      }
 
-    setFormReady(true);
-  })();
-
-}, [observer, entityId]);
+      setFormReady(true);
+    })();
+  }, [observer, entityId]);
 
   const formSchema = z.object({
     Name: z.string().optional(),
@@ -1568,7 +1649,7 @@ const template = data.Template.filter((template: { templateId: string | number }
     await UpdateEntityFieldsString(
       String(localStorage.getItem("name")),
       "operation",
-      entityId, 
+      entityId,
       lastKnownUpdate,
       changesRecord
     );
@@ -1597,7 +1678,9 @@ const template = data.Template.filter((template: { templateId: string | number }
           </TooltipProvider>
 
           <div className="flex gap-3 items-center my-auto ml-auto">
-            {operation && operation.StatusColor?.draft && <SquarePen size={15} />}
+            {operation && operation.StatusColor?.draft && (
+              <SquarePen size={15} />
+            )}
             <FormField
               control={form.control}
               name="StatusColor"
@@ -1729,7 +1812,9 @@ const template = data.Template.filter((template: { templateId: string | number }
             <FormItem>
               <div className="flex gap-3">
                 <FormLabel>{t("Operation Description")}</FormLabel>
-                {operation && operation.Description?.draft && <SquarePen size={15} />}
+                {operation && operation.Description?.draft && (
+                  <SquarePen size={15} />
+                )}
               </div>
               <FormControl>
                 <Input
@@ -1758,9 +1843,9 @@ const template = data.Template.filter((template: { templateId: string | number }
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("Template")}</FormLabel>
-              <Select 
-              {...field}
-                  value={field.value ?? ""}
+              <Select
+                {...field}
+                value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
                   setTemplateId(value);
@@ -1768,7 +1853,9 @@ const template = data.Template.filter((template: { templateId: string | number }
                   getGenerationClass(templateId);
                   getVerificationClass(templateId);
                   getSavingClass(templateId);
-                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
                   json.TemplateId = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
@@ -1782,11 +1869,16 @@ const template = data.Template.filter((template: { templateId: string | number }
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {template.map((template: { templateId: string; Description: string }) => (
-                    <SelectItem key={template.templateId} value={String(template.templateId)}>
-                      {t("T_" + String(template.templateId) + "_Description")}
-                    </SelectItem>
-                  ))}
+                  {template.map(
+                    (template: { templateId: string; Description: string }) => (
+                      <SelectItem
+                        key={template.templateId}
+                        value={String(template.templateId)}
+                      >
+                        {t("T_" + String(template.templateId) + "_Description")}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1800,7 +1892,9 @@ const template = data.Template.filter((template: { templateId: string | number }
             <FormItem>
               <div className="flex gap-3">
                 <FormLabel>{t("DecisionCriteria")}</FormLabel>
-                {operation && operation.Description?.draft && <SquarePen size={15} />}
+                {operation && operation.Description?.draft && (
+                  <SquarePen size={15} />
+                )}
               </div>
               <FormControl>
                 <Input
@@ -1830,7 +1924,9 @@ const template = data.Template.filter((template: { templateId: string | number }
             <FormItem>
               <div className="flex gap-3">
                 <FormLabel>{t("SequenceGroup")}</FormLabel>
-                {operation && operation.SequenceGroup?.draft && <SquarePen size={15} />}
+                {operation && operation.SequenceGroup?.draft && (
+                  <SquarePen size={15} />
+                )}
               </div>
               <FormControl>
                 <Input
@@ -1860,7 +1956,9 @@ const template = data.Template.filter((template: { templateId: string | number }
             <FormItem>
               <div className="flex gap-3">
                 <FormLabel>{t("Sequence")}</FormLabel>
-                {operation && operation.Sequence?.draft && <SquarePen size={15} />}
+                {operation && operation.Sequence?.draft && (
+                  <SquarePen size={15} />
+                )}
               </div>
               <FormControl>
                 <Input
@@ -1890,7 +1988,9 @@ const template = data.Template.filter((template: { templateId: string | number }
             <FormItem>
               <div className="flex gap-3">
                 <FormLabel>{t("AlwaysPerform")}</FormLabel>
-                {operation && operation.AlwaysPerform?.draft && <SquarePen size={15} />}
+                {operation && operation.AlwaysPerform?.draft && (
+                  <SquarePen size={15} />
+                )}
               </div>
               <FormControl>
                 <Input
@@ -1920,11 +2020,13 @@ const template = data.Template.filter((template: { templateId: string | number }
             <FormItem>
               <FormLabel>{t("OperationClassDecision")}</FormLabel>
               <Select
-              {...field}
-                  value={field.value ?? ""}
+                {...field}
+                value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
-                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
                   json.DecisionClass = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
@@ -1939,13 +2041,25 @@ const template = data.Template.filter((template: { templateId: string | number }
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                 {
-                  decisionClass.map((decisionClass: { classId: string; templateId: string }) => (
-                    <SelectItem key={decisionClass.classId} value={String(decisionClass.classId)}>
-                      {t("OC_DECISION_" + String(decisionClass.classId) + "_" + String(decisionClass.templateId) + "_ClassDescription")}
-                    </SelectItem>
-                  ))
-                 }
+                  {decisionClass.map(
+                    (decisionClass: {
+                      classId: string;
+                      templateId: string;
+                    }) => (
+                      <SelectItem
+                        key={decisionClass.classId}
+                        value={String(decisionClass.classId)}
+                      >
+                        {t(
+                          "OC_DECISION_" +
+                            String(decisionClass.classId) +
+                            "_" +
+                            String(decisionClass.templateId) +
+                            "_ClassDescription"
+                        )}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1958,10 +2072,12 @@ const template = data.Template.filter((template: { templateId: string | number }
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("OperationClassVerification")}</FormLabel>
-              <Select 
+              <Select
                 onValueChange={(value) => {
                   field.onChange(value);
-                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
                   json.VerificationClass = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
@@ -1976,11 +2092,25 @@ const template = data.Template.filter((template: { templateId: string | number }
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                 {verificationClass.map((verificationClass: { classId: string; templateId: string }) => (
-                    <SelectItem key={verificationClass.classId} value={String(verificationClass.classId)}>
-                      {t("OC_VERIFICATION_" + String(verificationClass.classId) + "_" + String(verificationClass.templateId) + "_ClassDescription")}
-                    </SelectItem>
-                  ))}
+                  {verificationClass.map(
+                    (verificationClass: {
+                      classId: string;
+                      templateId: string;
+                    }) => (
+                      <SelectItem
+                        key={verificationClass.classId}
+                        value={String(verificationClass.classId)}
+                      >
+                        {t(
+                          "OC_VERIFICATION_" +
+                            String(verificationClass.classId) +
+                            "_" +
+                            String(verificationClass.templateId) +
+                            "_ClassDescription"
+                        )}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1996,7 +2126,9 @@ const template = data.Template.filter((template: { templateId: string | number }
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
-                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
                   json.GenerationClass = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
@@ -2011,11 +2143,25 @@ const template = data.Template.filter((template: { templateId: string | number }
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                {generationClass.map((generationClass: { classId: string; templateId: string }) => (
-                    <SelectItem key={generationClass.classId} value={String(generationClass.classId)}>
-                      {t("OC_GENERATION_" + String(generationClass.classId) + "_" + String(generationClass.templateId) + "_ClassDescription")}
-                    </SelectItem>
-                  ))}
+                  {generationClass.map(
+                    (generationClass: {
+                      classId: string;
+                      templateId: string;
+                    }) => (
+                      <SelectItem
+                        key={generationClass.classId}
+                        value={String(generationClass.classId)}
+                      >
+                        {t(
+                          "OC_GENERATION_" +
+                            String(generationClass.classId) +
+                            "_" +
+                            String(generationClass.templateId) +
+                            "_ClassDescription"
+                        )}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -2031,7 +2177,9 @@ const template = data.Template.filter((template: { templateId: string | number }
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
-                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
                   json.SavingClass = value;
                   localStorage.setItem(entityId, JSON.stringify(json));
                   queryClient.invalidateQueries({
@@ -2046,11 +2194,22 @@ const template = data.Template.filter((template: { templateId: string | number }
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                 {savingClass.map((savingClass: { classId: string; templateId: string; }) => (
-                    <SelectItem key={savingClass.classId} value={String(savingClass.classId)}>
-                      {t("OC_SAVING_" + String(savingClass.classId) + "_" + String(savingClass.templateId) + "_ClassDescription")}
-                    </SelectItem>
-                  ))}
+                  {savingClass.map(
+                    (savingClass: { classId: string; templateId: string }) => (
+                      <SelectItem
+                        key={savingClass.classId}
+                        value={String(savingClass.classId)}
+                      >
+                        {t(
+                          "OC_SAVING_" +
+                            String(savingClass.classId) +
+                            "_" +
+                            String(savingClass.templateId) +
+                            "_ClassDescription"
+                        )}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </FormItem>

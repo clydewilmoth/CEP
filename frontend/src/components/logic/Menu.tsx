@@ -159,7 +159,7 @@ function LangDialog() {
           defaultValue={String(lang)}
         >
           <SelectTrigger>
-            <SelectValue placeholder="StatusColor" />
+            <SelectValue placeholder={t("LangDialog Placeholder")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="en">English</SelectItem>
