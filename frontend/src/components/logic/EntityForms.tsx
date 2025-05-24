@@ -28,7 +28,6 @@ import {
   GetGlobalLastUpdateTimestamp,
   UpdateEntityFieldsString,
 } from "../../../wailsjs/go/main/Core";
-import { Description } from "@radix-ui/react-dialog";
 import {
   Select,
   SelectTrigger,
@@ -41,8 +40,6 @@ import {
 import fertigeJSON from "../../assets/fertigeJSON.json";
 
 import data from "@/assets/fertigeJSON.json";
-import { Checkbox } from "../ui/checkbox";
-import { CheckedState } from "@radix-ui/react-checkbox";
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -1250,7 +1247,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
         >
           <input
             type="checkbox"
-            checked={spsChecked}
+            checked={!!spsChecked}
             readOnly
             id="Encrypted"
             className="hover:cursor-pointer"
