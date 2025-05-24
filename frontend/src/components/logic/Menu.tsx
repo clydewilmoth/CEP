@@ -8,7 +8,6 @@ import {
 import {
   Menu as Burger,
   Database,
-  FileDown,
   Globe,
   Moon,
   Sun,
@@ -21,17 +20,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   CheckEnvInExeDir,
   GetPlatformSpecificUserName,
-  HandleImport,
   ParseDSNFromEnv,
 } from "../../../wailsjs/go/main/Core";
-import { DialogHeader } from "../ui/dialog";
 import { Input } from "../ui/input";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,7 +44,6 @@ import { ConfigureAndSaveDSN } from "../../../wailsjs/go/main/Core";
 
 import { useInit } from "@/App";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PasswordInput } from "../ui/password-input";
 import {
   Select,
@@ -71,26 +65,18 @@ export function Menu() {
             <Burger />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="mr-[2.85rem]">
-          <div className="flex">
-            <UserDialog />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDsnOpen(true)}
-            >
-              <Database />
-            </Button>
-          </div>
+        <DropdownMenuContent>
+          <UserDialog />
+
           <DropdownMenuSeparator className="h-[0.05rem]" />
-          <div className="flex">
-            <LangDialog />
-            <ThemeSwitch />
-          </div>
+
+          <LangDialog />
           <DropdownMenuSeparator className="h-[0.05rem]" />
-          <div className="flex justify-center">
-            <ImportJSON />
-          </div>
+          <ThemeSwitch />
+          <DropdownMenuSeparator className="h-[0.05rem]" />
+          <Button variant="ghost" size="icon" onClick={() => setDsnOpen(true)}>
+            <Database />
+          </Button>
         </DropdownMenuContent>
       </DropdownMenu>
     </>
@@ -168,23 +154,6 @@ function LangDialog() {
         </Select>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function ImportJSON() {
-  const queryClient = useQueryClient();
-
-  const { mutateAsync: importEntity } = useMutation({
-    mutationFn: async () =>
-      toast(t(await HandleImport(String(localStorage.getItem("name"))))),
-    onSuccess: () => queryClient.invalidateQueries(),
-  });
-  const { t } = useTranslation();
-
-  return (
-    <Button variant="ghost" size="icon" onClick={() => importEntity()}>
-      <FileDown />
-    </Button>
   );
 }
 
