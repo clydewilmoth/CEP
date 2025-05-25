@@ -876,7 +876,16 @@ export function ToolForm({ entityId }: { entityId: string }) {
     Comment: z.string().optional(),
     StatusColor: z.string().optional(),
     Description: z.string().optional(),
-    IpAddressDevice: z.string().optional(),
+    IpAddressDevice: z
+      .string()
+      .optional()
+      .refine(
+        (ip) =>
+          ip === "" ||
+          /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
+            ip ?? ""
+          )
+      ),
     SPSPLCNameSPAService: z.string().optional(),
     SPSDBNoSend: z.string().optional(),
     SPSDBNoReceive: z.string().optional(),
