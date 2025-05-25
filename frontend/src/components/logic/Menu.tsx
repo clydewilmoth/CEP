@@ -238,7 +238,7 @@ export function DSNDialog() {
         setDsnOpen(dsnOpen && (await CheckEnvInExeDir()) ? false : true);
       }}
     >
-      <DialogContent className="p-0">
+      <DialogContent className="p-0 w-1/2">
         <ScrollArea className="max-h-[90vh]">
           <div className="p-6">
             <Form {...form}>

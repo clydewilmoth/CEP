@@ -1249,11 +1249,10 @@ export function ToolForm({ entityId }: { entityId: string }) {
             type="checkbox"
             checked={!!spsChecked}
             readOnly
-            id="Encrypted"
             className="hover:cursor-pointer"
           />
           <FormLabel className="hover:cursor-pointer">
-            {t("DSN Encrypted")}
+            {t("ToolWithSPS")}
           </FormLabel>
         </div>
         {spsChecked && (
