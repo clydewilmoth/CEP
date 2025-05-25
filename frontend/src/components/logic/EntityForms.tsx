@@ -1927,6 +1927,14 @@ export function OperationForm({ entityId }: { entityId: string }) {
                       localStorage.getItem(entityId) ?? "{}"
                     );
                     json.Template = value;
+                    if (value == "none") {
+                      json.DecisionClass = value;
+                      json.VerificationClass = value;
+                      json.GenerationClass = value;
+                      json.SavingClass = value;
+                      localStorage.setItem(entityId, JSON.stringify(json));
+                      setObserver((prev) => prev + 1);
+                    }
                     localStorage.setItem(entityId, JSON.stringify(json));
                     queryClient.invalidateQueries({
                       queryKey: ["operation", entityId],
@@ -2145,7 +2153,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
               <FormItem>
                 <div className="flex gap-3">
                   <FormLabel>{t("OperationClassVerification")}</FormLabel>
-                  {operation && operation.OperationClassVerification?.draft && (
+                  {operation && operation.VerificationClass?.draft && (
                     <SquarePen size={15} />
                   )}
                 </div>
@@ -2169,25 +2177,32 @@ export function OperationForm({ entityId }: { entityId: string }) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {/*verificationClass.map(
-                    (verificationClass: {
-                      classId: string;
-                      templateId: string;
-                    }) => (
-                      <SelectItem
-                        key={verificationClass.classId}
-                        value={String(verificationClass.classId)}
-                      >
-                        {t(
-                          "OC_VERIFICATION_" +
-                            String(verificationClass.classId) +
-                            "_" +
-                            String(verificationClass.templateId) +
-                            "_ClassDescription"
-                        )}
-                      </SelectItem>
-                    )
-                  )*/}
+                    <SelectItem value="none">-</SelectItem>
+                    {data.VerificationClasses.map((verificationclass) => {
+                      let skip = true;
+                      if (
+                        form.getValues().Template ==
+                        verificationclass.templateId
+                      )
+                        skip = false;
+
+                      return (
+                        !skip && (
+                          <SelectItem
+                            key={verificationclass.id}
+                            value={verificationclass.id}
+                          >
+                            {t(
+                              "OC_VERIFICATION_" +
+                                String(verificationclass.id) +
+                                "_" +
+                                String(verificationclass.templateId) +
+                                "_ClassDescription"
+                            )}
+                          </SelectItem>
+                        )
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </FormItem>
@@ -2201,7 +2216,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
               <FormItem>
                 <div className="flex gap-3">
                   <FormLabel>{t("OperationClassGeneration")}</FormLabel>
-                  {operation && operation.OperationClassGeneration?.draft && (
+                  {operation && operation.GenerationClass?.draft && (
                     <SquarePen size={15} />
                   )}
                 </div>
@@ -2225,25 +2240,31 @@ export function OperationForm({ entityId }: { entityId: string }) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {/*generationClass.map(
-                    (generationClass: {
-                      classId: string;
-                      templateId: string;
-                    }) => (
-                      <SelectItem
-                        key={generationClass.classId}
-                        value={String(generationClass.classId)}
-                      >
-                        {t(
-                          "OC_GENERATION_" +
-                            String(generationClass.classId) +
-                            "_" +
-                            String(generationClass.templateId) +
-                            "_ClassDescription"
-                        )}
-                      </SelectItem>
-                    )
-                  )*/}
+                    <SelectItem value="none">-</SelectItem>
+                    {data.GenerationClasses.map((generationclass) => {
+                      let skip = true;
+                      if (
+                        form.getValues().Template == generationclass.templateId
+                      )
+                        skip = false;
+
+                      return (
+                        !skip && (
+                          <SelectItem
+                            key={generationclass.id}
+                            value={generationclass.id}
+                          >
+                            {t(
+                              "OC_GENERATION_" +
+                                String(generationclass.id) +
+                                "_" +
+                                String(generationclass.templateId) +
+                                "_ClassDescription"
+                            )}
+                          </SelectItem>
+                        )
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </FormItem>
@@ -2257,7 +2278,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
               <FormItem>
                 <div className="flex gap-3">
                   <FormLabel>{t("OperationClassSaving")}</FormLabel>
-                  {operation && operation.OperationClassSaving?.draft && (
+                  {operation && operation.SavingClass?.draft && (
                     <SquarePen size={15} />
                   )}
                 </div>
@@ -2281,6 +2302,29 @@ export function OperationForm({ entityId }: { entityId: string }) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    <SelectItem value="none">-</SelectItem>
+                    {data.SavingClasses.map((savingclass) => {
+                      let skip = true;
+                      if (form.getValues().Template == savingclass.templateId)
+                        skip = false;
+
+                      return (
+                        !skip && (
+                          <SelectItem
+                            key={savingclass.id}
+                            value={savingclass.id}
+                          >
+                            {t(
+                              "OC_SAVING_" +
+                                String(savingclass.id) +
+                                "_" +
+                                String(savingclass.templateId) +
+                                "_ClassDescription"
+                            )}
+                          </SelectItem>
+                        )
+                      );
+                    })}
                     {/*savingClass.map(
                     (savingClass: { classId: string; templateId: string }) => (
                       <SelectItem
