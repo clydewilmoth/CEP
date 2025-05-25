@@ -39,7 +39,7 @@ import {
 // @ts-ignore
 import fertigeJSON from "../../assets/fertigeJSON.json";
 
-import data from "@/assets/fertigeJSON.json";
+import data from "@/assets/dependency.json";
 import { TagsInput } from "../ui/tags-input";
 
 export function LineForm({ entityId }: { entityId: string }) {
@@ -2127,16 +2127,31 @@ export function OperationForm({ entityId }: { entityId: string }) {
 
                       return (
                         !skip && (
-                          <SelectItem
-                            key={decisionclass.id}
-                            value={decisionclass.id}
-                          >
-                            {t(
-                              "OC_DECISION_" +
-                                String(decisionclass.id) +
-                                "_ClassDescription"
-                            )}
-                          </SelectItem>
+                          <TooltipProvider key={decisionclass.id}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SelectItem
+                                  key={decisionclass.id}
+                                  value={decisionclass.id}
+                                >
+                                  {t(
+                                    "OC_DECISION_" +
+                                      String(decisionclass.id) +
+                                      "_ClassDescription"
+                                  )}
+                                </SelectItem>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <div className="max-w-md">
+                                  {t(
+                                    "OC_DECISION_" +
+                                      String(decisionclass.id) +
+                                      "_HelpText"
+                                  )}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )
                       );
                     })}
@@ -2188,18 +2203,35 @@ export function OperationForm({ entityId }: { entityId: string }) {
 
                       return (
                         !skip && (
-                          <SelectItem
-                            key={verificationclass.id}
-                            value={verificationclass.id}
-                          >
-                            {t(
-                              "OC_VERIFICATION_" +
-                                String(verificationclass.id) +
-                                "_" +
-                                String(verificationclass.templateId) +
-                                "_ClassDescription"
-                            )}
-                          </SelectItem>
+                          <TooltipProvider key={verificationclass.id}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SelectItem
+                                  key={verificationclass.id}
+                                  value={verificationclass.id}
+                                >
+                                  {t(
+                                    "OC_VERIFICATION_" +
+                                      String(verificationclass.id) +
+                                      "_" +
+                                      String(verificationclass.templateId) +
+                                      "_ClassDescription"
+                                  )}
+                                </SelectItem>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <div className="max-w-md">
+                                  {t(
+                                    "OC_VERIFICATION_" +
+                                      String(verificationclass.id) +
+                                      "_" +
+                                      String(verificationclass.templateId) +
+                                      "_HelpText"
+                                  )}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )
                       );
                     })}
@@ -2250,18 +2282,35 @@ export function OperationForm({ entityId }: { entityId: string }) {
 
                       return (
                         !skip && (
-                          <SelectItem
-                            key={generationclass.id}
-                            value={generationclass.id}
-                          >
-                            {t(
-                              "OC_GENERATION_" +
-                                String(generationclass.id) +
-                                "_" +
-                                String(generationclass.templateId) +
-                                "_ClassDescription"
-                            )}
-                          </SelectItem>
+                          <TooltipProvider key={generationclass.id}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SelectItem
+                                  key={generationclass.id}
+                                  value={generationclass.id}
+                                >
+                                  {t(
+                                    "OC_GENERATION_" +
+                                      String(generationclass.id) +
+                                      "_" +
+                                      String(generationclass.templateId) +
+                                      "_ClassDescription"
+                                  )}
+                                </SelectItem>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <div className="max-w-md">
+                                  {t(
+                                    "OC_GENERATION_" +
+                                      String(generationclass.id) +
+                                      "_" +
+                                      String(generationclass.templateId) +
+                                      "_HelpText"
+                                  )}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )
                       );
                     })}
@@ -2310,37 +2359,38 @@ export function OperationForm({ entityId }: { entityId: string }) {
 
                       return (
                         !skip && (
-                          <SelectItem
-                            key={savingclass.id}
-                            value={savingclass.id}
-                          >
-                            {t(
-                              "OC_SAVING_" +
-                                String(savingclass.id) +
-                                "_" +
-                                String(savingclass.templateId) +
-                                "_ClassDescription"
-                            )}
-                          </SelectItem>
+                          <TooltipProvider key={savingclass.id}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SelectItem
+                                  key={savingclass.id}
+                                  value={savingclass.id}
+                                >
+                                  {t(
+                                    "OC_SAVING_" +
+                                      String(savingclass.id) +
+                                      "_" +
+                                      String(savingclass.templateId) +
+                                      "_ClassDescription"
+                                  )}
+                                </SelectItem>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <div className="max-w-md">
+                                  {t(
+                                    "OC_SAVING_" +
+                                      String(savingclass.id) +
+                                      "_" +
+                                      String(savingclass.templateId) +
+                                      "_HelpText"
+                                  )}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )
                       );
                     })}
-                    {/*savingClass.map(
-                    (savingClass: { classId: string; templateId: string }) => (
-                      <SelectItem
-                        key={savingClass.classId}
-                        value={String(savingClass.classId)}
-                      >
-                        {t(
-                          "OC_SAVING_" +
-                            String(savingClass.classId) +
-                            "_" +
-                            String(savingClass.templateId) +
-                            "_ClassDescription"
-                        )}
-                      </SelectItem>
-                    )
-                  )*/}
                   </SelectContent>
                 </Select>
               </FormItem>
