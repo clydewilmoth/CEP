@@ -260,744 +260,767 @@
   ],
   "ToolClasses": [
     {
-      "toolClassesId": "1",
-      "templateIds":[1],
-      "toolClassName": "Check"
+      "id": "1",
+      "templateIds": ["1"],
+      "toolTypeIds": ["1", "38", "44", "50", "119", "123", "147", "155"],
+      "name": "Check"
     },
     {
-      "toolClassesId": "2",
-      "templateIds":[2],
-      "toolClassName": "Scanner"
+      "id": "2",
+      "templateIds": ["2"],
+      "toolTypeIds": ["4", "5", "55", "61", "80", "81", "106", "137"],
+      "name": "Scanner"
     },
     {
-      "toolClassesId": "3",
-      "templateIds":[3],
-      "toolClassName": "Tightening"
+      "id": "3",
+      "templateIds": ["3"],
+      "toolTypeIds": ["9", "12", "39", "43", "51", "60", "66", "82", "126", "130", "135"],
+      "name": "Tightening"
     },
     {
-      "toolClassesId": "4",
-      "templateIds":[4],
-      "toolClassName": "Stamping"
+      "id": "4",
+      "templateIds": ["4"],
+      "toolTypeIds": ["62", "127", "132"],
+      "name": "Stamping"
     },
     {
-      "toolClassesId": "5",
-      "templateIds":[5],
-      "toolClassName": "Execution"
+      "id": "5",
+      "templateIds": ["5"],
+      "toolTypeIds": ["15", "16", "37", "69", "91", "146", "149"],
+      "name": "Execution"
     },
     {
-      "toolClassesId": "6",
-      "templateIds":[6],
-      "toolClassName": "Leak Test"
+      "id": "6",
+      "templateIds": ["6"],
+      "toolTypeIds": ["18", "83", "89", "110", "136"],
+      "name": "Leak Test"
     },
     {
-      "toolClassesId": "7",
-      "templateIds":[7],
-      "toolClassName": "PickBySystem"
+      "id": "7",
+      "templateIds": ["7"],
+      "toolTypeIds": ["19", "20", "47", "68", "109", "143"],
+      "name": "PickBySystem"
     },
     {
-      "toolClassesId": "9",
-      "templateIds":[9],
-      "toolClassName": "Measuring"
+      "id": "9",
+      "templateIds": ["9"],
+      "toolTypeIds": ["22", "23", "24", "46", "56", "59", "67", "75", "84", "87", "90", "92", "122", "133", "142"],
+      "name": "Measuring"
     },
     {
-      "toolClassesId": "12",
-      "templateIds":[12],
-      "toolClassName": "LiquidFilling"
+      "id": "12",
+      "templateIds": ["12"],
+      "toolTypeIds": ["54", "65", "108"],
+      "name": "LiquidFilling"
     },
     {
-      "toolClassesId": "15",
-      "templateIds":[15],
-      "toolClassName": "Decision"
+      "id": "15",
+      "templateIds": ["15"],
+      "toolTypeIds": ["33", "150"],
+      "name": "Decision"
     },
     {
-      "toolClassesId": "16",
-      "templateIds":[16],
-      "toolClassName": "CarrierMarriage"
+      "id": "16",
+      "templateIds": ["16"],
+      "toolTypeIds": ["27", "57"],
+      "name": "CarrierMarriage"
     },
     {
-      "toolClassesId": "23",
-      "templateIds":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],
-      "toolClassName": "Manual"
+      "id": "23",
+      "templateIds": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30"],
+      "toolTypeIds": ["28", "29", "139"],
+      "name": "Manual"
     },
     {
-      "toolClassesId": "24",
-      "templateIds":[23],
-      "toolClassName": "ShippingRack",
-      "mal gucken, frage dazu iun der email": "mal gucken, frage dazu iun der email"
+      "id": "24",
+      "templateIds": ["23"],
+      "toolTypeIds": ["32"],
+      "name": "ShippingRack"
     },
     {
-      "toolClassesId": "25",
-      "templateIds":[24],
-      "toolClassName": "FitIn"
+      "id": "25",
+      "templateIds": ["24"],
+      "toolTypeIds": ["40", "48"],
+      "name": "FitIn"
     },
     {
-      "toolClassesId": "26",
-      "templateIds":[25],
-      "toolClassName": "PositionClear"
+      "id": "26",
+      "templateIds": ["25"],
+      "toolTypeIds": ["41", "49", "63", "85", "86", "104", "105", "120", "121", "152"],
+      "name": "PositionClear"
     },
     {
-      "toolClassesId": "27",
-      "templateIds":[9],
-      "toolClassName": "Testbench"
+      "id": "27",
+      "templateIds": ["9"],
+      "toolTypeIds": ["131", "141", "145"],
+      "name": "Testbench"
     },
     {
-      "toolClassesId": "28",
-      "templateIds":[1],
-      "toolClassName": "SAP Upload"
+      "id": "28",
+      "templateIds": ["1"],
+      "toolTypeIds": ["70"],
+      "name": "SAP Upload"
     },
     {
-      "toolClassesId": "30",
-      "templateIds":[15],
-      "toolClassName": "QGate"
+      "id": "30",
+      "templateIds": ["15"],
+      "toolTypeIds": ["35", "102"],
+      "name": "QGate"
     },
     {
-      "toolClassesId": "31",
-      "templateIds":[15],
-      "toolClassName": "ProcessFlow"
+      "id": "31",
+      "templateIds": ["15"],
+      "toolTypeIds": ["2", "3", "100", "101"],
+      "name": "ProcessFlow"
     },
     {
-      "toolClassesId": "32",
-      "templateIds":[27],
-      "toolClassName": "PictureCapture"
+      "id": "32",
+      "templateIds": ["27"],
+      "toolTypeIds": ["111", "124"],
+      "name": "PictureCapture"
     },
     {
-      "toolClassesId": "33",
-      "templateIds":[28],
-      "toolClassName": "Calculate"
+      "id": "33",
+      "templateIds": ["28"],
+      "toolTypeIds": ["112"],
+      "name": "Calculate"
     },
     {
-      "toolClassesId": "34",
-      "templateIds":[29],
-      "toolClassName": "BuildCondition"
+      "id": "34",
+      "templateIds": ["29"],
+      "toolTypeIds": ["138"],
+      "name": "BuildCondition"
     },
     {
-      "toolClassesId": "35",
-      "templateIds":[30],
-      "toolClassName": "TimeTracking"
+      "id": "35",
+      "templateIds": ["30"],
+      "toolTypeIds": ["144"],
+      "name": "TimeTracking"
     },
     {
-      "toolClassesId": "36",
-      "templateIds":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],
-      "toolClassName": "External"
+      "id": "36",
+      "templateIds": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30"],
+      "toolTypeIds": ["154"],
+      "name": "External"
     }
   ],
   "ToolTypes": [
     {
-      "toolTypeId": "1",
+      "id": "1",
       "description": "Check Manual",
-      "toolClassificationId": "1",
+      "toolClassId": "1",
       "helpText": "Shows a Text Set check Operation manual to OK or NOK"
     },
     {
-      "toolTypeId": "2",
+      "id": "2",
       "description": "Wait",
-      "toolClassificationId": "31",
+      "toolClassId": "31",
       "helpText": "Check if operations are done that are configured in Ref_OperationRelation Set check operation manual to OK or NOK"
     },
     {
-      "toolTypeId": "3",
+      "id": "3",
       "description": "DS Check",
-      "toolClassificationId": "31",
+      "toolClassId": "31",
       "helpText": "Check if operations are done that are configured in OsRef_OperationRelation. An additional text is shown for security purposes (DS). Set check operation manual to OK or NOK. Set OK requires user Right OsProcess.SetOperationsOK"
     },
     {
-      "toolTypeId": "4",
+      "id": "4",
       "description": "Scanner (USB)",
-      "toolClassificationId": "2",
+      "toolClassId": "2",
       "helpText": "Shows a text field to catch a string that is scanned with an USB scanner"
     },
     {
-      "toolTypeId": "5",
+      "id": "5",
       "description": "Scanner (PLC)",
-      "toolClassificationId": "2",
+      "toolClassId": "2",
       "helpText": "Scanner via PLC"
     },
     {
-      "toolTypeId": "9",
+      "id": "9",
       "description": "Tightening (AtlasCopco)",
-      "toolClassificationId": "3",
+      "toolClassId": "3",
       "helpText": "AtlasCopco (OpenProtocol) PowerFocus / Power MACS"
     },
     {
-      "toolTypeId": "12",
+      "id": "12",
       "description": "Tightening (PLC) Values",
-      "toolClassificationId": "3",
+      "toolClassId": "3",
       "helpText": "PLC Schrauber with values per tightening"
     },
     {
-      "toolTypeId": "15",
+      "id": "15",
       "description": "Execution (File)",
-      "toolClassificationId": "5",
+      "toolClassId": "5",
       "helpText": "Execution of applications"
     },
     {
-      "toolTypeId": "16",
+      "id": "16",
       "description": "Picture Viewer",
-      "toolClassificationId": "5",
+      "toolClassId": "5",
       "helpText": "Shows pictures"
     },
     {
-      "toolTypeId": "18",
+      "id": "18",
       "description": "LeakTest (External)",
-      "toolClassificationId": "6",
+      "toolClassId": "6",
       "helpText": "Leaktest connected via database (Zeltwanger)"
     },
     {
-      "toolTypeId": "19",
+      "id": "19",
       "description": "Commissioning (External)",
-      "toolClassificationId": "7",
+      "toolClassId": "7",
       "helpText": "No longer use! PickByLight connected via database. DELETE!!!"
     },
     {
-      "toolTypeId": "20",
+      "id": "20",
       "description": "Commissioning (Wibond)",
-      "toolClassificationId": "7",
+      "toolClassId": "7",
       "helpText": "PickByLight connection to Wibond PickVisionController"
     },
     {
-      "toolTypeId": "22",
+      "id": "22",
       "description": "Measuring (Manual) Value",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Manual enter of measured values"
     },
     {
-      "toolTypeId": "23",
+      "id": "23",
       "description": "Measuring (PLC) Status",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Measuring PLC (Single OP) nur Status als Messwerte"
     },
     {
-      "toolTypeId": "24",
+      "id": "24",
       "description": "Measuring (PLC) Values",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Measuring PLC with measured values"
     },
     {
-      "toolTypeId": "27",
+      "id": "27",
       "description": "CarrierMarriage (PLC)",
-      "toolClassificationId": "16",
+      "toolClassId": "16",
       "helpText": "Marriage of order to carrier in PLC"
     },
     {
-      "toolTypeId": "28",
+      "id": "28",
       "description": "Manual",
-      "toolClassificationId": "23",
+      "toolClassId": "23",
       "helpText": "Shows status of an Operation manual setting of the status"
     },
     {
-      "toolTypeId": "29",
+      "id": "29",
       "description": "Manual with user rights",
-      "toolClassificationId": "23",
+      "toolClassId": "23",
       "helpText": "Shows status of an Operation manual setting of the Status IF user rights available"
     },
     {
-      "toolTypeId": "32",
+      "id": "32",
       "description": "ShippingRack (PLC)",
-      "toolClassificationId": "24",
+      "toolClassId": "24",
       "helpText": "Sending rack type for current order to PLC"
     },
     {
-      "toolTypeId": "33",
+      "id": "33",
       "description": "Decision (Manual)",
-      "toolClassificationId": "15",
+      "toolClassId": "15",
       "helpText": "Set manual decision for order"
     },
     {
-      "toolTypeId": "35",
+      "id": "35",
       "description": "Qgate Decision",
-      "toolClassificationId": "30",
+      "toolClassId": "30",
       "helpText": "Check if operations are done that are configured in OsRef_OperationRelation SET decision with configurable buttons"
     },
     {
-      "toolTypeId": "37",
+      "id": "37",
       "description": "Execution (Procedure)",
-      "toolClassificationId": "5",
+      "toolClassId": "5",
       "helpText": "Execution of database procedures"
     },
     {
-      "toolTypeId": "38",
+      "id": "38",
       "description": "Check Multiple",
-      "toolClassificationId": "1",
+      "toolClassId": "1",
       "helpText": "List of checks by pressing NOK a separate screen appears and a comment can be added for the current check. Defect entries will be created IF configured for the check"
     },
     {
-      "toolTypeId": "39",
+      "id": "39",
       "description": "Tightening (External)",
-      "toolClassificationId": "3",
+      "toolClassId": "3",
       "helpText": "Saltus / OsService / PlcComService (Database)"
     },
     {
-      "toolTypeId": "40",
+      "id": "40",
       "description": "FitIn (PLC)",
-      "toolClassificationId": "25",
+      "toolClassId": "25",
       "helpText": "Press tool PLC connected"
     },
     {
-      "toolTypeId": "41",
+      "id": "41",
       "description": "PositionClear (External)",
-      "toolClassificationId": "26",
+      "toolClassId": "26",
       "helpText": "PositionClear signal to PLC via PlcComService"
     },
     {
-      "toolTypeId": "43",
+      "id": "43",
       "description": "Tightening (AtlasCopco) Picture Repair",
-      "toolClassificationId": "3",
+      "toolClassId": "3",
       "helpText": "AtlasCopco (OpenProtocol) PowerFocus / Power MACS (repair)"
     },
     {
-      "toolTypeId": "44",
+      "id": "44",
       "description": "Check Multiple Rework",
-      "toolClassificationId": "1",
+      "toolClassId": "1",
       "helpText": "List of checks by pressing NOK the rework screen appears and a comment can be added for the current check. Defect entries will be created by entering the comment in the rework screen. A picture can be shown for a check"
     },
     {
-      "toolTypeId": "46",
+      "id": "46",
       "description": "Measuring (Manual) Status Picture",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Setting of status values in a picture"
     },
     {
-      "toolTypeId": "47",
+      "id": "47",
       "description": "Commissioning (SPA)",
-      "toolClassificationId": "7",
+      "toolClassId": "7",
       "helpText": "PickByLight connected via PLC over SPAService"
     },
     {
-      "toolTypeId": "48",
+      "id": "48",
       "description": "FitIn (SPA)",
-      "toolClassificationId": "25",
+      "toolClassId": "25",
       "helpText": "Press tool PLC connected via SPA service"
     },
     {
-      "toolTypeId": "49",
+      "id": "49",
       "description": "PositionClear (SPA)",
-      "toolClassificationId": "26",
+      "toolClassId": "26",
       "helpText": "PositionClear signal to PLC via SPA Service"
     },
     {
-      "toolTypeId": "50",
+      "id": "50",
       "description": "Check Dynamic",
-      "toolClassificationId": "1",
+      "toolClassId": "1",
       "helpText": "Executes a Procedure in the database to check something Returns OK or NOK and shows a result message"
     },
     {
-      "toolTypeId": "51",
+      "id": "51",
       "description": "Tightening (PLC) Status",
-      "toolClassificationId": "3",
+      "toolClassId": "3",
       "helpText": "PLC tightening with status values per tightening (Multi Ops)"
     },
     {
-      "toolTypeId": "54",
+      "id": "54",
       "description": "OilFilling (Manual)",
-      "toolClassificationId": "12",
+      "toolClassId": "12",
       "helpText": "Tool to put the changed oil amount manual"
     },
     {
-      "toolTypeId": "55",
+      "id": "55",
       "description": "Scanner (Cognex)",
-      "toolClassificationId": "2",
+      "toolClassId": "2",
       "helpText": "Cognex-Scanner via Ethernet direct"
     },
     {
-      "toolTypeId": "56",
+      "id": "56",
       "description": "Measuring (PLC) Status Multi OP",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Measuring PLC (Multi OP) only status in result"
     },
     {
-      "toolTypeId": "57",
+      "id": "57",
       "description": "CarrierMarriage (SPA)",
-      "toolClassificationId": "16",
+      "toolClassId": "16",
       "helpText": "Marriage of order to carrier in PLC over SPA service"
     },
     {
-      "toolTypeId": "59",
+      "id": "59",
       "description": "Measuring (SPA) Status",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Measuring PLC via SPA Service"
     },
     {
-      "toolTypeId": "60",
+      "id": "60",
       "description": "Tightening (SPA) Values",
-      "toolClassificationId": "3",
+      "toolClassId": "3",
       "helpText": "PLC Schrauber with values per tightening (Multi OPs) via SPAService"
     },
     {
-      "toolTypeId": "61",
+      "id": "61",
       "description": "Scanner (SPA) Fisheye",
-      "toolClassificationId": "2",
+      "toolClassId": "2",
       "helpText": "Scanner via PLC via SPA Service with ToolNotifier DB"
     },
     {
-      "toolTypeId": "62",
+      "id": "62",
       "description": "Stamp (SPA)",
-      "toolClassificationId": "4",
+      "toolClassId": "4",
       "helpText": "Stamping unit PLC connected via SPA service"
     },
     {
-      "toolTypeId": "63",
+      "id": "63",
       "description": "PositionClear (PLC)",
-      "toolClassificationId": "26",
+      "toolClassId": "26",
       "helpText": "PositionClear signal to PLC"
     },
     {
-      "toolTypeId": "65",
+      "id": "65",
       "description": "OilFilling (PLC)",
-      "toolClassificationId": "12",
+      "toolClassId": "12",
       "helpText": "Tool to request oil filling via PLC"
     },
     {
-      "toolTypeId": "66",
+      "id": "66",
       "description": "Tightening (OpenProtocol)",
-      "toolClassificationId": "3",
+      "toolClassId": "3",
       "helpText": "Apex / Stanley (OpenProtocol)"
     },
     {
-      "toolTypeId": "68",
+      "id": "68",
       "description": "Commissioning (Manual)",
-      "toolClassificationId": "7",
+      "toolClassId": "7",
       "helpText": "Manual picking of parts (possibility to show interactive picture maximized)"
     },
     {
-      "toolTypeId": "69",
+      "id": "69",
       "description": "Execution (Procedure) with Return Value",
-      "toolClassificationId": "5",
+      "toolClassId": "5",
       "helpText": "Execution of database procedures (evaluates returnstatus as operationstatus)"
     },
     {
-      "toolTypeId": "70",
+      "id": "70",
       "description": "SAP Upload (HTTP)",
-      "toolClassificationId": "28",
+      "toolClassId": "28",
       "helpText": "Sends Orderstatus to SAP"
     },
     {
-      "toolTypeId": "75",
+      "id": "75",
       "description": "Measuring (WCF)",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Measuring via WCF (tool shows measured values list)"
     },
     {
-      "toolTypeId": "80",
+      "id": "80",
       "description": "Scanner (PLC) Fisheye",
-      "toolClassificationId": "2",
+      "toolClassId": "2",
       "helpText": "Scanner via PLC with ToolNotifier DB"
     },
     {
-      "toolTypeId": "81",
+      "id": "81",
       "description": "Scanner (SPA)",
-      "toolClassificationId": "2",
+      "toolClassId": "2",
       "helpText": "Scanner via PLC via SPA Service"
     },
     {
-      "toolTypeId": "82",
+      "id": "82",
       "description": "Tightening (AtlasCopco) Picture",
-      "toolClassificationId": "3",
+      "toolClassId": "3",
       "helpText": "AtlasCopco (OpenProtocol) PowerFocus / Power MACS (user guidance)"
     },
     {
-      "toolTypeId": "83",
+      "id": "83",
       "description": "LeakTest (PLC)",
-      "toolClassificationId": "6",
+      "toolClassId": "6",
       "helpText": "Leaktest connected via PLC"
     },
     {
-      "toolTypeId": "84",
+      "id": "84",
       "description": "Measuring (PLC) Status & Results",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Measuring PLC (Single OP) with measured values and sends the last measured values to PLC"
     },
     {
-      "toolTypeId": "85",
+      "id": "85",
       "description": "PositionClear (PLC) Destination Reloaded",
-      "toolClassificationId": "26",
+      "toolClassId": "26",
       "helpText": "PositionClear signal to PLC with destination for order. When the SC fires the OP we read the Destination once more up-to-date from the database"
     },
     {
-      "toolTypeId": "86",
+      "id": "86",
       "description": "PositionClear (SPA) Destination",
-      "toolClassificationId": "26",
+      "toolClassId": "26",
       "helpText": "PositionClear signal to PLC via SPA Service with destination for order. When the SC fires the OP we read the Destination once more up-to-date from the database"
     },
     {
-      "toolTypeId": "87",
+      "id": "87",
       "description": "Measuring (External)",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Measuring connected via database (PlcComService)"
     },
     {
-      "toolTypeId": "89",
+      "id": "89",
       "description": "LeakTest (WCF2)",
-      "toolClassificationId": "6",
+      "toolClassId": "6",
       "helpText": "Leaktest connected via WCF, NEW (config Database)"
     },
     {
-      "toolTypeId": "90",
+      "id": "90",
       "description": "Measuring (WCF2)",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Measuring via WCF (tool shows measured values list)"
     },
     {
-      "toolTypeId": "91",
+      "id": "91",
       "description": "Picture Viewer DS Check",
-      "toolClassificationId": "5",
+      "toolClassId": "5",
       "helpText": "Shows pictures (OK Button enabled WITH right OsProcess.SetDSChecksIO)"
     },
     {
-      "toolTypeId": "100",
+      "id": "100",
       "description": "ResultSumDecision",
-      "toolClassificationId": "31",
+      "toolClassId": "31",
       "helpText": "We build a sum of operation results for a list of operations. Check if all operations are OK that are configured in OsRef_OperationRelation (Operation list configured in ConfigEx). If only one Operation result is NOK the sum here is NOK. Manual result possible with configurable decision buttons"
     },
     {
-      "toolTypeId": "101",
+      "id": "101",
       "description": "ResultSumCheck",
-      "toolClassificationId": "31",
+      "toolClassId": "31",
       "helpText": "Check if operations are done that are configured in OsRef_OperationRelation. (Operation list configured in ConfigEx) Set decision with configurable buttons"
     },
     {
-      "toolTypeId": "102",
+      "id": "102",
       "description": "QGate Operations",
-      "toolClassificationId": "30",
+      "toolClassId": "30",
       "helpText": "Check if operations are done that are configured in OsRef_OperationRelation. (Operation list configured in ConfigEx) Set decision with configurable buttons"
     },
     {
-      "toolTypeId": "104",
+      "id": "104",
       "description": "PositionClear (PLC) Prisma",
-      "toolClassificationId": "26",
+      "toolClassId": "26",
       "helpText": "Prisma StationsStatus over StationController to PLC"
     },
     {
-      "toolTypeId": "105",
+      "id": "105",
       "description": "PositionClear (SPA) Prisma",
-      "toolClassificationId": "26",
+      "toolClassId": "26",
       "helpText": "Prisma StationsStatus over SPAService to PLC"
     },
     {
-      "toolTypeId": "106",
+      "id": "106",
       "description": "Scanner (SPA PCS with PLC logic)",
-      "toolClassificationId": "2",
+      "toolClassId": "2",
       "helpText": "Scanner controlled by PLC, data exchange via SPA Service"
     },
     {
-      "toolTypeId": "67",
+      "id": "67",
       "description": "Measuring (PLC) Values & Limits",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Measuring PLC (Single OP) with values and limits sent to PLC"
     },
     {
-      "toolTypeId": "107",
+      "id": "107",
       "description": "Check (SPA PCS with PLC logic)",
-      "toolClassificationId": "1",
+      "toolClassId": "1",
       "helpText": "Check list controlled by PLC, data exchange via SPA Service"
     },
     {
-      "toolTypeId": "108",
+      "id": "108",
       "description": "OilFilling (SPA)",
-      "toolClassificationId": "12",
+      "toolClassId": "12",
       "helpText": "Oilfilling connected via SPA"
     },
     {
-      "toolTypeId": "109",
+      "id": "109",
       "description": "Commissioning (Wibond) Parts List",
-      "toolClassificationId": "7",
+      "toolClassId": "7",
       "helpText": "PickByLight with parts list from assembly pack"
     },
     {
-      "toolTypeId": "110",
+      "id": "110",
       "description": "LeakTest (File) V12",
-      "toolClassificationId": "6",
+      "toolClassId": "6",
       "helpText": "LeakTest special PKWT V12 Assembly"
     },
     {
-      "toolTypeId": "111",
+      "id": "111",
       "description": "PictureCapture",
-      "toolClassificationId": "32",
+      "toolClassId": "32",
       "helpText": "Capture picture with operation in StationController"
     },
     {
-      "toolTypeId": "112",
+      "id": "112",
       "description": "Calculate",
-      "toolClassificationId": "33",
+      "toolClassId": "33",
       "helpText": "Calculate values without SC"
     },
     {
-      "toolTypeId": "119",
+      "id": "119",
       "description": "MASIS values check",
-      "toolClassificationId": "1",
+      "toolClassId": "1",
       "helpText": "MASIS values check"
     },
     {
-      "toolTypeId": "120",
+      "id": "120",
       "description": "PositionClear (PLC) Picture",
-      "toolClassificationId": "26",
+      "toolClassId": "26",
       "helpText": "PositionClear via PLC with picture"
     },
     {
-      "toolTypeId": "121",
+      "id": "121",
       "description": "PositionClear (SPA) Picture",
-      "toolClassificationId": "26",
+      "toolClassId": "26",
       "helpText": "PositionClear via SPA with picture"
     },
     {
-      "toolTypeId": "122",
+      "id": "122",
       "description": "Measuring (File) AVL TDC",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Measuring via file to AVL TDC measurement PC"
     },
     {
-      "toolTypeId": "123",
+      "id": "123",
       "description": "Check For Logged In User",
-      "toolClassificationId": "1",
+      "toolClassId": "1",
       "helpText": "Check For Logged In User"
     },
     {
-      "toolTypeId": "124",
+      "id": "124",
       "description": "PictureCapture FotoBox (WCF2)",
-      "toolClassificationId": "32",
+      "toolClassId": "32",
       "helpText": "PictureCapture FotoBox connected via WCF"
     },
     {
-      "toolTypeId": "126",
+      "id": "126",
       "description": "Tightening (AtlasCopco) v2",
-      "toolClassificationId": "3",
+      "toolClassId": "3",
       "helpText": "AtlasCopco (OpenProtocol) PowerFocus / Power MACS Version 2"
     },
     {
-      "toolTypeId": "127",
+      "id": "127",
       "description": "Stamp (Ethernet) Werner",
-      "toolClassificationId": "4",
+      "toolClassId": "4",
       "helpText": "Stamp (Ethernet) Werner"
     },
     {
-      "toolTypeId": "130",
+      "id": "130",
       "description": "Tightening (File) Novotest",
-      "toolClassificationId": "3",
+      "toolClassId": "3",
       "helpText": "Tightening (File) Novotest"
     },
     {
-      "toolTypeId": "131",
+      "id": "131",
       "description": "Testbench (File) Unipas/Novotest",
-      "toolClassificationId": "27",
+      "toolClassId": "27",
       "helpText": "Testbench (File) Unipas/Novotest"
     },
     {
-      "toolTypeId": "132",
+      "id": "132",
       "description": "Stamp (File) Gear",
-      "toolClassificationId": "4",
+      "toolClassId": "4",
       "helpText": "Stamp (File) Gear"
     },
     {
-      "toolTypeId": "133",
+      "id": "133",
       "description": "Measuring (PLC) With Reloaded OP",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Measuring PLC With Reloaded Operation"
     },
     {
-      "toolTypeId": "135",
+      "id": "135",
       "description": "Tightening (Manual)",
-      "toolClassificationId": "3",
+      "toolClassId": "3",
       "helpText": "Tightening (Manual)"
     },
     {
-      "toolTypeId": "136",
+      "id": "136",
       "description": "LeakTest (SPA)",
-      "toolClassificationId": "6",
+      "toolClassId": "6",
       "helpText": "Leaktest connected via SPA service"
     },
     {
-      "toolTypeId": "137",
+      "id": "137",
       "description": "Scanner (Cognex) With Reloaded OP",
-      "toolClassificationId": "2",
+      "toolClassId": "2",
       "helpText": "Cognex-Scanner via Ethernet direct with Reloaded Operation"
     },
     {
-      "toolTypeId": "138",
+      "id": "138",
       "description": "BuildingCondition (SPA)",
-      "toolClassificationId": "34",
+      "toolClassId": "34",
       "helpText": "BuildingCondition via SPA"
     },
     {
-      "toolTypeId": "139",
+      "id": "139",
       "description": "InvisibleOperation",
-      "toolClassificationId": "23",
+      "toolClassId": "23",
       "helpText": "Generate operations for QGate without SC"
     },
     {
-      "toolTypeId": "141",
+      "id": "141",
       "description": "Testbench (File) UNIPAS 2",
-      "toolClassificationId": "27",
+      "toolClassId": "27",
       "helpText": "Unipas Testbench saved in measuring values"
     },
     {
-      "toolTypeId": "142",
+      "id": "142",
       "description": "Measuring (SPA) Picture",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Measuring (SPA) Picture"
     },
     {
-      "toolTypeId": "143",
+      "id": "143",
       "description": "Commissioning (WCF2)",
-      "toolClassificationId": "7",
+      "toolClassId": "7",
       "helpText": "Commissioning (WCF2)"
     },
     {
-      "toolTypeId": "92",
+      "id": "92",
       "description": "Measuring (PLC) Values Display",
-      "toolClassificationId": "9",
+      "toolClassId": "9",
       "helpText": "Measuring PLC with measured values (tool shows measured values list)"
     },
     {
-      "toolTypeId": "144",
+      "id": "144",
       "description": "TimeTracking (SPA)",
-      "toolClassificationId": "35",
+      "toolClassId": "35",
       "helpText": "TimeTracking via SPA"
     },
     {
-      "toolTypeId": "145",
+      "id": "145",
       "description": "Testbench (File) Unipas Axle",
-      "toolClassificationId": "27",
+      "toolClassId": "27",
       "helpText": "Reads results from UNIPAS (transmission) testbench file to show results in StationController tool and saves results in Measuring operation"
     },
     {
-      "toolTypeId": "146",
+      "id": "146",
       "description": "Check and Transfer Files",
-      "toolClassificationId": "5",
+      "toolClassId": "5",
       "helpText": "Checks SourcePath(ExecutionPath) and moves files to Destination(ExecutionArguments), if the amount of files(included in ProgNo) is correct"
     },
     {
-      "toolTypeId": "147",
+      "id": "147",
       "description": "User Login",
-      "toolClassificationId": "1",
+      "toolClassId": "1",
       "helpText": "Force the user to login"
     },
     {
-      "toolTypeId": "149",
+      "id": "149",
       "description": "Call Web Api",
-      "toolClassificationId": "5",
+      "toolClassId": "5",
       "helpText": "Call of external WebApi and processing of results"
     },
     {
-      "toolTypeId": "150",
+      "id": "150",
       "description": "Rework and Routing",
-      "toolClassificationId": "15",
+      "toolClassId": "15",
       "helpText": "Save reworks and route order"
     },
     {
-      "toolTypeId": "152",
+      "id": "152",
       "description": "PositionClear (WCF) Destination",
-      "toolClassificationId": "26",
+      "toolClassId": "26",
       "helpText": "PositionClear signal to WCF Tool with target for order (with Reload)"
     },
     {
-      "toolTypeId": "154",
+      "id": "154",
       "description": "ServiceLayer Tool",
-      "toolClassificationId": "36",
+      "toolClassId": "36",
       "helpText": "Tool for external communication via ServiceLayer"
     },
     {
-      "toolTypeId": "155",
+      "id": "155",
       "description": "ShiftUser Login",
-      "toolClassificationId": "1",
+      "toolClassId": "1",
       "helpText": "Request of a ShiftUser Login"
     }
   ],

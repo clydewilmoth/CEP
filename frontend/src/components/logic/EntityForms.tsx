@@ -814,20 +814,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
-  const [toolClass, setToolClassId] = useState<any>([]);
-  const [ToolTypes, setToolTypes] = useState<any>([]);
-  const toolClasses = data.ToolClasses;
-  function getToolTypes(ToolClassId: string) {
-    const ToolTypes = data.ToolTypes;
 
-    const filteredToolTypes = ToolClassId
-      ? ToolTypes.filter(
-          (toolType: { toolClassificationId: string }) =>
-            toolType.toolClassificationId === ToolClassId
-        )
-      : ToolTypes;
-    setToolTypes(filteredToolTypes);
-  }
   useEffect(() => {
     (async () => {
       const tool = await GetEntityDetails("tool", entityId);
@@ -1166,9 +1153,6 @@ export function ToolForm({ entityId }: { entityId: string }) {
                 value={field.value ?? ""}
                 onValueChange={(value) => {
                   field.onChange(value);
-                  setToolClassId(value);
-                  getToolTypes(value);
-                  localStorage.setItem("ToolClassId", value);
                   const json = JSON.parse(
                     localStorage.getItem(entityId) ?? "{}"
                   );
@@ -1185,18 +1169,31 @@ export function ToolForm({ entityId }: { entityId: string }) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {toolClasses.map((toolClass: { toolClassesId: string }) => (
-                    <SelectItem
-                      key={toolClass.toolClassesId}
-                      value={String(toolClass.toolClassesId)}
-                    >
-                      {t(
-                        "TC_" +
-                          String(toolClass.toolClassesId) +
-                          "_ToolClassName"
-                      )}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="none">-</SelectItem>
+                  {data.ToolClasses.map((toolclass) => {
+                    let skip = true;
+                    toolclass.toolTypeIds.every((tt) => {
+                      if (
+                        !form.getValues().ToolType ||
+                        form.getValues().ToolType == "none"
+                      ) {
+                        skip = false;
+                        return false;
+                      } else if (form.getValues().ToolType == tt) {
+                        skip = false;
+                        return false;
+                      }
+                      return true;
+                    });
+
+                    return (
+                      !skip && (
+                        <SelectItem key={toolclass.id} value={toolclass.id}>
+                          {t("TC_" + String(toolclass.id) + "_ToolClassName")}
+                        </SelectItem>
+                      )
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1232,25 +1229,49 @@ export function ToolForm({ entityId }: { entityId: string }) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {ToolTypes.map(
-                    (toolType: {
-                      toolTypeId: string;
-                      toolClassificationId: string;
-                    }) => (
-                      <SelectItem
-                        key={toolType.toolTypeId}
-                        value={String(toolType.toolTypeId)}
-                      >
-                        {t(
-                          "TT_" +
-                            String(toolType.toolTypeId) +
-                            "_" +
-                            String(toolType.toolClassificationId) +
-                            "_Description"
-                        )}
-                      </SelectItem>
+                  <SelectItem value="none">-</SelectItem>
+                  {data.ToolTypes.map((tooltype) => {
+                    let skip = true;
+
+                    if (
+                      !form.getValues().ToolClass ||
+                      form.getValues().ToolClass == "none"
                     )
-                  )}
+                      skip = false;
+                    else if (form.getValues().ToolClass == tooltype.toolClassId)
+                      skip = false;
+
+                    return (
+                      !skip && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SelectItem key={tooltype.id} value={tooltype.id}>
+                                {t(
+                                  "TT_" +
+                                    String(tooltype.id) +
+                                    "_" +
+                                    String(tooltype.toolClassId) +
+                                    "_Description"
+                                )}
+                              </SelectItem>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="max-w-md">
+                                {t(
+                                  "TT_" +
+                                    String(tooltype.id) +
+                                    "_" +
+                                    String(tooltype.toolClassId) +
+                                    "_HelpText"
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -1539,18 +1560,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
   const savingClasses = operationClasses.filter(
     (operationClass) => operationClass.classType === "SAVING"
   );
-  let ToolClassId = localStorage.getItem("ToolClassId") ?? "";
-  const toolClasses = data.ToolClasses;
-  const toolClass = toolClasses.find(
-    (toolClass: { toolClassesId: string }) =>
-      toolClass.toolClassesId === ToolClassId
-  );
-  const templtId = toolClass?.templateIds;
-  const template = data.Template.filter(
-    (template: { templateId: string | number }) =>
-      Array.isArray(templtId) &&
-      templtId.map(String).includes(String(template.templateId))
-  );
+
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     {}
   );
@@ -1948,18 +1958,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                     <SelectValue placeholder={t("TemplatePlaceholder")} />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
-                  {template.map(
-                    (template: { templateId: string; Description: string }) => (
-                      <SelectItem
-                        key={template.templateId}
-                        value={String(template.templateId)}
-                      >
-                        {t("T_" + String(template.templateId) + "_Description")}
-                      </SelectItem>
-                    )
-                  )}
-                </SelectContent>
+                <SelectContent></SelectContent>
               </Select>
             </FormItem>
           )}
