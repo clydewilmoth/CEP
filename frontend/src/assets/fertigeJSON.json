@@ -220,22 +220,24 @@
     {
       "id": "1",
       "name": "Controller",
-      "serialOrParallel": [0,1]
+      "serialOrParallel": ["0","1"]
     },
     {
       "id": "10",
       "name": "PCS",
-      "serialOrParallel": [1]
+      "serialOrParallel": ["1"]
     }
   ],
   "SerialOrParallel": [
     {
       "id": "0",
-      "name": "seriell"
+      "name": "seriell",
+      "stationTypes": ["1"]
     },
     {
       "id": "1",
-      "name": "parallel"
+      "name": "parallel",
+      "stationTypes": ["1","10"]
     }]
     ,
   "QGateRelevant": [

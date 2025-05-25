@@ -392,9 +392,6 @@ export function StationForm({ entityId }: { entityId: string }) {
     SerialOrParallel: z.string().optional(),
   });
 
-  const stationtypes = data.StationTypes;
-  const serialorparallel = data.SerialOrParallel;
-
   function clearDrafts() {
     localStorage.removeItem(entityId);
     setObserver((prev) => prev + 1);
@@ -679,11 +676,36 @@ export function StationForm({ entityId }: { entityId: string }) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {stationtypes.map((stationtype) => (
-                    <SelectItem key={stationtype.id} value={stationtype.id}>
-                      {t("ST_" + String(stationtype.id) + "_Name")}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="none">-</SelectItem>
+                  {data.StationTypes.map((stationtype) => {
+                    let skip = true;
+                    stationtype.serialOrParallel.every((sop) => {
+                      if (
+                        !form.getValues().SerialOrParallel ||
+                        form.getValues().SerialOrParallel == "none"
+                      ) {
+                        skip = false;
+                        return false;
+                      } else if (form.getValues().SerialOrParallel == sop) {
+                        skip = false;
+                        return false;
+                      }
+                      return true;
+                    });
+                    if (
+                      !form.getValues().SerialOrParallel ||
+                      (form.getValues().SerialOrParallel == "none" &&
+                        stationtype.id == "0")
+                    )
+                      skip = false;
+                    return (
+                      !skip && (
+                        <SelectItem key={stationtype.id} value={stationtype.id}>
+                          {t("ST_" + String(stationtype.id) + "_Name")}
+                        </SelectItem>
+                      )
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -721,14 +743,34 @@ export function StationForm({ entityId }: { entityId: string }) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {serialorparallel.map((serialorparallel) => (
-                    <SelectItem
-                      key={serialorparallel.id}
-                      value={serialorparallel.id}
-                    >
-                      {t("SOP_" + String(serialorparallel.id) + "_name")}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="none">-</SelectItem>
+                  {data.SerialOrParallel.map((serialorparallel) => {
+                    let skip = true;
+                    serialorparallel.stationTypes.every((st) => {
+                      if (
+                        !form.getValues().StationType ||
+                        form.getValues().StationType == "none"
+                      ) {
+                        skip = false;
+                        return false;
+                      } else if (form.getValues().StationType == st) {
+                        skip = false;
+                        return false;
+                      }
+                      return true;
+                    });
+
+                    return (
+                      !skip && (
+                        <SelectItem
+                          key={serialorparallel.id}
+                          value={serialorparallel.id}
+                        >
+                          {t("SOP_" + String(serialorparallel.id) + "_name")}
+                        </SelectItem>
+                      )
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </FormItem>
