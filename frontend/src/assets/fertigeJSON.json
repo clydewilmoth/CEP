@@ -1,216 +1,366 @@
 {
-  "Template": [
-    {
-      "templateId": "1",
-      "Description": "Check and Information Standard",
-      "ShortName": "CheckInfo",
-      "templateClassificationId": "1",
-      "ObjectType": "OperationCheck"
-    },
-    {
-      "templateId": "2",
-      "Description": "Scanning Standard",
-      "ShortName": "Scanning",
-      "templateClassificationId": "2",
-      "ObjectType": "OperationScanning"
-    },
-    {
-      "templateId": "3",
-      "Description": "Tightening Standard",
-      "ShortName": "Tightening",
-      "templateClassificationId": "3",
-      "ObjectType": "OperationTightening"
-    },
-    {
-      "templateId": "4",
-      "Description": "Stamping Standard",
-      "ShortName": "Stamping",
-      "templateClassificationId": "4",
-      "ObjectType": "OperationStamping"
-    },
-    {
-      "templateId": "5",
-      "Description": "Execution Standard",
-      "ShortName": "Execution",
-      "templateClassificationId": "5",
-      "ObjectType": "OperationExecution"
-    },
-    {
-      "templateId": "6",
-      "Description": "LeakTest Standard",
-      "ShortName": "LeakTest",
-      "templateClassificationId": "6",
-      "ObjectType": "OperationLeakTest"
-    },
-    {
-      "templateId": "7",
-      "Description": "Commissioning Standard",
-      "ShortName": "Commissioning",
-      "templateClassificationId": "7",
-      "ObjectType": "OperationCommissioning"
-    },
-    {
-      "templateId": "8",
-      "Description": "MCM Flashing Standard",
-      "ShortName": "MCM Flashing",
-      "templateClassificationId": "8",
-      "ObjectType": "OperationMCMFlashing"
-    },
-    {
-      "templateId": "9",
-      "Description": "Measuring Standard",
-      "ShortName": "Measuring",
-      "templateClassificationId": "9",
-      "ObjectType": "OperationMeasuring"
-    },
-    {
-      "templateId": "10",
-      "Description": "TSKCheck Standard",
-      "ShortName": "TSKCheck",
-      "templateClassificationId": "10",
-      "ObjectType": "OperationTSKCheck"
-    },
-    {
-      "templateId": "11",
-      "Description": "Labelprint Standard",
-      "ShortName": "Labelprint",
-      "templateClassificationId": "11",
-      "ObjectType": "OperationLabelprint"
-    },
-    {
-      "templateId": "12",
-      "Description": "LiquidFilling Standard",
-      "ShortName": "LiquidFilling",
-      "templateClassificationId": "12",
-      "ObjectType": "OperationLiquidFilling"
-    },
-    {
-      "templateId": "13",
-      "Description": "ColdTestTausch Standard",
-      "ShortName": "ColdTestTausch",
-      "templateClassificationId": "13",
-      "ObjectType": "OperationColdTestTausch"
-    },
-    {
-      "templateId": "14",
-      "Description": "Testing Standard",
-      "ShortName": "Testing",
-      "templateClassificationId": "14",
-      "ObjectType": "OperationTesting"
-    },
-    {
-      "templateId": "15",
-      "Description": "Decision Standard",
-      "ShortName": "Decision",
-      "templateClassificationId": "15",
-      "ObjectType": "OperationDecision"
-    },
-    {
-      "templateId": "16",
-      "Description": "CarrierMarriage Standard",
-      "ShortName": "CarrierMarriage",
-      "templateClassificationId": "16",
-      "ObjectType": "OperationCarrierMarriage"
-    },
-    {
-      "templateId": "17",
-      "Description": "Cooling Standard",
-      "ShortName": "Cooling",
-      "templateClassificationId": "17",
-      "ObjectType": "OperationCooling"
-    },
-    {
-      "templateId": "18",
-      "Description": "ThreeDScann Standard",
-      "ShortName": "ThreeDScann",
-      "templateClassificationId": "18",
-      "ObjectType": "OperationThreeDScann"
-    },
-    {
-      "templateId": "19",
-      "Description": "Painting Standard",
-      "ShortName": "Painting",
-      "templateClassificationId": "19",
-      "ObjectType": "OperationPainting"
-    },
-    {
-      "templateId": "20",
-      "Description": "Drying Standard",
-      "ShortName": "Drying",
-      "templateClassificationId": "20",
-      "ObjectType": "OperationDrying"
-    },
-    {
-      "templateId": "21",
-      "Description": "COTwoCleaning Standard",
-      "ShortName": "COTwoCleaning",
-      "templateClassificationId": "21",
-      "ObjectType": "OperationCOTwoCleaning"
-    },
-    {
-      "templateId": "22",
-      "Description": "ValveLashCheck Standard",
-      "ShortName": "ValveLashCheck",
-      "templateClassificationId": "22",
-      "ObjectType": "OperationValveLashTactile"
-    },
-    {
-      "templateId": "23",
-      "Description": "ShippingRack Standard",
-      "ShortName": "ShippingRack",
-      "templateClassificationId": "23",
-      "ObjectType": "OperationShippingRack"
-    },
-    {
-      "templateId": "24",
-      "Description": "FitIn Standard",
-      "ShortName": "FitIn",
-      "templateClassificationId": "24",
-      "ObjectType": "OperationFitIn"
-    },
-    {
-      "templateId": "25",
-      "Description": "PositionClear Standard",
-      "ShortName": "PositionClear",
-      "templateClassificationId": "25",
-      "ObjectType": "OperationPositionClear"
-    },
-    {
-      "templateId": "26",
-      "Description": "EngineTest Standard",
-      "ShortName": "EngineTest",
-      "templateClassificationId": "26",
-      "ObjectType": "OperationEngineTest"
-    },
-    {
-      "templateId": "27",
-      "Description": "PictureCapture Standard",
-      "ShortName": "PictureCapture",
-      "templateClassificationId": "27",
-      "ObjectType": "OperationPictureCapture"
-    },
-    {
-      "templateId": "28",
-      "Description": "Calculate Standard",
-      "ShortName": "Calculate",
-      "templateClassificationId": "28",
-      "ObjectType": "OperationCalculate"
-    },
-    {
-      "templateId": "29",
-      "Description": "BuildingCondition Standard",
-      "ShortName": "BuildCondition",
-      "templateClassificationId": "29",
-      "ObjectType": "OperationBuildingCondition"
-    },
-    {
-      "templateId": "30",
-      "Description": "TimeTracking Standard",
-      "ShortName": "TimeTracking",
-      "templateClassificationId": "30",
-      "ObjectType": "OperationTimeTracking"
-    }
-  ],
+  "Templates": [
+  {
+    "id": "1",
+    "description": "Check and Information Standard",
+    "name": "CheckInfo",
+    "templateClassificationId": "1",
+    "objectType": "OperationCheck",
+    "toolClassesIds": ["1", "23", "28", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1", "4", "5", "6", "7"],
+    "savingClassIds": ["2", "3", "4"],
+    "verificationClassIds": ["1", "2", "3", "4", "5", "6", "7"]
+  },
+  {
+    "id": "2",
+    "description": "Scanning Standard",
+    "name": "Scanning",
+    "templateClassificationId": "2",
+    "objectType": "OperationScanning",
+    "toolClassesIds": ["2", "23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1", "7", "8", "10", "11", "12", "14"],
+    "savingClassIds": ["1", "2", "3", "4", "5", "6", "7", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"],
+    "verificationClassIds": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "97"]
+  },
+  {
+    "id": "3",
+    "description": "Tightening Standard",
+    "name": "Tightening",
+    "templateClassificationId": "3",
+    "objectType": "OperationTightening",
+    "toolClassesIds": ["3", "23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1", "2", "3"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "4",
+    "description": "Stamping Standard",
+    "name": "Stamping",
+    "templateClassificationId": "4",
+    "objectType": "OperationStamping",
+    "toolClassesIds": ["4", "23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1", "2", "4", "5", "6", "9", "10", "11", "12", "13", "14", "15", "16", "17"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "5",
+    "description": "Execution Standard",
+    "name": "Execution",
+    "templateClassificationId": "5",
+    "objectType": "OperationExecution",
+    "toolClassesIds": ["5", "23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1", "2"],
+    "savingClassIds": ["1", "2"],
+    "verificationClassIds": ["1", "2"]
+  },
+  {
+    "id": "6",
+    "description": "LeakTest Standard",
+    "name": "LeakTest",
+    "templateClassificationId": "6",
+    "objectType": "OperationLeakTest",
+    "toolClassesIds": ["6", "23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "7",
+    "description": "Commissioning Standard",
+    "name": "Commissioning",
+    "templateClassificationId": "7",
+    "objectType": "OperationCommissioning",
+    "toolClassesIds": ["7", "23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1", "2", "4", "5", "6", "7", "8", "9", "10"],
+    "savingClassIds": ["1", "2"],
+    "verificationClassIds": ["1", "2"]
+  },
+  {
+    "id": "8",
+    "description": "MCM Flashing Standard",
+    "name": "MCM Flashing",
+    "templateClassificationId": "8",
+    "objectType": "OperationMCMFlashing",
+    "toolClassesIds": ["23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "9",
+    "description": "Measuring Standard",
+    "name": "Measuring",
+    "templateClassificationId": "9",
+    "objectType": "OperationMeasuring",
+    "toolClassesIds": ["9", "23", "27", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1", "2", "3"],
+    "savingClassIds": ["1", "2"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "10",
+    "description": "TSKCheck Standard",
+    "name": "TSKCheck",
+    "templateClassificationId": "10",
+    "objectType": "OperationTSKCheck",
+    "toolClassesIds": ["23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "11",
+    "description": "Labelprint Standard",
+    "name": "Labelprint",
+    "templateClassificationId": "11",
+    "objectType": "OperationLabelprint",
+    "toolClassesIds": ["23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "12",
+    "description": "LiquidFilling Standard",
+    "name": "LiquidFilling",
+    "templateClassificationId": "12",
+    "objectType": "OperationLiquidFilling",
+    "toolClassesIds": ["12", "23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1", "2", "5", "6"],
+    "savingClassIds": ["1", "2", "3"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "13",
+    "description": "ColdTestTausch Standard",
+    "name": "ColdTestTausch",
+    "templateClassificationId": "13",
+    "objectType": "OperationColdTestTausch",
+    "toolClassesIds": ["23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "14",
+    "description": "Testing Standard",
+    "name": "Testing",
+    "templateClassificationId": "14",
+    "objectType": "OperationTesting",
+    "toolClassesIds": ["23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "15",
+    "description": "Decision Standard",
+    "name": "Decision",
+    "templateClassificationId": "15",
+    "objectType": "OperationDecision",
+    "toolClassesIds": ["15", "23", "30", "31", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1", "2", "3"],
+    "savingClassIds": ["1", "2"],
+    "verificationClassIds": ["1", "2", "3"]
+  },
+  {
+    "id": "16",
+    "description": "CarrierMarriage Standard",
+    "name": "CarrierMarriage",
+    "templateClassificationId": "16",
+    "objectType": "OperationCarrierMarriage",
+    "toolClassesIds": ["16", "23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1", "2"],
+    "savingClassIds": ["1", "2"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "17",
+    "description": "Cooling Standard",
+    "name": "Cooling",
+    "templateClassificationId": "17",
+    "objectType": "OperationCooling",
+    "toolClassesIds": ["23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "18",
+    "description": "ThreeDScann Standard",
+    "name": "ThreeDScann",
+    "templateClassificationId": "18",
+    "objectType": "OperationThreeDScann",
+    "toolClassesIds": ["23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "19",
+    "description": "Painting Standard",
+    "name": "Painting",
+    "templateClassificationId": "19",
+    "objectType": "OperationPainting",
+    "toolClassesIds": ["23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "20",
+    "description": "Drying Standard",
+    "name": "Drying",
+    "templateClassificationId": "20",
+    "objectType": "OperationDrying",
+    "toolClassesIds": ["23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "21",
+    "description": "COTwoCleaning Standard",
+    "name": "COTwoCleaning",
+    "templateClassificationId": "21",
+    "objectType": "OperationCOTwoCleaning",
+    "toolClassesIds": ["23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "22",
+    "description": "ValveLashCheck Standard",
+    "name": "ValveLashCheck",
+    "templateClassificationId": "22",
+    "objectType": "OperationValveLashTactile",
+    "toolClassesIds": ["23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "23",
+    "description": "ShippingRack Standard",
+    "name": "ShippingRack",
+    "templateClassificationId": "23",
+    "objectType": "OperationShippingRack",
+    "toolClassesIds": ["23", "24", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "24",
+    "description": "FitIn Standard",
+    "name": "FitIn",
+    "templateClassificationId": "24",
+    "objectType": "OperationFitIn",
+    "toolClassesIds": ["23", "25", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1", "2"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "25",
+    "description": "PositionClear Standard",
+    "name": "PositionClear",
+    "templateClassificationId": "25",
+    "objectType": "OperationPositionClear",
+    "toolClassesIds": ["23", "26", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1", "2", "3", "4", "5"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "26",
+    "description": "EngineTest Standard",
+    "name": "EngineTest",
+    "templateClassificationId": "26",
+    "objectType": "OperationEngineTest",
+    "toolClassesIds": ["23", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "27",
+    "description": "PictureCapture Standard",
+    "name": "PictureCapture",
+    "templateClassificationId": "27",
+    "objectType": "OperationPictureCapture",
+    "toolClassesIds": ["23", "32", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "28",
+    "description": "Calculate Standard",
+    "name": "Calculate",
+    "templateClassificationId": "28",
+    "objectType": "OperationCalculate",
+    "toolClassesIds": ["23", "33", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "29",
+    "description": "BuildingCondition Standard",
+    "name": "BuildCondition",
+    "templateClassificationId": "29",
+    "objectType": "OperationBuildingCondition",
+    "toolClassesIds": ["23", "34", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1", "2", "3"],
+    "savingClassIds": ["1", "2"],
+    "verificationClassIds": []
+  },
+  {
+    "id": "30",
+    "description": "TimeTracking Standard",
+    "name": "TimeTracking",
+    "templateClassificationId": "30",
+    "objectType": "OperationTimeTracking",
+    "toolClassesIds": ["23", "35", "36"],
+    "decisionClassIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48"],
+    "generationClassIds": ["1", "2"],
+    "savingClassIds": ["1"],
+    "verificationClassIds": []
+  }
+],
   "StationTypes": [
     {
       "id": "0",
@@ -1024,1796 +1174,1546 @@
       "helpText": "Request of a ShiftUser Login"
     }
   ],
-  "OperationClasses": [
+  "DecisionClasses": [
     {
-      "classType": "DECISION",
-      "classId": "1",
-      "classDescription": "01 - Immer ausführen",
-      "templateId": "0",
+      "id": "1",
+      "description": "01 - Immer ausführen",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Immer ausführen mit konstanten Operations-Parametern"
     },
     {
-      "classType": "DECISION",
-      "classId": "2",
-      "classDescription": "02 - Variante",
-      "templateId": "0",
+      "id": "2",
+      "description": "02 - Variante",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Variante des Auftrages"
     },
     {
-      "classType": "DECISION",
-      "classId": "3",
-      "classDescription": "03 - Baumuster",
-      "templateId": "0",
+      "id": "3",
+      "description": "03 - Baumuster",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Baumuster des Auftrages"
     },
     {
-      "classType": "DECISION",
-      "classId": "4",
-      "classDescription": "04 - Teil",
-      "templateId": "0",
+      "id": "4",
+      "description": "04 - Teil",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Teil in der Stückliste des Auftrags. Stationsunabhängig"
     },
     {
-      "classType": "DECISION",
-      "classId": "5",
-      "classDescription": "05 - SAA",
-      "templateId": "0",
+      "id": "5",
+      "description": "05 - SAA",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "SAA in der Stückliste des Auftrags."
     },
     {
-      "classType": "DECISION",
-      "classId": "9",
-      "classDescription": "09 - Teil Referenz zu Scannerergebnis",
-      "templateId": "0",
+      "id": "9",
+      "description": "09 - Teil Referenz zu Scannerergebnis",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Entscheidung über Teil in der Stückliste mit Bezug auf das Scannerergebnis der Referenzoperation. Wird benötigt, wenn die hier verwendete JobNr abhängig ist von einem wahlweise verbauten Teil in einer vorangegangenen Station"
     },
     {
-      "classType": "DECISION",
-      "classId": "11",
-      "classDescription": "11 - Teil mit Stationszuordnung (alle MU)",
-      "templateId": "0",
+      "id": "11",
+      "description": "11 - Teil mit Stationszuordnung (alle MU)",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Teil in der Stückliste des Auftrags und einem beliebigen Montageumfang (MU) der aktuellen Station. Erforderlich z.B. für Kommissionierung (PickToLight) um korrekte Teileanzahl und Regalplatz in der aktuellen Station zu ermitteln"
     },
     {
-      "classType": "DECISION",
-      "classId": "16",
-      "classDescription": "16 - RefOp ohne IO Ergebnis",
-      "templateId": "0",
+      "id": "16",
+      "description": "16 - RefOp ohne IO Ergebnis",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Mindestens eine Referenzoperation hat kein IO Ergebnis"
     },
     {
-      "classType": "DECISION",
-      "classId": "17",
-      "classDescription": "17 - Teil und SAA",
-      "templateId": "0",
+      "id": "17",
+      "description": "17 - Teil und SAA",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Teil in der Stückliste stationsunabhängig (wie 4) und SAA (Verknüpfung: logisches UND)"
     },
     {
-      "classType": "DECISION",
-      "classId": "18",
-      "classDescription": "18 - Teil und Baumuster",
-      "templateId": "0",
+      "id": "18",
+      "description": "18 - Teil und Baumuster",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Teil und Baumuster (Verknüpfung: logisches UND)"
     },
     {
-      "classType": "DECISION",
-      "classId": "21",
-      "classDescription": "21 - Montagelinie",
-      "templateId": "0",
+      "id": "21",
+      "description": "21 - Montagelinie",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Dem Auftrag zugewiesene Montagelinie"
     },
     {
-      "classType": "DECISION",
-      "classId": "22",
-      "classDescription": "22 - Teil mit Station und MU",
-      "templateId": "0",
+      "id": "22",
+      "description": "22 - Teil mit Station und MU",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Teil in der Stückliste des Auftrags und einem bestimmten Montageumfang (MU) der aktuellen Station. Erforderlich z.B. für Kommissionierung (PickToLight) um Station in linkes und rechtes Regal aufzuteilen"
     },
     {
-      "classType": "DECISION",
-      "classId": "23",
-      "classDescription": "23 - Baumuster und SAA",
-      "templateId": "0",
+      "id": "23",
+      "description": "23 - Baumuster und SAA",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Baumuster und SAA muss im Auftrag sein. (Verknüpfung: logisches UND)"
     },
     {
-      "classType": "DECISION",
-      "classId": "24",
-      "classDescription": "24 - Baumuster und SAA und Attribut",
-      "templateId": "0",
+      "id": "24",
+      "description": "24 - Baumuster und SAA und Attribut",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Baumuster und SAA und AttributeCode und AttributeValue müssen im Auftrag sein (Verknüpfung: logisches UND)"
     },
     {
-      "classType": "DECISION",
-      "classId": "25",
-      "classDescription": "25 - SAA und SAA",
-      "templateId": "0",
+      "id": "25",
+      "description": "25 - SAA und SAA",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Beide SAAs müssen im Auftrag sein. (Verknüpfung: logisches UND)"
     },
     {
-      "classType": "DECISION",
-      "classId": "26",
-      "classDescription": "26 - Attribut",
-      "templateId": "0",
+      "id": "26",
+      "description": "26 - Attribut",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "AttributeCode und AttributeValue müssen im Auftrag sein (Verknüpfung: logisches UND)"
     },
     {
-      "classType": "DECISION",
-      "classId": "27",
-      "classDescription": "27 - Station MU",
-      "templateId": "0",
+      "id": "27",
+      "description": "27 - Station MU",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Entscheidung über den MU in einer Station"
     },
     {
-      "classType": "DECISION",
-      "classId": "28",
-      "classDescription": "28 - Baumuster und Attribut",
-      "templateId": "0",
+      "id": "28",
+      "description": "28 - Baumuster und Attribut",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Baumuster und AttributeCode und AttributeValue müssen im Auftrag sein (Verknüpfung: logisches UND). Bei AttributeCode = % wird nur über das Baumuster geprüft."
     },
     {
-      "classType": "DECISION",
-      "classId": "29",
-      "classDescription": "29 - Kundennummer",
-      "templateId": "0",
+      "id": "29",
+      "description": "29 - Kundennummer",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Kundennummer"
     },
     {
-      "classType": "DECISION",
-      "classId": "30",
-      "classDescription": "30 - Kundennummer + Spezial",
-      "templateId": "0",
+      "id": "30",
+      "description": "30 - Kundennummer + Spezial",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Kundennummer und Spezialprozedur"
     },
     {
-      "classType": "DECISION",
-      "classId": "31",
-      "classDescription": "31 - Kundennummer + Variante",
-      "templateId": "0",
+      "id": "31",
+      "description": "31 - Kundennummer + Variante",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Kundennummer und Variante"
     },
     {
-      "classType": "DECISION",
-      "classId": "32",
-      "classDescription": "32 - Teilenummer + ZGS",
-      "templateId": "0",
+      "id": "32",
+      "description": "32 - Teilenummer + ZGS",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Partno und ZGS"
     },
     {
-      "classType": "DECISION",
-      "classId": "33",
-      "classDescription": "33 - Teilenummer + Attribut",
-      "templateId": "0",
+      "id": "33",
+      "description": "33 - Teilenummer + Attribut",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "PartNo und Attribut"
     },
     {
-      "classType": "DECISION",
-      "classId": "34",
-      "classDescription": "34 - Referenzoperation NIO + Teil",
-      "templateId": "0",
+      "id": "34",
+      "description": "34 - Referenzoperation NIO + Teil",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Mehrere Referenzoperationen NOK und Teilenummer (DecisionClass = 4)"
     },
     {
-      "classType": "DECISION",
-      "classId": "35",
-      "classDescription": "35 - Referenzoperation NIO + Variante Input Format",
-      "templateId": "0",
+      "id": "35",
+      "description": "35 - Referenzoperation NIO + Variante Input Format",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Mehrere Referenzoperationen NOK und Variante Input Format (DecisionClass = 7)"
     },
     {
-      "classType": "DECISION",
-      "classId": "36",
-      "classDescription": "36 - Referenzoperation IO + Teil",
-      "templateId": "0",
+      "id": "36",
+      "description": "36 - Referenzoperation IO + Teil",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Mehrere Referenzoperationen OK und Teilenummer (DecisionClass = 4)"
     },
     {
-      "classType": "DECISION",
-      "classId": "37",
-      "classDescription": "37 - Referenzoperation IO + Variante Input Format",
-      "templateId": "0",
+      "id": "37",
+      "description": "37 - Referenzoperation IO + Variante Input Format",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Mehrere Referenzoperationen OK und Variante Input Format (DecisionClass = 7)"
     },
     {
-      "classType": "DECISION",
-      "classId": "38",
-      "classDescription": "38 - Kundennummer + Baumuster + SAA",
-      "templateId": "0",
+      "id": "38",
+      "description": "38 - Kundennummer + Baumuster + SAA",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Kundennummer und Baumuster und SAA muss im Auftrag sein. (Verknüpfung: logisches UND)"
     },
     {
-      "classType": "DECISION",
-      "classId": "39",
-      "classDescription": "39 - Plangruppenzähler + Plangruppe",
-      "templateId": "0",
+      "id": "39",
+      "description": "39 - Plangruppenzähler + Plangruppe",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Plangruppenzähler + Plangruppe (SAP)"
     },
     {
-      "classType": "DECISION",
-      "classId": "40",
-      "classDescription": "40 - Warenempfänger(RecipCustomerNo)",
-      "templateId": "0",
+      "id": "40",
+      "description": "40 - Warenempfänger(RecipCustomerNo)",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Warenempfänger(RecipCustomerNo)"
     },
     {
-      "classType": "DECISION",
-      "classId": "41",
-      "classDescription": "41 - Kundenmaterialnummer",
-      "templateId": "0",
+      "id": "41",
+      "description": "41 - Kundenmaterialnummer",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Kundenmaterialnummer"
     },
     {
-      "classType": "DECISION",
-      "classId": "42",
-      "classDescription": "42 - Teil und Variante",
-      "templateId": "0",
+      "id": "42",
+      "description": "42 - Teil und Variante",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Teil und Variante"
     },
     {
-      "classType": "DECISION",
-      "classId": "43",
-      "classDescription": "43 - Baumuster + Teil + Montagelinie",
-      "templateId": "0",
+      "id": "43",
+      "description": "43 - Baumuster + Teil + Montagelinie",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Baumuster und Teil und Montagelinie"
     },
     {
-      "classType": "DECISION",
-      "classId": "44",
-      "classDescription": "44 - Baumuster + Teil + Teil",
-      "templateId": "0",
+      "id": "44",
+      "description": "44 - Baumuster + Teil + Teil",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Baumuster und Teil und Teil"
     },
     {
-      "classType": "DECISION",
-      "classId": "45",
-      "classDescription": "45 - Lagerort",
-      "templateId": "0",
+      "id": "45",
+      "description": "45 - Lagerort",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Entscheidung über Lagerort BS_ORDER.deliverystock"
     },
     {
-      "classType": "DECISION",
-      "classId": "46",
-      "classDescription": "46 - Station MU + Montagelinie",
-      "templateId": "0",
+      "id": "46",
+      "description": "46 - Station MU + Montagelinie",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Entscheidung über Station MU + Montagelinie"
     },
     {
-      "classType": "DECISION",
-      "classId": "47",
-      "classDescription": "47 - Orderstatus",
-      "templateId": "0",
+      "id": "47",
+      "description": "47 - Orderstatus",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Orderstatus des Auftrages"
     },
     {
-      "classType": "DECISION",
-      "classId": "48",
-      "classDescription": "48 - Berechnete RefOp ohne IO Ergebnis",
-      "templateId": "0",
+      "id": "48",
+      "description": "48 - Berechnete RefOp ohne IO Ergebnis",
+      "templateIds" :  ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],
       "helpText": "Mindestens eine berechnete Referenzoperation hat kein IO"
-    },
+    }
+  ],
+  "GenerationClasses": [
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "1",
       "helpText": "Standard, wird aus der templatebezogenen Detailtabelle OsRef_CheckingDetail gefüllt"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard (Info aus Stückliste)",
+      "id": "1",
+      "description": "01 - Standard (Info aus Stückliste)",
       "templateId": "2",
       "helpText": "Standard, Zusatzinfo Acceptor, Validity, Partname, Partamount aus VIEW_OS_PARTS (Variantenteil mit Teil und Auftrag)"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "3",
       "helpText": "Standard, Zusatzinfo (ProgNo) aus OsRef_TighteningDetail auslesen"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Typschild 3 Zeilen",
+      "id": "1",
+      "description": "01 - Typschild 3 Zeilen",
       "templateId": "4",
       "helpText": "Präge Typschild: Prägestring aus bs_dottingdata und der AENR anstelle xxxxxx auf 60 Stellen reduziert 3-zeilig"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "5",
       "helpText": "Standard, Zusatzinfo (ProgNo, Path, Parameter) aus OsRef_ExecutionDetail auslesen"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "6",
       "helpText": "Standard, Zusatzinfo (ProgNo) aus OsRef_LeakTestDetail auslesen"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "7",
       "helpText": "Standard, Zusatzinfo (ProgNo) aus OsRef_CommissioningDetail und Teileinfo aus VIEW_OS_PartsPerStation auslesen"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "8",
       "helpText": "Standard, Zusatzinfo wird über fct_ECUGetOrderData ausgelesen. Sollte verbessert werden!"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "9",
       "helpText": "Standard, Zusatzinfo (ProgNo, NumberOfLimits) aus OsRef_MeasuringDetail auslesen"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "10",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "11",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Restölmenge berechnen (nur SC/SPA)",
+      "id": "1",
+      "description": "01 - Restölmenge berechnen (nur SC/SPA)",
       "templateId": "12",
       "helpText": "Min und Max aus ConfigExplorer. ActualLiquidAmount wird aus letztem Ergebnis berechnet. Nur mit SC/SPA und Saving Class 1 verwenden"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "13",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "14",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "15",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "16",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "17",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "18",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "19",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "20",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "21",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "22",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "23",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "24",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "25",
       "helpText": "Default, parameters from ConfigExplorer"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "26",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "27",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "28",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "29",
       "helpText": "Standard, Tabelle Os_BuildingConditionDetailList wird mit für Montageauftrag relevanten SAA's gefüllt"
     },
     {
-      "classType": "GENERATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "30",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "2",
-      "classDescription": "02 - Motornummer",
+      "id": "2",
+      "description": "02 - Motornummer",
       "templateId": "4",
       "helpText": "Präge Motornummer: Prägestring aus Vieworder.unitnumber_part1 und unitendno zusammensetzen"
     },
     {
-      "classType": "GENERATION",
-      "classId": "2",
-      "classDescription": "02 - Emission label",
+      "id": "2",
+      "description": "02 - Emission label",
       "templateId": "5",
       "helpText": "Dateiname als Arguments"
     },
     {
-      "classType": "GENERATION",
-      "classId": "2",
-      "classDescription": "02- Fach aus Konfiguration übernehmen",
+      "id": "2",
+      "description": "02- Fach aus Konfiguration übernehmen",
       "templateId": "7",
       "helpText": "Holt die Daten aus der Stückliste bis auf die Consumerlocation!! Speziell für DDC Motoren, wenn also Consumerlocation nicht von SAP kommt. Ist Teil nicht in der Stückliste, dann werden die Detaildaten übernommen"
     },
     {
-      "classType": "GENERATION",
-      "classId": "2",
-      "classDescription": "02 - Mit Limits der ReferenzOP",
+      "id": "2",
+      "description": "02 - Mit Limits der ReferenzOP",
       "templateId": "9",
       "helpText": "Holt die Limitwerte aus den Ergebnissen der Referenzoperation Measuring"
     },
     {
-      "classType": "GENERATION",
-      "classId": "2",
-      "classDescription": "02 - Daten aus Auftrag",
+      "id": "2",
+      "description": "02 - Daten aus Auftrag",
       "templateId": "12",
       "helpText": "Menge wird aus der Stückliste ermittelt, restliche Parameter aus Konfigurationsdaten"
     },
     {
-      "classType": "GENERATION",
-      "classId": "2",
-      "classDescription": "02 - Auftragsziel",
+      "id": "2",
+      "description": "02 - Auftragsziel",
       "templateId": "15",
       "helpText": "Übernimmt Vieworder.act_conveyordestination als Ziel"
     },
     {
-      "classType": "GENERATION",
-      "classId": "2",
-      "classDescription": "02 - Carrier Left+Right",
+      "id": "2",
+      "description": "02 - Carrier Left+Right",
       "templateId": "16",
       "helpText": "Standard"
     },
     {
-      "classType": "GENERATION",
-      "classId": "2",
-      "classDescription": "02 - Multi step calculation",
+      "id": "2",
+      "description": "02 - Multi step calculation",
       "templateId": "24",
       "helpText": "Berechnet die Jobnummer aus den Jobnummern mehrerer Operationen. ReferenzoperationId erforderlich"
     },
     {
-      "classType": "GENERATION",
-      "classId": "2",
-      "classDescription": "02 - aktuell nicht wählbar",
+      "id": "2",
+      "description": "02 - aktuell nicht wählbar",
       "templateId": "25",
       "helpText": "Spezial Radnabe Gaggenau Entnahme Band 8 und 40"
     },
     {
-      "classType": "GENERATION",
-      "classId": "2",
-      "classDescription": "02 - Download Orderdata to PLC",
+      "id": "2",
+      "description": "02 - Download Orderdata to PLC",
       "templateId": "29",
       "helpText": "Download RackID, Vin, Orderinfo to PLC"
     },
     {
-      "classType": "GENERATION",
-      "classId": "2",
-      "classDescription": "02 - Mit Zeitstempel der ReferenzOP",
+      "id": "2",
+      "description": "02 - Mit Zeitstempel der ReferenzOP",
       "templateId": "30",
       "helpText": "Holt den Zeitstempel aus dem Ergebnis der TimeTracking Referenzoperation"
     },
     {
-      "classType": "GENERATION",
-      "classId": "3",
-      "classDescription": "03 - Multi step calculation reference OP",
+      "id": "3",
+      "description": "03 - Multi step calculation reference OP",
       "templateId": "9",
       "helpText": "Berechnet die Jobnummer aus den Jobnummern mehrerer Operationen. ReferenzoperationId erforderlich"
     },
     {
-      "classType": "GENERATION",
-      "classId": "3",
-      "classDescription": "03 - Prüfung auf Referenz OPs OK",
+      "id": "3",
+      "description": "03 - Prüfung auf Referenz OPs OK",
       "templateId": "15",
       "helpText": "Berechnet ob alle Referenzoperationen IO sind (OperationResult-Summe bei StationEnter für PCS) - Gibt in Programmnummer 1 für alles OK oder 2 für nicht alles OK, - zu prüfende Operation(en) über VerificationClass 2 zu definieren"
     },
     {
-      "classType": "GENERATION",
-      "classId": "3",
-      "classDescription": "03 - Ziel aus Referenz OP Decision",
+      "id": "3",
+      "description": "03 - Ziel aus Referenz OP Decision",
       "templateId": "25",
       "helpText": "Lese Destination aus Ergebnis der Referenz-Operation vom Typ Decision"
     },
     {
-      "classType": "GENERATION",
-      "classId": "3",
-      "classDescription": "03 - Kassel Temp SAA",
+      "id": "3",
+      "description": "03 - Kassel Temp SAA",
       "templateId": "29",
       "helpText": "SAA plus Zusatz aus RefOps"
     },
     {
-      "classType": "GENERATION",
-      "classId": "4",
-      "classDescription": "04 - Teilenummer",
+      "id": "4",
+      "description": "04 - Teilenummer",
       "templateId": "1",
       "helpText": "Anzeige Prüfoperation mit angezeigter Teilenummer. Wie Class 1 zusätzlich Hinweis mit der Teilenummer. Nur Möglich mit Decision Teil!"
     },
     {
-      "classType": "GENERATION",
-      "classId": "4",
-      "classDescription": "04 - Typschild 5 Zeilen",
+      "id": "4",
+      "description": "04 - Typschild 5 Zeilen",
       "templateId": "4",
       "helpText": "Präge Typschild: Prägestring aus bs_dottingdata und der AENR anstelle xxxxxx (wie 1 aber komplett 100 Zeichen = 5 Zeilen)"
     },
     {
-      "classType": "GENERATION",
-      "classId": "4",
-      "classDescription": "04 - Verwendung Konfigurationsdaten / Stückliste",
+      "id": "4",
+      "description": "04 - Verwendung Konfigurationsdaten / Stückliste",
       "templateId": "7",
       "helpText": "Übernahme der Daten aus ConfigExplorer, nur Teilenummer und Teilebenennung sofern vorhanden aus der Stückliste"
     },
     {
-      "classType": "GENERATION",
-      "classId": "4",
-      "classDescription": "04- Ziel aus Referenz OP Status",
+      "id": "4",
+      "description": "04- Ziel aus Referenz OP Status",
       "templateId": "25",
       "helpText": "Lese Destination aus Operations-Status von Referenz-Operation (somit Destination = 1 oder 2). Referenz-OP kann von beliebigem Typ sein"
     },
     {
-      "classType": "GENERATION",
-      "classId": "5",
-      "classDescription": "05 - Ziel des Auftrags",
+      "id": "5",
+      "description": "05 - Ziel des Auftrags",
       "templateId": "1",
       "helpText": "Anzeige aktuelles Ziel des Auftrages. ViewOrder.Act_conveyordestination join bs_conveyor_destination"
     },
     {
-      "classType": "GENERATION",
-      "classId": "5",
-      "classDescription": "05 - Kundenproduktionsnummer",
+      "id": "5",
+      "description": "05 - Kundenproduktionsnummer",
       "templateId": "4",
       "helpText": "Kundenproduktionsnummer"
     },
     {
-      "classType": "GENERATION",
-      "classId": "5",
-      "classDescription": "05 - Teil mit Station / MU",
+      "id": "5",
+      "description": "05 - Teil mit Station / MU",
       "templateId": "7",
       "helpText": "Brauchen wir für TeilPerStationMU, ist Teil nicht in der Stückliste, dann werden die Detaildaten übernommen"
     },
     {
-      "classType": "GENERATION",
-      "classId": "5",
-      "classDescription": "05 - Berechnung ohne aktuelle Ölmenge (NUR PCS)",
+      "id": "5",
+      "description": "05 - Berechnung ohne aktuelle Ölmenge (NUR PCS)",
       "templateId": "12",
       "helpText": "(NUR PCS) Die aktuelle Ölmenge wird aus dem letzten Operationsergebnis ermittelt und zum Berechnen der Vorgabe der Befüllmenge benutzt. Speicherklasse 3 verwenden. Beim Speichern wird aktuelle Ölmenge auf 0 gesetzt."
     },
     {
-      "classType": "GENERATION",
-      "classId": "5",
-      "classDescription": "05 - Auftragsziel",
+      "id": "5",
+      "description": "05 - Auftragsziel",
       "templateId": "25",
       "helpText": "Übernimmt Vieworder.act_conveyordestination als Ziel"
     },
     {
-      "classType": "GENERATION",
-      "classId": "6",
-      "classDescription": "06 - Alternative Teile",
+      "id": "6",
+      "description": "06 - Alternative Teile",
       "templateId": "1",
       "helpText": "Es werden mehrere Teilenummern hintereinander angezeigt"
     },
     {
-      "classType": "GENERATION",
-      "classId": "6",
-      "classDescription": "06 - PTSI Typschild 5 Zeilen",
+      "id": "6",
+      "description": "06 - PTSI Typschild 5 Zeilen",
       "templateId": "4",
       "helpText": "Präge Typschild: PTSI Interface, Prägestring aus bs_dottingdata und der UNITIDENTNO anstelle xxxxxxxx (komplett 100 Zeichen = 5 Zeilen)"
     },
     {
-      "classType": "GENERATION",
-      "classId": "6",
-      "classDescription": "06 - Teilliste des MU",
+      "id": "6",
+      "description": "06 - Teilliste des MU",
       "templateId": "7",
       "helpText": "Teileliste eines kompletten MUs der Station"
     },
     {
-      "classType": "GENERATION",
-      "classId": "6",
-      "classDescription": "06 - Werte aus ConfigExplorer",
+      "id": "6",
+      "description": "06 - Werte aus ConfigExplorer",
       "templateId": "12",
       "helpText": "Es werden nur die Konfigurierten Werte genommen. Keine Results werden berücksichtigt."
     },
     {
-      "classType": "GENERATION",
-      "classId": "7",
-      "classDescription": "07 - Alternative Teile mit MU",
+      "id": "7",
+      "description": "07 - Alternative Teile mit MU",
       "templateId": "1",
       "helpText": "Es werden wahlweise Teilenummern mit Berücksichtigung Montageumfang (MU) hintereinander angezeigt"
     },
     {
-      "classType": "GENERATION",
-      "classId": "7",
-      "classDescription": "07 - Alternate parts",
+      "id": "7",
+      "description": "07 - Alternate parts",
       "templateId": "2",
       "helpText": "Es werden mehrere Teilenummern hintereinander in Feld Partname eingetragen"
     },
     {
-      "classType": "GENERATION",
-      "classId": "7",
-      "classDescription": "07 - Tandemorder",
+      "id": "7",
+      "description": "07 - Tandemorder",
       "templateId": "7",
       "helpText": "Tandemauftrag"
     },
     {
-      "classType": "GENERATION",
-      "classId": "8",
-      "classDescription": "08 - Show expected CarrierID",
+      "id": "8",
+      "description": "08 - Show expected CarrierID",
       "templateId": "2",
       "helpText": "Zeigt die erwartete CarrierId des Auftrages an. Mexiko spezial"
     },
     {
-      "classType": "GENERATION",
-      "classId": "8",
-      "classDescription": "08 - Farbig markierte Teileliste nach MU/Gruppe",
+      "id": "8",
+      "description": "08 - Farbig markierte Teileliste nach MU/Gruppe",
       "templateId": "7",
       "helpText": "Teileliste mit farbig markierten wahlweisen Teilen unter Berücksichtigung MU/Gruppe"
     },
     {
-      "classType": "GENERATION",
-      "classId": "9",
-      "classDescription": "09 - Typschild GEAR",
+      "id": "9",
+      "description": "09 - Typschild GEAR",
       "templateId": "4",
       "helpText": "Prägen Typschild GEAR"
     },
     {
-      "classType": "GENERATION",
-      "classId": "9",
-      "classDescription": "09 - Konfig komplett",
+      "id": "9",
+      "description": "09 - Konfig komplett",
       "templateId": "7",
       "helpText": "Alles aus der Konfig auch Teilenummer"
     },
     {
-      "classType": "GENERATION",
-      "classId": "10",
-      "classDescription": "10 - Alternative Teile mit MU",
+      "id": "10",
+      "description": "10 - Alternative Teile mit MU",
       "templateId": "2",
       "helpText": "Es werden wahlweise Teilenummern mit Berücksichtigung Montageumfang (MU) hintereinander in Feld Partname eingetragen"
     },
     {
-      "classType": "GENERATION",
-      "classId": "10",
-      "classDescription": "10 - UnitIdentNo",
+      "id": "10",
+      "description": "10 - UnitIdentNo",
       "templateId": "4",
       "helpText": "UnitIdentNo prägen"
     },
     {
-      "classType": "GENERATION",
-      "classId": "10",
-      "classDescription": "10 - Teil mit sprechenden Namen",
+      "id": "10",
+      "description": "10 - Teil mit sprechenden Namen",
       "templateId": "7",
       "helpText": "-Zeigt das Feld salesinfo (sprechender Name) als Teilenamen an -Ersetzt wahlweisen Sachverhalt. Es wird nur 1 Bauteil angezeigt. Nur gültig mit DecisionClass 4 und 22"
     },
     {
-      "classType": "GENERATION",
-      "classId": "11",
-      "classDescription": "11 - Vergleich gescannte TeileNr der RefOP mit Comparestring",
+      "id": "11",
+      "description": "11 - Vergleich gescannte TeileNr der RefOP mit Comparestring",
       "templateId": "2",
       "helpText": "Vergleich gescannte Teilenummer der ReferenzOP mit Comparestring=Partnerteil zu Referenz ScanOp"
     },
     {
-      "classType": "GENERATION",
-      "classId": "11",
-      "classDescription": "11 - Kassel Spezial PTSI Typschild 6 Zeilen",
+      "id": "11",
+      "description": "11 - Kassel Spezial PTSI Typschild 6 Zeilen",
       "templateId": "4",
       "helpText": "Präge Typschild: PTSI Interface, Prägestring aus bs_dottingdata und der UNITIDENTNO anstelle xxxxxxxx (komplett 100 Zeichen = 5 Zeilen + eine Kopfzeile mit DAIMLER AG)"
     },
     {
-      "classType": "GENERATION",
-      "classId": "12",
-      "classDescription": "12 - Attribut",
+      "id": "12",
+      "description": "12 - Attribut",
       "templateId": "2",
       "helpText": "Generierung des Comparestrings mit Codevalue aus BS_Attribute, CompareString im OSAdmin wird zur Entscheidung verwendet = Code"
     },
     {
-      "classType": "GENERATION",
-      "classId": "12",
-      "classDescription": "12 - Kassel Spezial PTSI Typschild 6 Zeilen",
+      "id": "12",
+      "description": "12 - Kassel Spezial PTSI Typschild 6 Zeilen",
       "templateId": "4",
       "helpText": "Präge Typschild: PTSI Interface, Prägestring aus bs_dottingdata und der UNITIDENTNO anstelle xxxxxxxx (komplett 100 Zeichen = 5 Zeilen + eine Kopfzeile mit DAIMLER TRUCK AG)"
     },
     {
-      "classType": "GENERATION",
-      "classId": "13",
-      "classDescription": "13 - DDC Spezial 4 Zeilen",
+      "id": "13",
+      "description": "13 - DDC Spezial 4 Zeilen",
       "templateId": "4",
       "helpText": "Präge Typschild: Prägestring aus bs_dottingdata und der AENR anstelle xxxxxx auf 40 Stellen reduziert, 2-zeilig. 3. Zeile aktuell Platzhalter. 4. Zeile Orderno"
     },
     {
-      "classType": "GENERATION",
-      "classId": "14",
-      "classDescription": "14 - Unterauftragsnummer als Comparestring",
+      "id": "14",
+      "description": "14 - Unterauftragsnummer als Comparestring",
       "templateId": "2",
       "helpText": "Schreibt Auftragsnummer des Unterauftrags in Comparestring"
     },
     {
-      "classType": "GENERATION",
-      "classId": "14",
-      "classDescription": "14 - EngineFamily, Unitidentno, Date, Unitidentno, blank",
+      "id": "14",
+      "description": "14 - EngineFamily, Unitidentno, Date, Unitidentno, blank",
       "templateId": "4",
       "helpText": "Typschild 5-zeilig. Präge Typschild: PTSI Interface, Prägestring aus BS_ADDORDERENGINE die ENGINEFAMILY und bs_dottingdata und der UNITIDENTNO anstelle xxxxxxxx (komplett 100 Zeichen = 5 Zeilen)"
     },
     {
-      "classType": "GENERATION",
-      "classId": "15",
-      "classDescription": "15 - CodeValue, CustMatNo, Unitidentno",
+      "id": "15",
+      "description": "15 - CodeValue, CustMatNo, Unitidentno",
       "templateId": "4",
       "helpText": "Typschild 3-zeilig. CodeValue From BS_Attribute Custmatno from VIEWORDER UnitIdentNO From Vieworder (Nur mit DecisionClass 26 kombinierbar)"
     },
     {
-      "classType": "GENERATION",
-      "classId": "16",
-      "classDescription": "16 - Typschild 5 Zeilen UnitEndNo 7 Stellig",
+      "id": "16",
+      "description": "16 - Typschild 5 Zeilen UnitEndNo 7 Stellig",
       "templateId": "4",
       "helpText": "Präge Typschild: Prägestring aus bs_dottingdata und der AENR anstelle xxxxxxX (wie 4 aber 7x komplett 100 Zeichen = 5 Zeilen)"
     },
     {
-      "classType": "GENERATION",
-      "classId": "17",
-      "classDescription": "17 - PTSI Typschild eAchse 7 Zeilen",
+      "id": "17",
+      "description": "17 - PTSI Typschild eAchse 7 Zeilen",
       "templateId": "4",
       "helpText": "Präge Typschild: PTSI Interface, Prägestring 7 Zeilen: 1. Zeile - Kopfzeile mit DAIMLER TRUCK AG 2. Zeile - CodeValue für Attribut ZTYP2KSE 3 - 7 Zeile - info aus bs_dottingdata und UNITIDENTNO anstelle xxxxxxxx (komplett 100 Zeichen)"
-    },
+    }
+  ],
+  "SavingClasses": [
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "2",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "3",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "4",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "5",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "6",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "7",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "8",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "9",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "10",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "11",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "12",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "13",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "14",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "15",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "16",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "17",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "18",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "19",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "20",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "21",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "22",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "23",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "24",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "25",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "26",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "27",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "28",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "29",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "30",
       "helpText": "Standard"
     },
     {
-      "classType": "SAVING",
-      "classId": "2",
-      "classDescription": "02 - Lösche KitcardId, Carrierid aus Auftrag",
+      "id": "2",
+      "description": "02 - Lösche KitcardId, Carrierid aus Auftrag",
       "templateId": "1",
       "helpText": "Update auf BS_ASSEMBLYSTATUS set kitcartid = '', carrierid = ''"
     },
     {
-      "classType": "SAVING",
-      "classId": "2",
-      "classDescription": "02 - ECU Injector",
+      "id": "2",
+      "description": "02 - ECU Injector",
       "templateId": "2",
       "helpText": "Injektor speichert in ECU_RES_Injector_MCM. Nicht mehr verwendet"
     },
     {
-      "classType": "SAVING",
-      "classId": "2",
-      "classDescription": "02 - Ref OP Nicht Durchgeführt",
+      "id": "2",
+      "description": "02 - Ref OP Nicht Durchgeführt",
       "templateId": "3",
       "helpText": "Setzen der Referenz Schrauboperation auf Not Processed"
     },
     {
-      "classType": "SAVING",
-      "classId": "2",
-      "classDescription": "02 - Setze Ergebnis Referenz-Op",
+      "id": "2",
+      "description": "02 - Setze Ergebnis Referenz-Op",
       "templateId": "5",
       "helpText": "Referenz Operationen definieren. Für das Setzen von OP-Result auf definierbaren Status. Erforderliche Prozedur: up_OS_ExecuteSaveOperationResult"
     },
     {
-      "classType": "SAVING",
-      "classId": "2",
-      "classDescription": "02 - Tandemauftrag",
+      "id": "2",
+      "description": "02 - Tandemauftrag",
       "templateId": "7",
       "helpText": "Tandemorder"
     },
     {
-      "classType": "SAVING",
-      "classId": "2",
-      "classDescription": "02 - OT Messung",
+      "id": "2",
+      "description": "02 - OT Messung",
       "templateId": "9",
       "helpText": "OT Wert - Erfassung (nur BR457/500/900)"
     },
     {
-      "classType": "SAVING",
-      "classId": "2",
-      "classDescription": "02 - Neben OP addiere zu Haupt-OP",
+      "id": "2",
+      "description": "02 - Neben OP addiere zu Haupt-OP",
       "templateId": "12",
       "helpText": "Wir haben hier eine Neben-OP deren Ergebnis wir zur Haupt-OP addieren. Heißt die befüllte / abgelassene Menge hier wird dann bei der Haupt-Op addiert bzw. subtrahiert. Zu dieser OP muss eine Referenz zur Haupt-OP angegeben werden"
     },
     {
-      "classType": "SAVING",
-      "classId": "2",
-      "classDescription": "02 - Rückmeldepunkt setzen",
+      "id": "2",
+      "description": "02 - Rückmeldepunkt setzen",
       "templateId": "15",
       "helpText": "Rückmeldepunkt setzen. Aufruf von up_HandleOrderProcessFlow"
     },
     {
-      "classType": "SAVING",
-      "classId": "2",
-      "classDescription": "02 - Setzt CarrierId",
+      "id": "2",
+      "description": "02 - Setzt CarrierId",
       "templateId": "16",
       "helpText": "Setze CarrierId zum Auftrag. BS_AssemblyStatus.CarrierID"
     },
     {
-      "classType": "SAVING",
-      "classId": "2",
-      "classDescription": "02 - Operationsergebnis NIO, Rework anlegen, Auftrag sperren",
+      "id": "2",
+      "description": "02 - Operationsergebnis NIO, Rework anlegen, Auftrag sperren",
       "templateId": "29",
       "helpText": "Wie Klasse 1, zusätzlich bei NIO-Operationsergebnis Rework erstellen und Auftrag sperren"
     },
     {
-      "classType": "SAVING",
-      "classId": "3",
-      "classDescription": "03 - Lösche FiFo",
+      "id": "3",
+      "description": "03 - Lösche FiFo",
       "templateId": "1",
       "helpText": "Löscht Auftrag aus der BS_SMB_ClientOrder bei Status 1 oder 4"
     },
     {
-      "classType": "SAVING",
-      "classId": "3",
-      "classDescription": "03 - Barcode as CarrierID in BS_ASSEMBLYSTATUS",
+      "id": "3",
+      "description": "03 - Barcode as CarrierID in BS_ASSEMBLYSTATUS",
       "templateId": "2",
       "helpText": "CarrierId dem Auftrag zuordnen, update BS_ASSEMBLYSTATUS set carrierid = @Barcode"
     },
     {
-      "classType": "SAVING",
-      "classId": "3",
-      "classDescription": "03 - Serialnummer der Spindel speichern",
+      "id": "3",
+      "description": "03 - Serialnummer der Spindel speichern",
       "templateId": "3",
       "helpText": "Speichert die Seriennummer der Spindel in OsRes_TighteningDetail als TorqueToolId"
     },
     {
-      "classType": "SAVING",
-      "classId": "3",
-      "classDescription": "03 - Addiere letztes Ergebnis",
+      "id": "3",
+      "description": "03 - Addiere letztes Ergebnis",
       "templateId": "12",
       "helpText": "Die aktuelle Ölmenge wird aus dem letzten Operationsergebnis ermittelt und zum neuen Operationsergebnis dazu addiert"
     },
     {
-      "classType": "SAVING",
-      "classId": "4",
-      "classDescription": "04 - Setze Ref OPs auf Nicht Durchgeführt",
+      "id": "4",
+      "description": "04 - Setze Ref OPs auf Nicht Durchgeführt",
       "templateId": "1",
       "helpText": "Setzen der Referenzoperation(en) auf Not Processed"
     },
     {
-      "classType": "SAVING",
-      "classId": "4",
-      "classDescription": "04 - Barcode as KitcartID in BS_ASSEMBLYSTATUS",
+      "id": "4",
+      "description": "04 - Barcode as KitcartID in BS_ASSEMBLYSTATUS",
       "templateId": "2",
       "helpText": "KitCardId dem Auftrag zuordnen, update BS_ASSEMBLYSTATUS set kitcartid = @Barcode"
     },
     {
-      "classType": "SAVING",
-      "classId": "5",
-      "classDescription": "05 - Vormontageauftrag verheiraten",
+      "id": "5",
+      "description": "05 - Vormontageauftrag verheiraten",
       "templateId": "2",
       "helpText": "Verheiratung eines eigenen Vormontageauftrages auf Hauptauftrag. (KEM Vomo ist als eigener Auftrag in den Auftragstabellen ViewOrder vorhanden)"
     },
     {
-      "classType": "SAVING",
-      "classId": "6",
-      "classDescription": "06 - Vormontage Operationen auf Hauptauftrag kopieren",
+      "id": "6",
+      "description": "06 - Vormontage Operationen auf Hauptauftrag kopieren",
       "templateId": "2",
       "helpText": "Verheiratung eines Vormontageauftrages, der auf einen Hauptauftrag gefertigt wurde. Heißt kein Vomo-Auftrag. Die Vomo ist eine Menge Ops, die über alle Ops einer Line gebildet wird. Z.B Zylinderkopf"
     },
     {
-      "classType": "SAVING",
-      "classId": "7",
-      "classDescription": "07 - Injektoren einzeln scannen",
+      "id": "7",
+      "description": "07 - Injektoren einzeln scannen",
       "templateId": "2",
       "helpText": "Injektoren einzeln scannen und zu Op 33 zusammenführen für FUSO und MCM"
     },
     {
-      "classType": "SAVING",
-      "classId": "10",
-      "classDescription": "10 - Injektor einzelscan MDEG",
+      "id": "10",
+      "description": "10 - Injektor einzelscan MDEG",
       "templateId": "2",
       "helpText": "Injektoren einzeln scannen und der DMC dann der Injektor Operation zuordnen. MDEG"
     },
     {
-      "classType": "SAVING",
-      "classId": "11",
-      "classDescription": "11 - Subassembly Marriage",
+      "id": "11",
+      "description": "11 - Subassembly Marriage",
       "templateId": "2",
       "helpText": "Nur DDC"
     },
     {
-      "classType": "SAVING",
-      "classId": "12",
-      "classDescription": "12 - Barcode als UnitIdentNo speichern",
+      "id": "12",
+      "description": "12 - Barcode als UnitIdentNo speichern",
       "templateId": "2",
       "helpText": "UnitIdentNo setzen"
     },
     {
-      "classType": "SAVING",
-      "classId": "13",
-      "classDescription": "13 - DIBS DMC upload",
+      "id": "13",
+      "description": "13 - DIBS DMC upload",
       "templateId": "2",
       "helpText": "Upload the result to DIBS"
     },
     {
-      "classType": "SAVING",
-      "classId": "14",
-      "classDescription": "14 - GATS DMC Identnummer",
+      "id": "14",
+      "description": "14 - GATS DMC Identnummer",
       "templateId": "2",
       "helpText": "Gats speichern, wird beim Scan in der VerificationClass 40 geprüft"
     },
     {
-      "classType": "SAVING",
-      "classId": "15",
-      "classDescription": "15 - CarrierId marriage",
+      "id": "15",
+      "description": "15 - CarrierId marriage",
       "templateId": "2",
       "helpText": "Speichert die Werkstückträger/Setkorb ID in der Tabelle Os_CarrierIDOrder. Wird beim Scan in der VerificationClass 41 geprüft"
     },
     {
-      "classType": "SAVING",
-      "classId": "16",
-      "classDescription": "16 - CarrierId separate",
+      "id": "16",
+      "description": "16 - CarrierId separate",
       "templateId": "2",
       "helpText": "Trennt die CarrierId vom Auftrag. Wird eingesetzt an der Scan-Operation der Verheiratungsstelle Vormontage zu Hauptband. Der Auftrag wird dann für die Vomo vom Carrier getrennt"
     },
     {
-      "classType": "SAVING",
-      "classId": "17",
-      "classDescription": "17 - Wahlweise SST SAP",
+      "id": "17",
+      "description": "17 - Wahlweise SST SAP",
       "templateId": "2",
       "helpText": "Bei Sachverhalt Wahlweise wird die gescannte Teilenummer an SAP gesendet. Insert in OS_SMB_ScanResults. Zur teilegenauen Abbuchung"
     },
     {
-      "classType": "SAVING",
-      "classId": "18",
-      "classDescription": "18 - SAPOnline UPLOAD",
+      "id": "18",
+      "description": "18 - SAPOnline UPLOAD",
       "templateId": "2",
       "helpText": "SAPOnline UPLOAD"
     },
     {
-      "classType": "SAVING",
-      "classId": "19",
-      "classDescription": "19 - Speichere ZGS",
+      "id": "19",
+      "description": "19 - Speichere ZGS",
       "templateId": "2",
       "helpText": "ZGS Speichern für Workpiece Id Berechnung"
     },
     {
-      "classType": "SAVING",
-      "classId": "20",
-      "classDescription": "20 - Speichere DMC Freitext",
+      "id": "20",
+      "description": "20 - Speichere DMC Freitext",
       "templateId": "2",
       "helpText": "Freitext speichern für WorkpieceId Berechnung"
     },
     {
-      "classType": "SAVING",
-      "classId": "21",
-      "classDescription": "21 - Auftrag umrüsten",
+      "id": "21",
+      "description": "21 - Auftrag umrüsten",
       "templateId": "2",
       "helpText": "Umrüsten eines Auftrages"
     },
     {
-      "classType": "SAVING",
-      "classId": "22",
-      "classDescription": "22 - Status Vormontageauftrag nach Verheiratung",
+      "id": "22",
+      "description": "22 - Status Vormontageauftrag nach Verheiratung",
       "templateId": "2",
       "helpText": "Status Vormontageauftrag nach Verheiratung setzen"
     },
     {
-      "classType": "SAVING",
-      "classId": "23",
-      "classDescription": "23 - Save DMC UnitIdenNo/UnitEndNo",
+      "id": "23",
+      "description": "23 - Save DMC UnitIdenNo/UnitEndNo",
       "templateId": "2",
       "helpText": "Speichert DMC in den UnitIdentNo und UnitEndNo. Löscht den DMC von anderen Aufträgen, wenn bereits vergeben. Nur mit VerificationClass 59 verwenden"
-    },
+    }
+  ],
+  "VerificationClasses": [
     {
-      "classType": "VERIFICATION",
-      "classId": "1",
-      "classDescription": "01 - Keine Prüfung",
+      "id": "1",
+      "description": "01 - Keine Prüfung",
       "templateId": "1",
       "helpText": "Nichts vergleichen, liefert immer ok"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "1",
-      "classDescription": "01 - Keine Prüfung",
+      "id": "1",
+      "description": "01 - Keine Prüfung",
       "templateId": "2",
       "helpText": "Nichts vergleichen, liefert immer ok"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "5",
       "helpText": "Default"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "1",
-      "classDescription": "01 - keine Prüfung, dann auch IO Rückmelden",
+      "id": "1",
+      "description": "01 - keine Prüfung, dann auch IO Rückmelden",
       "templateId": "7",
       "helpText": "Keine Prüfung, dann auch IO Rückmelden"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "1",
-      "classDescription": "01 - Standard",
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "15",
       "helpText": "Standard"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "2",
-      "classDescription": "02 - Auftragsstatus",
+      "id": "2",
+      "description": "02 - Auftragsstatus",
       "templateId": "1",
       "helpText": "Auftragsstatus auf nicht gesperrt, keine Nacharbeit"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "2",
-      "classDescription": "02 - Comparestring",
+      "id": "2",
+      "description": "02 - Comparestring",
       "templateId": "2",
       "helpText": "Vergleich des Comparestrings. Comparestring muss über die GenerationClass entsprechend gefüllt werden. Ist Relikt, früher wurde so geprüft. Achtung ist jetzt für PCS-Scan erforderlich. Also wenn OP als Backup zu PCS in einer manuellen Station verwendet wird"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "2",
-      "classDescription": "02 - Referenz OP für Status setzen",
+      "id": "2",
+      "description": "02 - Referenz OP für Status setzen",
       "templateId": "5",
       "helpText": "Referenzoperation definieren für weitere Verarbeitung. Aktuell für OP Status setzen Prozedur"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "2",
-      "classDescription": "02 - VO über Regelkreis suchen, dann mit VO aus Operation auch IO Rückmelden",
+      "id": "2",
+      "description": "02 - VO über Regelkreis suchen, dann mit VO aus Operation auch IO Rückmelden",
       "templateId": "7",
       "helpText": "VO über Regelkreis suchen, dann mit VO aus Operation auch IO Rückmelden. Nicht verwendet -> Beierle, Ruft der SC up_OS_CheckCommissioningCheck auf"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "2",
-      "classDescription": "02 - Referenzoperationen setzen",
+      "id": "2",
+      "description": "02 - Referenzoperationen setzen",
       "templateId": "15",
       "helpText": "Verweis auf Referenz-Operation(en) für eine QGate Operation oder Prozessflow Operation, die für die Referenzoperationen eine Summe des Operationstatus bildet"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "3",
-      "classDescription": "03 - Subauftrag Reihenfolge",
+      "id": "3",
+      "description": "03 - Subauftrag Reihenfolge",
       "templateId": "1",
       "helpText": "Prüfe ob Vormontageauftrag in der Sequenz seines Hauptbandes ist. Radnabe Gaggenau"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "3",
-      "classDescription": "03 - Comparestrings und mehrfache Verwendung",
+      "id": "3",
+      "description": "03 - Comparestrings und mehrfache Verwendung",
       "templateId": "2",
       "helpText": "Vergleich des Comparestrings zusätzliche Prüfung auf Eindeutigkeit. Comparestring muss über die GenerationClass entsprechend gefüllt werden. Der Barcode wird auf Eindeutigkeit geprüft (Seriennummer eindeutig). Sollte abgewandelt werden, dass wir den vorgegebenen Text prüfen"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "3",
-      "classDescription": "03 - Referenz-Stationen setzen",
+      "id": "3",
+      "description": "03 - Referenz-Stationen setzen",
       "templateId": "15",
       "helpText": "Verweis auf Referenz-Station(en) für die QGate Operation Operationstatus bildet"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "4",
-      "classDescription": "04 - Immer NOK",
+      "id": "4",
+      "description": "04 - Immer NOK",
       "templateId": "1",
       "helpText": "Kein Check liefert immer NOK. Wird verwendet um Rework anzulegen für alle Aufträge mit besonderem Teil"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "4",
-      "classDescription": "04 - CarrierID in BS_Assemblystatus",
+      "id": "4",
+      "description": "04 - CarrierID in BS_Assemblystatus",
       "templateId": "2",
       "helpText": "Prüft gescannten Wert auf enthalten in bs_assemblystatus. CarrierID Werkstückträger. Siehe Scan SavingClass 3"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "5",
-      "classDescription": "05 - Auftrag Reihenfolge",
+      "id": "5",
+      "description": "05 - Auftrag Reihenfolge",
       "templateId": "1",
       "helpText": "Prüfe ob Montageauftrag in der Sequenz seines Hauptbandes ist"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "5",
-      "classDescription": "05 - KitcardId in BS_Assemblystatus",
+      "id": "5",
+      "description": "05 - KitcardId in BS_Assemblystatus",
       "templateId": "2",
       "helpText": "Prüft gescannten Wert auf enthalten in bs_assemblystatus. KitcardId Kommissionierwagen. Siehe Scan SavingClass 4"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "6",
-      "classDescription": "06 - Zuordnung Referenzoperation",
+      "id": "6",
+      "description": "06 - Zuordnung Referenzoperation",
       "templateId": "1",
       "helpText": "Verweis auf Referenz-Operation(en) für Prozessflow Tools Warter, DS Prüfung, Operationstatus Status Summenbilder"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "6",
-      "classDescription": "06 - InjektorCode PKWT",
+      "id": "6",
+      "description": "06 - InjektorCode PKWT",
       "templateId": "2",
       "helpText": "Prüfen InjektorCode PKWT: Gesamtlänge des Barcodes, Länge TrimCode, evtl. Checksumme analog Mannheim"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "7",
-      "classDescription": "07 - Sequenz Stations-FIFO",
+      "id": "7",
+      "description": "07 - Sequenz Stations-FIFO",
       "templateId": "1",
       "helpText": "Prüfe ob Montageauftrag der erste des StationsFIFO BS_SMB_ClientOrder ist"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "7",
-      "classDescription": "07 - Injektorlabel PKWT",
+      "id": "7",
+      "description": "07 - Injektorlabel PKWT",
       "templateId": "2",
       "helpText": "Prüfen Injektorlabel PKWT: Gescannten Wert mit Ergebnis des DruckViews vergleichen"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "8",
-      "classDescription": "08 - !Teil in Stückliste ALT",
+      "id": "8",
+      "description": "08 - !Teil in Stückliste ALT",
       "templateId": "2",
       "helpText": "Sollte nicht mehr benutzt werden! Prüfen Teil mit Stückliste, damit auch wahlweise Teile, ersetzt auch Verify 2? Achtung Comparestring zur Längenberechnung benutzt"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "9",
-      "classDescription": "09 - Motorlabel PKWT",
+      "id": "9",
+      "description": "09 - Motorlabel PKWT",
       "templateId": "2",
       "helpText": "Prüfen Motorlabel PKWT, manuelle Eingabe SerialNr, Prüfen auf gültige Länge"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "10",
-      "classDescription": "10 - Stücklistenteil und Mehrfachverwendung",
+      "id": "10",
+      "description": "10 - Stücklistenteil und Mehrfachverwendung",
       "templateId": "2",
       "helpText": "Teil prüfen mit wahlweiser Verbau und Mehrfachverwendung für diese OperationId"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "11",
-      "classDescription": "11 - Gegenscan auf mehrere Referenzoperationen",
+      "id": "11",
+      "description": "11 - Gegenscan auf mehrere Referenzoperationen",
       "templateId": "2",
       "helpText": "Gegenscan eines Barcodes. Prüfen, ob Barcode bei einer von mehreren Referenzoperationen zum gleichen Auftrag gescannt wurde. Bsp. ob der DMC aktuell dem Auftrag zugeordnet ist"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "12",
-      "classDescription": "12 - Vormontageauftrag Verheiratung",
+      "id": "12",
+      "description": "12 - Vormontageauftrag Verheiratung",
       "templateId": "2",
       "helpText": "Spezialfall KEM Verheiratung eines Vomo-Auftrages. Eigener Vomo-Auftrag in ViewOrder. Gescannt wird die unitidentno des Vomo-Auftrages. Es wird geprüft ob in der Vomo alles OK war. Dann wird geprüft: bei Programmnr 1: Variante ob das VomoTeil in Stückliste des Auftrags ist. bei Programmnr 2: Vomo für den Auftrag, select @Orderno = custorderno from ViewOrder where orderno = @Orderno bei Programmnr 3: Teil in der Stückliste. Zusammen mit SavingClass 5"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "13",
-      "classDescription": "13 - UnitEndNo in BS_ORDER",
+      "id": "13",
+      "description": "13 - UnitEndNo in BS_ORDER",
       "templateId": "2",
       "helpText": "UnitEndNo: Prüfen ob Input mit der UnitEndNo im BS_ORDER identisch ist"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "14",
-      "classDescription": "14 - UnitIdentNo in BS_ORDER",
+      "id": "14",
+      "description": "14 - UnitIdentNo in BS_ORDER",
       "templateId": "2",
       "helpText": "UnitIdentNo: Prüfen ob Input mit der UnitIdentNo im BS_ORDER identisch ist"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "15",
-      "classDescription": "15 - Datum, Prodnummer, SNr als Ident",
+      "id": "15",
+      "description": "15 - Datum, Prodnummer, SNr als Ident",
       "templateId": "2",
       "helpText": "Teile-Ident nicht als DMC, sondern: Datum, Prodnummer, SerienNr"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "16",
-      "classDescription": "16 - JJTTTNNNNN Teilenr, Linie, Lieferant als Ident",
+      "id": "16",
+      "description": "16 - JJTTTNNNNN Teilenr, Linie, Lieferant als Ident",
       "templateId": "2",
       "helpText": "Teile-Ident nicht als DMC, sondern: JJTTTNNNNN Teilenr, Linie, Lieferant hinzu und DMC liefern"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "17",
-      "classDescription": "17 - Gegenscan ReferenzOP und Prüfung Vormontageresults",
+      "id": "17",
+      "description": "17 - Gegenscan ReferenzOP und Prüfung Vormontageresults",
       "templateId": "2",
       "helpText": "Vomo über Hauptauftrag, wie 11 zusätzlich prüfen ob in Vomo alle Ops IO waren"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "18",
-      "classDescription": "18 - Comparestring und Prüfung Vormontageresults",
+      "id": "18",
+      "description": "18 - Comparestring und Prüfung Vormontageresults",
       "templateId": "2",
       "helpText": "Beliebiger Scan mit Vormontagecheck, z.B. STG Label scannen"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "19",
-      "classDescription": "19 - Stücklistenteil und Prüfung Vormontageresults",
+      "id": "19",
+      "description": "19 - Stücklistenteil und Prüfung Vormontageresults",
       "templateId": "2",
       "helpText": "Teil in Stückliste (10) und Vormontagecheck, prüfe alle Operationsresults der Vormontage"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "20",
-      "classDescription": "20 - Stücklistenteil",
+      "id": "20",
+      "description": "20 - Stücklistenteil",
       "templateId": "2",
       "helpText": "Teil in Stückliste (10) und keine Prüfung auf Mehrfachverwendung"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "21",
-      "classDescription": "21 - Stücklistenteil und Mehrfachverbau über alle Operationen",
+      "id": "21",
+      "description": "21 - Stücklistenteil und Mehrfachverbau über alle Operationen",
       "templateId": "2",
       "helpText": "Teil in Stückliste (Wie 10) aber Mehrfachverbau über alle Operationen prüfen"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "22",
-      "classDescription": "22 - Vormontage in Hauptauftrag, prüfen OP Ergebnisse und Stückliste",
+      "id": "22",
+      "description": "22 - Vormontage in Hauptauftrag, prüfen OP Ergebnisse und Stückliste",
       "templateId": "2",
       "helpText": "Prüfung einer Vormontage die auf einen Hauptauftrag gefertigt wurde. Vormontage wird geprüft auf: Vorhandensein von Ergebnissen. Alle Ergebnisse der Vomo OK. Zum gleichen Auftrag verbaut oder wenn anderer Auftrag dann Vergleich der Stückliste"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "23",
-      "classDescription": "23 - Stücklistenteil und Vormontage in Hauptauftrag, prüfen OP Ergebnisse und Stückliste",
+      "id": "23",
+      "description": "23 - Stücklistenteil und Vormontage in Hauptauftrag, prüfen OP Ergebnisse und Stückliste",
       "templateId": "2",
       "helpText": "Teil prüfen und Vormontage die direkt im Hauptauftrag gebaut wurde, jetzt verheiraten. Prüfe Vomo Ops und Stückliste. Somit (22) mit zusätzlicher Prüfung Teil in Stückliste (20)"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "24",
-      "classDescription": "24 - Unitpump",
+      "id": "24",
+      "description": "24 - Unitpump",
       "templateId": "2",
       "helpText": "Prüft unitpump, spezielle Tabelle -> Indien"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "25",
-      "classDescription": "25 - Unitidentno Format",
+      "id": "25",
+      "description": "25 - Unitidentno Format",
       "templateId": "2",
       "helpText": "Prüft unitidentno auf gültiges Format bei Eingabe. Kein Auftrag zum Vergleichen vorhanden -> Indien"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "26",
-      "classDescription": "26 - Comparestring + Vormontageauftrag Verheiratung + Mehrfachverwendung",
+      "id": "26",
+      "description": "26 - Comparestring + Vormontageauftrag Verheiratung + Mehrfachverwendung",
       "templateId": "2",
       "helpText": "Spezialfall KEM wie 12, Prüfung auf Doppelverbau Scanverif"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "27",
-      "classDescription": "27 - Comparestring + Vormontageauftrag Verheiratung + Mehrfachverwendung",
+      "id": "27",
+      "description": "27 - Comparestring + Vormontageauftrag Verheiratung + Mehrfachverwendung",
       "templateId": "2",
       "helpText": "Spezialfall KEM wie 26, Vormontageumfang wird nur geprüft, wenn der gescannte DMC im Bereich ab Zeichen 12 <> 000000000 ist"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "28",
-      "classDescription": "28 - Auftragsident (ORDERNO,UNITENDNO;UNITIDENTNO)",
+      "id": "28",
+      "description": "28 - Auftragsident (ORDERNO,UNITENDNO;UNITIDENTNO)",
       "templateId": "2",
       "helpText": "Auftragsident. Es wird auf Orderno oder UNITENDNO oder UNITIDENTNO aus BS_ORDER geprüft"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "29",
-      "classDescription": "29 - Stücklistenteil + Sperrliste (Spezial Steuergerät) + Mehrfachverwendung",
+      "id": "29",
+      "description": "29 - Stücklistenteil + Sperrliste (Spezial Steuergerät) + Mehrfachverwendung",
       "templateId": "2",
       "helpText": "Prüft auf Stücklistenteil (10) mit Prüfung auf Mehrfachverbau, zusätzlich wird eine Blacklist abgefragt. Aktuell nur spezielles Teil mit direkter Blacklist hart codiert"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "30",
-      "classDescription": "30 - CustProdNo in VIEWORDER",
+      "id": "30",
+      "description": "30 - CustProdNo in VIEWORDER",
       "templateId": "2",
       "helpText": "Customerprodno prüfen. Barcode über Barcodetype definiert: UserDataStart und UserDataLength legen dabei fest wo die Kunden-Produktionsnummer im Barcode steht"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "31",
-      "classDescription": "31 - InjektorCode MDEG, Stücklistenteil und Mehrfachverbau über alle Operationen",
+      "id": "31",
+      "description": "31 - InjektorCode MDEG, Stücklistenteil und Mehrfachverbau über alle Operationen",
       "templateId": "2",
       "helpText": "Wie 21 Teil in Stückliste und Mehrfachverbau. Zusätzlich MDEG Injektor Prüfziffer prüfen"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "32",
-      "classDescription": "32 - Über Referenz Operation prüfe Stückliste + Mehrfach",
+      "id": "32",
+      "description": "32 - Über Referenz Operation prüfe Stückliste + Mehrfach",
       "templateId": "2",
       "helpText": "Spezialfall Mannheim: NICHT GENUTZT. Teile prüfen über eine Referenzoperation, MultipleUseOverAll"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "33",
-      "classDescription": "33 - InjektorCode MDEG, Stücklistenteil und Mehrfachverbau.",
+      "id": "33",
+      "description": "33 - InjektorCode MDEG, Stücklistenteil und Mehrfachverbau.",
       "templateId": "2",
       "helpText": "Spezialfall Mannheim MDEG: Part10 also Teil in Stückliste, dann MultipleUseOverall und InjektorMDEG"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "34",
-      "classDescription": "34 - Cylinderhead Marriage",
+      "id": "34",
+      "description": "34 - Cylinderhead Marriage",
       "templateId": "2",
       "helpText": "Spezialfall DDC HDE: Cylinderhead"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "35",
-      "classDescription": "35 - Comparestrings und Mehrfachverwendung über alle Operationen (wie 3)",
+      "id": "35",
+      "description": "35 - Comparestrings und Mehrfachverwendung über alle Operationen (wie 3)",
       "templateId": "2",
       "helpText": "Vergleich des Comparestrings zusätzliche Prüfung auf Eindeutigkeit über alle Operationen. Comparestring muss über die GenerationClass entsprechend gefüllt werden. Der Barcode wird auf Eindeutigkeit geprüft (Seriennummer eindeutig). Sollte abgewandelt werden, dass wir den vorgegebenen Text prüfen"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "36",
-      "classDescription": "36 - Stücklistenteil und Mehrfachverwendung + KHR, ZK Datenprüfung",
+      "id": "36",
+      "description": "36 - Stücklistenteil und Mehrfachverwendung + KHR, ZK Datenprüfung",
       "templateId": "2",
       "helpText": "Spezialfall Mannheim MDEG: Teil mit Mehrfachverwendung über alle OP, wie (21) zusätzlich MDEG Prüfung für Zylinderkopf und Kipphebelrahmen. Prüft ob ZK zu KHR passt. Teil in Stückliste und ZK KHR Paar"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "37",
-      "classDescription": "37 - Rescan reference operation (Substring of Barcodetype)",
+      "id": "37",
+      "description": "37 - Rescan reference operation (Substring of Barcodetype)",
       "templateId": "2",
       "helpText": "Prüft ob der Teilstring mit einer anderen Scanoperation für diesen Auftrag erfasst wurde"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "38",
-      "classDescription": "38 - Bruderauftrag FIN",
+      "id": "38",
+      "description": "38 - Bruderauftrag FIN",
       "templateId": "2",
       "helpText": "Prüfen ob der gescannte Auftragsident den gleichen FIN hat, damit dann gleiches Elterteil damit dann Bruder"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "39",
-      "classDescription": "39 - DMC-Paar prüfen und Mehrfachverbau über alle Operationen",
+      "id": "39",
+      "description": "39 - DMC-Paar prüfen und Mehrfachverbau über alle Operationen",
       "templateId": "2",
       "helpText": "Spezialfall PKWT: sucht DMC in der Tabelle BS_DMCPAIR"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "40",
-      "classDescription": "40 - Check GATS Unitidentno",
+      "id": "40",
+      "description": "40 - Check GATS Unitidentno",
       "templateId": "2",
       "helpText": "Spezialfall Mannheim HDE: Prüfung GATS DMC von BOX"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "41",
-      "classDescription": "41 - CarrierId für Linie",
+      "id": "41",
+      "description": "41 - CarrierId für Linie",
       "templateId": "2",
       "helpText": "Prüft ob Werkstückträger/Setkorb in einer Linie zugeordnet ist. Die Zuordnung steht in der Tabelle OS_CarrierID und wird dort via SavingClass 15 beim Scannen gespeichert. Heißt wir prüfen ob die CarrierId zu dieser Linie in der Tabelle steht, keine Prüfung ob der Carrier leer ist. Zusätzlich wird geprüft ob der Auftrag einem anderen Carrier dieser Linie zugeordnet ist. Select from Os_CarrierIDOrder where AssemblyArea = @AssemblyArea and OperationID = @pl_OperationId and CarrierID = @CarrierId"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "42",
-      "classDescription": "42 - Part in BOM and Container",
+      "id": "42",
+      "description": "42 - Part in BOM and Container",
       "templateId": "2",
       "helpText": "Teil in Stückliste wie 20, zusätzlich wird die Anzahl geprüft. Aber nicht wie bei Multiple Use auf Eindeutigkeit, sondern hier mit einer beliebigen Anzahl > gleiche Prüfung wie multiple use, dann ist dies hier identisch mit Verificationclass (10)"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "43",
-      "classDescription": "43 - BOM, Container, Same supplier",
+      "id": "43",
+      "description": "43 - BOM, Container, Same supplier",
       "templateId": "2",
       "helpText": "Ist wie 42 zusätzlich wird geprüft, dass das Teil zu einem anderen Teil passt. Hier vom gleichen Lieferanten. Anderes Teil ist somit eine andere Scanoperation. Diese ist über ReferenzOperation osref_operationrelation zu pflegen. Zusätzlich muss bei der Operation die Teilenummer des PARTNER Teiles im Feld Comparestring eingetragen sein. Heißt zu jedem Detail dieser Operation gibt es eine Partnerteilenummer auf die geprüft wird"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "44",
-      "classDescription": "44 - Orderno in BS_ORDER",
+      "id": "44",
+      "description": "44 - Orderno in BS_ORDER",
       "templateId": "2",
       "helpText": "Wir prüfen ob im Barcode an gewünschter Position die Auftragsnummer steht. Im Comparestring kann ein möglicher Prefix oder Suffix definiert werden. Wird im Comparestring etwas angegeben, wird dies als Suffix geprüft. Für Prefix muss dies als <pre>vergleichstext</pre> angegeben werden"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "45",
-      "classDescription": "45 - CarrierID Auftrag zugeordnet",
+      "id": "45",
+      "description": "45 - CarrierID Auftrag zugeordnet",
       "templateId": "2",
       "helpText": "Prüfe ob die CarrierId in der Vomo/Kommissionierung diesem Auftrag zugeordnet wurde. Wird in Tabelle OS_CarrierOrder abgespeichert. Verweis auf Referenzoperation erforderlich"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "46",
-      "classDescription": "46 - Sub Assembly Status OK",
+      "id": "46",
+      "description": "46 - Sub Assembly Status OK",
       "templateId": "2",
       "helpText": "Vormontage Status OK"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "47",
-      "classDescription": "47 - Stücklistenteil mit Berücksichtigung Montageumfang (MU)",
+      "id": "47",
+      "description": "47 - Stücklistenteil mit Berücksichtigung Montageumfang (MU)",
       "templateId": "2",
       "helpText": "Teil prüfen unter Berücksichtigung Montageumfang (MU), z.B. relevant beim re/li Verbau nach der T.Drum Methode"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "48",
-      "classDescription": "48 - Stücklistenteil mit MU, Mehrfachverbau über alle Operationen",
+      "id": "48",
+      "description": "48 - Stücklistenteil mit MU, Mehrfachverbau über alle Operationen",
       "templateId": "2",
       "helpText": "Teil prüfen unter Berücksichtigung Montageumfang (MU) und Mehrfachverbau über alle Operationen, z.B. relevant beim re/li Verbau nach der T.Drum Methode"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "49",
-      "classDescription": "49 - Stücklistenteil mit MU, Mehrfachverbau, gleicher Lieferant",
+      "id": "49",
+      "description": "49 - Stücklistenteil mit MU, Mehrfachverbau, gleicher Lieferant",
       "templateId": "2",
       "helpText": "Teil prüfen unter Berücksichtigung Montageumfang (MU) und Mehrfachverbau über alle Operationen. Zusätzlich wird geprüft, dass das Teil zu einem anderen Teil passt. Hier vom gleichen Lieferanten. Anderes Teil wird aus Scanergebnis einer Referenz Scanoperation ermittelt. Diese ist über ReferenzOperation zu pflegen. Zusätzlich muss bei der Operation die Teilenummer des PARTNER Teiles im Feld Comparestring eingetragen sein. Heißt zu jedem Detail dieser Operation gibt es eine Partnerteilenummer auf die geprüft wird. Z.B. relevant beim re/li Verbau nach der T.Drum Methode"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "50",
-      "classDescription": "50 - Verifiziere Umrüster",
+      "id": "50",
+      "description": "50 - Verifiziere Umrüster",
       "templateId": "2",
       "helpText": "Verifiziere Umrüster. Der gescannte Barcode entspricht der Auftragsnummer, die aufgelöst wird. Das Blech vom hier gescannten Auftrag wird also dem Stationsauftrag zugeordnet. Wir prüfen ob unitendno entsprechend leer bzw. gesetzt sind"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "51",
-      "classDescription": "51 - Comparestring mit PartNoPosition und Länge-Daten",
+      "id": "51",
+      "description": "51 - Comparestring mit PartNoPosition und Länge-Daten",
       "templateId": "2",
       "helpText": "Vergleich des Comparestrings. Comparestring muss über die GenerationClass entsprechend gefüllt werden"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "52",
-      "classDescription": "52 - unitidentno Format + Eindeutigkeit",
+      "id": "52",
+      "description": "52 - unitidentno Format + Eindeutigkeit",
       "templateId": "2",
       "helpText": "Prüft unitidentno auf gültiges Format bei Eingabe + Prüfung auf Eindeutigkeit der UnitIdentNo"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "53",
-      "classDescription": "53 - Prüfung ob Carrier zugeordnet",
+      "id": "53",
+      "description": "53 - Prüfung ob Carrier zugeordnet",
       "templateId": "2",
       "helpText": "Prüft ob die gescannte CarrierId dem Auftrag zugeordnet ist"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "54",
-      "classDescription": "54 - Prüfung Vomo Produkt in BOM",
+      "id": "54",
+      "description": "54 - Prüfung Vomo Produkt in BOM",
       "templateId": "2",
       "helpText": "Vomo Subauftrag Verheiratung. Suche Vomo Auftrag via Referenz-Operation. Prüfe ob Vomo Productno als A-Sachnummer in BOM des Auftrages und auf Mehrfachverbau"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "55",
-      "classDescription": "55 - Prüfung Vomo Produkt Operationsstatus",
+      "id": "55",
+      "description": "55 - Prüfung Vomo Produkt Operationsstatus",
       "templateId": "2",
       "helpText": "Prüfung ob gescannte Teilenummer in BOM. Prüfung auf Mehrfachverwendung. Prüfung auf Operationsresults des Vomo Subauftrags"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "56",
-      "classDescription": "56 - Teilstring in Referenz-OP und Mehrfachverbau alle Operationen",
+      "id": "56",
+      "description": "56 - Teilstring in Referenz-OP und Mehrfachverbau alle Operationen",
       "templateId": "2",
       "helpText": "Prüfung Teilstring im Scan-Result der Referenzoperation enthalten ist und Mehrfachverbau über alle Operationen prüfen. Teilstring über osdef_scanningbarcodetype.UserDataStartPos und UserDataLength definiert"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "57",
-      "classDescription": "57 - Vomo Order FIN",
+      "id": "57",
+      "description": "57 - Vomo Order FIN",
       "templateId": "2",
       "helpText": "Prüft ob der Barcode ein Vormontageauftrag ist und dieser als FIN den hier aktuellen Auftrag hat"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "58",
-      "classDescription": "58 - HDEP Injektor TrimCode or partno in Injector DMC",
+      "id": "58",
+      "description": "58 - HDEP Injektor TrimCode or partno in Injector DMC",
       "templateId": "2",
       "helpText": "HDEP injector: prüfen manuelle Eingabe von Trimcode & CRC korrekt ist. VerificationClass gibt Dummy-DMC zurück mit Teilenummer und TrimCode für MCM flashing"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "59",
-      "classDescription": "59 - DMC nicht zugewiesen",
+      "id": "59",
+      "description": "59 - DMC nicht zugewiesen",
       "templateId": "2",
       "helpText": "Prüfen, ob DMC bereits einem anderen Auftrag zugeordnet ist (im Feld UnitIdentNo). Nur mit SavingClass 23 verwenden"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "60",
-      "classDescription": "60 - BOM, Mehrfachverbau, gleiche Produktionsnr für ReferenzOPs",
+      "id": "60",
+      "description": "60 - BOM, Mehrfachverbau, gleiche Produktionsnr für ReferenzOPs",
       "templateId": "2",
       "helpText": "Prüfen Teil in BOM, auf Mehrfachverbau und auf gleiche Produktionsnummer (DMC Teilstring 12-22) im Scan-Ergebnis bei allen Referenzoperationen"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "61",
-      "classDescription": "61 - Verifiziere Umrüster Teil",
+      "id": "61",
+      "description": "61 - Verifiziere Umrüster Teil",
       "templateId": "2",
       "helpText": "Verifiziere Umrüster für Teile. Der gescannte Barcode entspricht der Auftragsnummer, die aufgelöst wird. Das Blech vom hier gescannten Auftrag wird also dem Stationsauftrag zugeordnet. Wir prüfen ob unitendno entsprechend leer bzw. gesetzt sind"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "62",
-      "classDescription": "62 - BOM und Mehrfachverwendung (nur Produktionsnummer) und Barcodelänge",
+      "id": "62",
+      "description": "62 - BOM und Mehrfachverwendung (nur Produktionsnummer) und Barcodelänge",
       "templateId": "2",
       "helpText": "Stücklistenteil und Mehrfachverwendung für die Produktionsnummer und Barcodelänge. Barcodetype beachten"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "63",
-      "classDescription": "63 - CustOrderno in VIEWORDER",
+      "id": "63",
+      "description": "63 - CustOrderno in VIEWORDER",
       "templateId": "2",
       "helpText": "CustOrderno prüfen. Barcode über Barcodetype definiert: UserDataStart und UserDataLength legen dabei fest wo die Kunden-Orderno im Barcode steht"
     },
     {
-      "classType": "VERIFICATION",
-      "classId": "97",
-      "classDescription": "97 - I-Beam",
+      "id": "97",
+      "description": "97 - I-Beam",
       "templateId": "2",
       "helpText": "Spezialfall Redford Achse: nur temporäre Lösung da Teilenummer nicht korrekt in der Stückliste ist"
     }
