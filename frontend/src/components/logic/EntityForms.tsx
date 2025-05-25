@@ -60,6 +60,9 @@ export function LineForm({ entityId }: { entityId: string }) {
         AssemblyArea: json.AssemblyArea ?? line.AssemblyArea ?? "",
       });
       setFormReady(true);
+      queryClient.invalidateQueries({
+        queryKey: ["line", entityId],
+      });
     })();
   }, [observer]);
 
@@ -374,6 +377,9 @@ export function StationForm({ entityId }: { entityId: string }) {
           json.SerialOrParallel ?? station.SerialOrParallel ?? "",
       });
       setFormReady(true);
+      queryClient.invalidateQueries({
+        queryKey: ["station", entityId],
+      });
     })();
   }, [observer]);
 
@@ -1588,6 +1594,9 @@ export function OperationForm({ entityId }: { entityId: string }) {
       }
 
       setFormReady(true);
+      queryClient.invalidateQueries({
+        queryKey: ["operation", entityId],
+      });
     })();
   }, [observer, entityId]);
 
