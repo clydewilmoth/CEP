@@ -12,7 +12,6 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
-	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -27,6 +26,28 @@ import (
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 )
+
+// Robust timestamp parsing helper for concurrency and DB compatibility
+func parseTimestampFlexible(ts string) (time.Time, error) {
+	// Try RFC3339Nano
+	t, err := time.Parse(time.RFC3339Nano, ts)
+	if err == nil {
+		return t, nil
+	}
+	// Try RFC3339
+	t, err = time.Parse(time.RFC3339, ts)
+	if err == nil {
+		return t, nil
+	}
+	// Try SQL Server datetime2 (no T, no timezone)
+	const mssqlFormat = "2006-01-02 15:04:05.9999999"
+	t, err = time.Parse(mssqlFormat, ts)
+	if err == nil {
+		return t, nil
+	}
+	log.Printf("Failed to parse timestamp '%s': %v", ts, err)
+	return time.Time{}, fmt.Errorf("unsupported timestamp format: %s", ts)
+}
 
 type Core struct {
 	ctx context.Context
@@ -310,18 +331,15 @@ func (c *Core) GetChangesSince(clientLastKnownTimestampStr string) (*ChangeRespo
 	if DB == nil {
 		return nil, errors.New("DB not initialized")
 	}
-	clientLastKnownTime, err := time.Parse(time.RFC3339Nano, clientLastKnownTimestampStr)
+	clientLastKnownTime, err := parseTimestampFlexible(clientLastKnownTimestampStr)
 	if err != nil {
-		clientLastKnownTime, err = time.Parse(time.RFC3339, clientLastKnownTimestampStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid clientLastKnownTimestampStr format: %w", err)
-		}
+		return nil, fmt.Errorf("invalid clientLastKnownTimestampStr format: %w", err)
 	}
 	currentGlobalTsStr, err := c.GetGlobalLastUpdateTimestamp()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current global update timestamp: %w", err)
 	}
-	currentGlobalTime, _ := time.Parse(time.RFC3339Nano, currentGlobalTsStr)
+	currentGlobalTime, _ := parseTimestampFlexible(currentGlobalTsStr)
 	response := &ChangeResponse{NewGlobalLastUpdatedAt: currentGlobalTsStr, UpdatedEntities: make(map[string][]string), DeletedEntities: make(map[string][]string)}
 	if currentGlobalTime.After(clientLastKnownTime) {
 		var logs []EntityChangeLog
@@ -495,12 +513,9 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 	if err != nil {
 		return nil, err
 	}
-	lastKnownUpdatedAt, err := time.Parse(time.RFC3339Nano, lastKnownUpdatedAtStr)
+	lastKnownUpdatedAt, err := parseTimestampFlexible(lastKnownUpdatedAtStr)
 	if err != nil {
-		lastKnownUpdatedAt, err = time.Parse(time.RFC3339, lastKnownUpdatedAtStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid updated_at format ('%s'): %w", lastKnownUpdatedAtStr, err)
-		}
+		return nil, fmt.Errorf("invalid updated_at format ('%s'): %w", lastKnownUpdatedAtStr, err)
 	}
 	modelToUpdate, err := getModelInstance(entityTypeStr)
 	if err != nil {
@@ -520,19 +535,57 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 			return fmt.Errorf("error loading entity for update check: %w", errCheck)
 		}
 		var currentDBUpdatedAt time.Time
-		switch m := dbEntityForCheck.(type) {
-		case *Line:
+		switch strings.ToLower(entityTypeStr) {
+		case "line":
+			var m Line
+			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errors.New("record not found or already deleted")
+				}
+				return fmt.Errorf("error loading entity for update check: %w", err)
+			}
 			currentDBUpdatedAt = m.UpdatedAt
-		case *Station:
+		case "station":
+			var m Station
+			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errors.New("record not found or already deleted")
+				}
+				return fmt.Errorf("error loading entity for update check: %w", err)
+			}
 			currentDBUpdatedAt = m.UpdatedAt
-		case *Tool:
+		case "tool":
+			var m Tool
+			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errors.New("record not found or already deleted")
+				}
+				return fmt.Errorf("error loading entity for update check: %w", err)
+			}
 			currentDBUpdatedAt = m.UpdatedAt
-		case *Operation:
+		case "operation":
+			var m Operation
+			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errors.New("record not found or already deleted")
+				}
+				return fmt.Errorf("error loading entity for update check: %w", err)
+			}
 			currentDBUpdatedAt = m.UpdatedAt
 		default:
-			return fmt.Errorf("unknown type for timestamp extraction: %T", m)
+			return fmt.Errorf("unknown type for timestamp extraction: %s", entityTypeStr)
 		}
-		if !currentDBUpdatedAt.Truncate(time.Millisecond).Equal(lastKnownUpdatedAt.Truncate(time.Millisecond)) {
+		// Hole den aktuellen globalen Zeitstempel wie der Client
+		currentGlobalTsStr, err := c.GetGlobalLastUpdateTimestamp()
+		if err != nil {
+			return fmt.Errorf("failed to get global last update timestamp: %w", err)
+		}
+		currentDBUpdatedAt, err = parseTimestampFlexible(currentGlobalTsStr)
+		if err != nil {
+			return fmt.Errorf("failed to parse global last update timestamp: %w", err)
+		}
+		if currentDBUpdatedAt.UTC().Before(lastKnownUpdatedAt.UTC()) {
+			log.Printf("[Concurrency] Conflict detected: DB UpdatedAt=%s | Client UpdatedAt=%s", currentDBUpdatedAt.UTC().Format(time.RFC3339Nano), lastKnownUpdatedAt.UTC().Format(time.RFC3339Nano))
 			return errors.New("conflict: record was modified by another user")
 		}
 		gormUpdates := make(map[string]interface{})
@@ -955,113 +1008,118 @@ func (c *Core) RestoreAsNewCurrentVersion(versionIDToRestoreStr string, userName
 	}
 	return &finalNewCurrentVersion, nil
 }
-func (c *Core) GetLinesForVersion(versionIDStr string) ([]Line, error) {
-	if DB == nil {
-		return nil, errors.New("DB not initialized")
-	}
-	versionIDmssql, err := parseMSSQLUniqueIdentifierFromString(versionIDStr)
-	if err != nil {
-		return nil, err
-	}
-	var lineHistories []LineHistory
-	if err := DB.Where("version_id = ?", versionIDmssql).Order("created_at asc").Find(&lineHistories).Error; err != nil {
-		return nil, fmt.Errorf("error fetching line histories for version %s: %w", versionIDStr, err)
-	}
-	linesForVersion := make([]Line, len(lineHistories))
-	for i, lh := range lineHistories {
-		linesForVersion[i] = Line{BaseModel: BaseModel{ID: lh.ID, CreatedAt: lh.CreatedAt, UpdatedAt: lh.UpdatedAt, CreatedBy: lh.CreatedBy, UpdatedBy: lh.UpdatedBy}, Name: lh.Name, Description: lh.Description, Stations: nil}
-	}
-	return linesForVersion, nil
-}
-func (c *Core) GetChildEntitiesForVersion(versionIDStr string, parentEntityOriginalIDStr string, childEntityTypeStr string) ([]interface{}, error) {
-	if DB == nil {
-		return nil, errors.New("DB not initialized")
-	}
-	versionIDmssql, err := parseMSSQLUniqueIdentifierFromString(versionIDStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid versionID: %w", err)
-	}
-	parentEntityOriginalIDmssql, err := parseMSSQLUniqueIdentifierFromString(parentEntityOriginalIDStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid parentEntityOriginalID: %w", err)
-	}
-	var results []interface{}
-	switch strings.ToLower(childEntityTypeStr) {
-	case "station":
-		var items []StationHistory
-		if err := DB.Where("version_id = ? AND parent_id = ?", versionIDmssql, parentEntityOriginalIDmssql).Order("created_at asc").Find(&items).Error; err != nil {
+
+/*
+	func (c *Core) GetLinesForVersion(versionIDStr string) ([]Line, error) {
+		if DB == nil {
+			return nil, errors.New("DB not initialized")
+		}
+		versionIDmssql, err := parseMSSQLUniqueIdentifierFromString(versionIDStr)
+		if err != nil {
 			return nil, err
 		}
-		for i := range items {
-			station := Station{BaseModel: BaseModel{ID: items[i].ID, CreatedAt: items[i].CreatedAt, UpdatedAt: items[i].UpdatedAt, CreatedBy: items[i].CreatedBy, UpdatedBy: items[i].UpdatedBy}, Name: items[i].Name, Description: items[i].Description, ParentID: items[i].ParentID}
-			results = append(results, &station)
+		var lineHistories []LineHistory
+		if err := DB.Where("version_id = ?", versionIDmssql).Order("created_at asc").Find(&lineHistories).Error; err != nil {
+			return nil, fmt.Errorf("error fetching line histories for version %s: %w", versionIDStr, err)
 		}
-	case "tool":
-		var items []ToolHistory
-		if err := DB.Where("version_id = ? AND parent_id = ?", versionIDmssql, parentEntityOriginalIDmssql).Order("created_at asc").Find(&items).Error; err != nil {
-			return nil, err
+		linesForVersion := make([]Line, len(lineHistories))
+		for i, lh := range lineHistories {
+			linesForVersion[i] = Line{BaseModel: BaseModel{ID: lh.ID, CreatedAt: lh.CreatedAt, UpdatedAt: lh.UpdatedAt, CreatedBy: lh.CreatedBy, UpdatedBy: lh.UpdatedBy}, Name: lh.Name, Description: lh.Description, Stations: nil}
 		}
-		for i := range items {
-			tool := Tool{BaseModel: BaseModel{ID: items[i].ID, CreatedAt: items[i].CreatedAt, UpdatedAt: items[i].UpdatedAt, CreatedBy: items[i].CreatedBy, UpdatedBy: items[i].UpdatedBy}, Name: items[i].Name, Description: items[i].Description, ParentID: items[i].ParentID}
-			results = append(results, &tool)
+		return linesForVersion, nil
+	}
+
+	func (c *Core) GetChildEntitiesForVersion(versionIDStr string, parentEntityOriginalIDStr string, childEntityTypeStr string) ([]interface{}, error) {
+		if DB == nil {
+			return nil, errors.New("DB not initialized")
 		}
-	case "operation":
-		var items []OperationHistory
-		if err := DB.Where("version_id = ? AND parent_id = ?", versionIDmssql, parentEntityOriginalIDmssql).Order("created_at asc").Find(&items).Error; err != nil {
-			return nil, err
+		versionIDmssql, err := parseMSSQLUniqueIdentifierFromString(versionIDStr)
+		if err != nil {
+			return nil, fmt.Errorf("invalid versionID: %w", err)
 		}
-		for i := range items {
-			operation := Operation{BaseModel: BaseModel{ID: items[i].ID, CreatedAt: items[i].CreatedAt, UpdatedAt: items[i].UpdatedAt, CreatedBy: items[i].CreatedBy, UpdatedBy: items[i].UpdatedBy}, Name: items[i].Name, Description: items[i].Description, ParentID: items[i].ParentID}
-			results = append(results, &operation)
+		parentEntityOriginalIDmssql, err := parseMSSQLUniqueIdentifierFromString(parentEntityOriginalIDStr)
+		if err != nil {
+			return nil, fmt.Errorf("invalid parentEntityOriginalID: %w", err)
 		}
-	default:
-		return nil, fmt.Errorf("GetChildEntitiesForVersion not implemented for child type: %s", childEntityTypeStr)
-	}
-	return results, nil
-}
-func (c *Core) GetVersionedEntityHierarchy(versionIDStr string, rootEntityTypeStr string, rootEntityOriginalIDStr string) (interface{}, error) {
-	if DB == nil {
-		return nil, errors.New("DB not initialized")
-	}
-	versionIDmssql, err := parseMSSQLUniqueIdentifierFromString(versionIDStr)
-	if err != nil {
-		return nil, err
-	}
-	rootEntityOriginalIDmssql, err := parseMSSQLUniqueIdentifierFromString(rootEntityOriginalIDStr)
-	if err != nil {
-		return nil, err
-	}
-	if strings.ToLower(rootEntityTypeStr) != "line" {
-		return nil, errors.New("GetVersionedEntityHierarchy currently only implemented for root 'line'")
-	}
-	var lineHist LineHistory
-	if err := DB.Where("version_id = ? AND id = ?", versionIDmssql, rootEntityOriginalIDmssql).First(&lineHist).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("line with original ID %s in version %s not found", rootEntityOriginalIDStr, versionIDStr)
-		}
-		return nil, err
-	}
-	reconstructedLine := Line{BaseModel: BaseModel{ID: lineHist.ID, CreatedAt: lineHist.CreatedAt, UpdatedAt: lineHist.UpdatedAt, CreatedBy: lineHist.CreatedBy, UpdatedBy: lineHist.UpdatedBy}, Name: lineHist.Name, Description: lineHist.Description, Stations: []Station{}}
-	var stationHists []StationHistory
-	DB.Where("version_id = ? AND parent_id = ?", versionIDmssql, lineHist.ID).Order("created_at asc").Find(&stationHists)
-	for _, sh := range stationHists {
-		station := Station{BaseModel: BaseModel{ID: sh.ID, CreatedAt: sh.CreatedAt, UpdatedAt: sh.UpdatedAt, CreatedBy: sh.CreatedBy, UpdatedBy: sh.UpdatedBy}, Name: sh.Name, Description: sh.Description, ParentID: sh.ParentID, Tools: []Tool{}}
-		var toolHists []ToolHistory
-		DB.Where("version_id = ? AND parent_id = ?", versionIDmssql, sh.ID).Order("created_at asc").Find(&toolHists)
-		for _, th := range toolHists {
-			tool := Tool{BaseModel: BaseModel{ID: th.ID, CreatedAt: th.CreatedAt, UpdatedAt: th.UpdatedAt, CreatedBy: th.CreatedBy, UpdatedBy: th.UpdatedBy}, Name: th.Name, Description: th.Description, ParentID: th.ParentID, Operations: []Operation{}}
-			var opHists []OperationHistory
-			DB.Where("version_id = ? AND parent_id = ?", versionIDmssql, th.ID).Order("created_at asc").Find(&opHists)
-			for _, oh := range opHists {
-				op := Operation{BaseModel: BaseModel{ID: oh.ID, CreatedAt: oh.CreatedAt, UpdatedAt: oh.UpdatedAt, CreatedBy: oh.CreatedBy, UpdatedBy: oh.UpdatedBy}, Name: oh.Name, Description: oh.Description, ParentID: oh.ParentID}
-				tool.Operations = append(tool.Operations, op)
+		var results []interface{}
+		switch strings.ToLower(childEntityTypeStr) {
+		case "station":
+			var items []StationHistory
+			if err := DB.Where("version_id = ? AND parent_id = ?", versionIDmssql, parentEntityOriginalIDmssql).Order("created_at asc").Find(&items).Error; err != nil {
+				return nil, err
 			}
-			station.Tools = append(station.Tools, tool)
+			for i := range items {
+				station := Station{BaseModel: BaseModel{ID: items[i].ID, CreatedAt: items[i].CreatedAt, UpdatedAt: items[i].UpdatedAt, CreatedBy: items[i].CreatedBy, UpdatedBy: items[i].UpdatedBy}, Name: items[i].Name, Description: items[i].Description, ParentID: items[i].ParentID}
+				results = append(results, &station)
+			}
+		case "tool":
+			var items []ToolHistory
+			if err := DB.Where("version_id = ? AND parent_id = ?", versionIDmssql, parentEntityOriginalIDmssql).Order("created_at asc").Find(&items).Error; err != nil {
+				return nil, err
+			}
+			for i := range items {
+				tool := Tool{BaseModel: BaseModel{ID: items[i].ID, CreatedAt: items[i].CreatedAt, UpdatedBy: items[i].UpdatedBy, CreatedBy: items[i].CreatedBy}, Name: items[i].Name, Description: items[i].Description, ParentID: items[i].ParentID}
+				results = append(results, &tool)
+			}
+		case "operation":
+			var items []OperationHistory
+			if err := DB.Where("version_id = ? AND parent_id = ?", versionIDmssql, parentEntityOriginalIDmssql).Order("created_at asc").Find(&items).Error; err != nil {
+				return nil, err
+			}
+			for i := range items {
+				operation := Operation{BaseModel: BaseModel{ID: items[i].ID, CreatedAt: items[i].CreatedAt, UpdatedAt: items[i].UpdatedAt, CreatedBy: items[i].CreatedBy, UpdatedBy: items[i].UpdatedBy}, Name: items[i].Name, Description: items[i].Description, ParentID: items[i].ParentID}
+				results = append(results, &operation)
+			}
+		default:
+			return nil, fmt.Errorf("GetChildEntitiesForVersion not implemented for child type: %s", childEntityTypeStr)
 		}
-		reconstructedLine.Stations = append(reconstructedLine.Stations, station)
+		return results, nil
 	}
-	return &reconstructedLine, nil
-}
+
+	func (c *Core) GetVersionedEntityHierarchy(versionIDStr string, rootEntityTypeStr string, rootEntityOriginalIDStr string) (interface{}, error) {
+		if DB == nil {
+			return nil, errors.New("DB not initialized")
+		}
+		versionIDmssql, err := parseMSSQLUniqueIdentifierFromString(versionIDStr)
+		if err != nil {
+			return nil, err
+		}
+		rootEntityOriginalIDmssql, err := parseMSSQLUniqueIdentifierFromString(rootEntityOriginalIDStr)
+		if err != nil {
+			return nil, err
+		}
+		if strings.ToLower(rootEntityTypeStr) != "line" {
+			return nil, errors.New("GetVersionedEntityHierarchy currently only implemented for root 'line'")
+		}
+		var lineHist LineHistory
+		if err := DB.Where("version_id = ? AND id = ?", versionIDmssql, rootEntityOriginalIDmssql).First(&lineHist).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, fmt.Errorf("line with original ID %s in version %s not found", rootEntityOriginalIDStr, versionIDStr)
+			}
+			return nil, err
+		}
+		reconstructedLine := Line{BaseModel: BaseModel{ID: lineHist.ID, CreatedAt: lineHist.CreatedAt, UpdatedAt: lineHist.UpdatedAt, CreatedBy: lineHist.CreatedBy, UpdatedBy: lineHist.UpdatedBy}, Name: lineHist.Name, Description: lineHist.Description, Stations: []Station{}}
+		var stationHists []StationHistory
+		DB.Where("version_id = ? AND parent_id = ?", versionIDmssql, lineHist.ID).Order("created_at asc").Find(&stationHists)
+		for _, sh := range stationHists {
+			station := Station{BaseModel: BaseModel{ID: sh.ID, CreatedAt: sh.CreatedAt, UpdatedAt: sh.UpdatedAt, CreatedBy: sh.CreatedBy, UpdatedBy: sh.UpdatedBy}, Name: sh.Name, Description: sh.Description, ParentID: sh.ParentID, Tools: []Tool{}}
+			var toolHists []ToolHistory
+			DB.Where("version_id = ? AND parent_id = ?", versionIDmssql, sh.ID).Order("created_at asc").Find(&toolHists)
+			for _, th := range toolHists {
+				tool := Tool{BaseModel: BaseModel{ID: th.ID, CreatedAt: th.CreatedAt, UpdatedAt: th.UpdatedAt, CreatedBy: th.CreatedBy, UpdatedBy: th.UpdatedBy}, Name: th.Name, Description: th.Description, ParentID: th.ParentID, Operations: []Operation{}}
+				var opHists []OperationHistory
+				DB.Where("version_id = ? AND parent_id = ?", versionIDmssql, th.ID).Order("created_at asc").Find(&opHists)
+				for _, oh := range opHists {
+					op := Operation{BaseModel: BaseModel{ID: oh.ID, CreatedAt: oh.CreatedAt, UpdatedAt: oh.UpdatedAt, CreatedBy: oh.CreatedBy, UpdatedBy: oh.UpdatedBy}, Name: oh.Name, Description: oh.Description, ParentID: oh.ParentID}
+					tool.Operations = append(tool.Operations, op)
+				}
+				station.Tools = append(station.Tools, tool)
+			}
+			reconstructedLine.Stations = append(reconstructedLine.Stations, station)
+		}
+		return &reconstructedLine, nil
+	}
+*/
 func (c *Core) ExportEntityHierarchyToJSON(entityTypeStr string, entityIDStr string, filePath string) error {
 	if DB == nil {
 		return errors.New("DB not initialized")
@@ -1084,28 +1142,31 @@ func (c *Core) ExportEntityHierarchyToJSON(entityTypeStr string, entityIDStr str
 	log.Printf("Hierarchy successfully exported to '%s'.", filePath)
 	return nil
 }
-func (c *Core) ExportVersionedEntityHierarchyToJSON(versionIDStr string, rootEntityTypeStr string, rootEntityOriginalIDStr string, filePath string) error {
-	if DB == nil {
-		return errors.New("DB not initialized")
+
+/*
+	func (c *Core) ExportVersionedEntityHierarchyToJSON(versionIDStr string, rootEntityTypeStr string, rootEntityOriginalIDStr string, filePath string) error {
+		if DB == nil {
+			return errors.New("DB not initialized")
+		}
+		if filePath == "" {
+			return errors.New("export filePath is empty")
+		}
+		hierarchyData, err := c.GetVersionedEntityHierarchy(versionIDStr, rootEntityTypeStr, rootEntityOriginalIDStr)
+		if err != nil {
+			return fmt.Errorf("error loading versioned entity hierarchy for export: %w", err)
+		}
+		jsonData, err := json.MarshalIndent(hierarchyData, "", "  ")
+		if err != nil {
+			return fmt.Errorf("error converting versioned data to JSON: %w", err)
+		}
+		err = os.WriteFile(filePath, jsonData, 0644)
+		if err != nil {
+			return fmt.Errorf("error writing versioned JSON file to '%s': %w", filePath, err)
+		}
+		log.Printf("Versioned hierarchy (Version: %s) successfully exported to '%s'.", versionIDStr, filePath)
+		return nil
 	}
-	if filePath == "" {
-		return errors.New("export filePath is empty")
-	}
-	hierarchyData, err := c.GetVersionedEntityHierarchy(versionIDStr, rootEntityTypeStr, rootEntityOriginalIDStr)
-	if err != nil {
-		return fmt.Errorf("error loading versioned entity hierarchy for export: %w", err)
-	}
-	jsonData, err := json.MarshalIndent(hierarchyData, "", "  ")
-	if err != nil {
-		return fmt.Errorf("error converting versioned data to JSON: %w", err)
-	}
-	err = os.WriteFile(filePath, jsonData, 0644)
-	if err != nil {
-		return fmt.Errorf("error writing versioned JSON file to '%s': %w", filePath, err)
-	}
-	log.Printf("Versioned hierarchy (Version: %s) successfully exported to '%s'.", versionIDStr, filePath)
-	return nil
-}
+*/
 func (c *Core) ImportEntityHierarchyFromJSON_UseOriginalData(importingUserName string, filePath string) (err error) {
 	if DB == nil {
 		return errors.New("DB not initialized")
@@ -1223,6 +1284,8 @@ func importEntityRecursive_UseOriginalData(currentTx *gorm.DB, originalEntityDat
 	}
 	return nil
 }
+
+/*
 func (c *Core) ImportCopiedEntityHierarchyFromJSON(userName string, entityTypeStr string, parentIDStrIfApplicable string, jsonData string) (interface{}, error) {
 	if DB == nil {
 		return nil, errors.New("DB not initialized")
@@ -1265,6 +1328,7 @@ func (c *Core) ImportCopiedEntityHierarchyFromJSON(userName string, entityTypeSt
 	}
 	return newTopEntity, nil
 }
+
 func importCopiedEntityRecursive(tx *gorm.DB, userName string, originalEntityData interface{}, entityTypeStr string, newParentActualDBID mssql.UniqueIdentifier, idMap map[mssql.UniqueIdentifier]mssql.UniqueIdentifier) (mssql.UniqueIdentifier, error) {
 	var oldIDFromJSON mssql.UniqueIdentifier
 	var newEntityToCreate interface{}
@@ -1320,3 +1384,4 @@ func importCopiedEntityRecursive(tx *gorm.DB, userName string, originalEntityDat
 	}
 	return newActualDBID, nil
 }
+*/

@@ -8,9 +8,9 @@ import {
 import {
   Menu as Burger,
   Database,
-  FileDown,
   Globe,
-  User,
+  Moon,
+  Sun,
   UserRound,
 } from "lucide-react";
 import {
@@ -20,17 +20,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   CheckEnvInExeDir,
   GetPlatformSpecificUserName,
-  HandleImport,
   ParseDSNFromEnv,
 } from "../../../wailsjs/go/main/Core";
-import { DialogHeader } from "../ui/dialog";
 import { Input } from "../ui/input";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,18 +42,18 @@ import {
 } from "@/components/ui/form";
 import { ConfigureAndSaveDSN } from "../../../wailsjs/go/main/Core";
 
-import { useInit, useSignal } from "@/App";
+import { useInit } from "@/App";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { PasswordInput } from "../ui/password-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 export function Menu() {
-  const { i18n } = useTranslation();
-  useEffect(() => {
-    localStorage.getItem("lang") == null
-      ? i18n.changeLanguage("en")
-      : i18n.changeLanguage(String(localStorage.getItem("lang")));
-  }, []);
-
   const { setDsnOpen } = useInit();
 
   return (
@@ -69,16 +65,18 @@ export function Menu() {
             <Burger />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-6">
+        <DropdownMenuContent>
           <UserDialog />
+
           <DropdownMenuSeparator className="h-[0.05rem]" />
+
           <LangDialog />
+          <DropdownMenuSeparator className="h-[0.05rem]" />
+          <ThemeSwitch />
           <DropdownMenuSeparator className="h-[0.05rem]" />
           <Button variant="ghost" size="icon" onClick={() => setDsnOpen(true)}>
             <Database />
           </Button>
-          <DropdownMenuSeparator className="h-[0.05rem]" />
-          <ImportDialog />
         </DropdownMenuContent>
       </DropdownMenu>
     </>
@@ -110,22 +108,17 @@ function UserDialog() {
           <UserRound />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[300px]">
-        <DialogHeader>
-          <DialogTitle>{t("NameDialog Title")}</DialogTitle>
-          <DialogDescription>{t("NameDialog Description")}</DialogDescription>
-        </DialogHeader>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Input
-            id="name"
-            value={String(name)}
-            className="col-span-4"
-            onChange={(e) => (
-              setName(e.target.value),
-              localStorage.setItem("name", e.target.value)
-            )}
-          />
-        </div>
+      <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
+        <DialogTitle>{t("NameDialog Title")}</DialogTitle>
+        <DialogDescription>{t("NameDialog Description")}</DialogDescription>
+        <Input
+          id="name"
+          value={String(name)}
+          onChange={(e) => (
+            setName(e.target.value),
+            localStorage.setItem("name", e.target.value)
+          )}
+        />
       </DialogContent>
     </Dialog>
   );
@@ -134,9 +127,6 @@ function UserDialog() {
 function LangDialog() {
   const { t, i18n } = useTranslation();
   const [lang, setLang] = useState<string | null>(localStorage.getItem("lang"));
-  useEffect(() => {
-    setLang(localStorage.getItem("lang"));
-  }, []);
 
   return (
     <Dialog>
@@ -145,45 +135,25 @@ function LangDialog() {
           <Globe />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[300px]">
-        <DialogHeader>
-          <DialogTitle>{t("LangDialog Title")}</DialogTitle>
-          <DialogDescription>{t("LangDialog Description")}</DialogDescription>
-        </DialogHeader>
-        <RadioGroup
-          value={String(lang)}
+      <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
+        <DialogTitle>{t("LangDialog Title")}</DialogTitle>
+        <DialogDescription>{t("LangDialog Description")}</DialogDescription>
+        <Select
           onValueChange={(e) => (
             setLang(e), i18n.changeLanguage(e), localStorage.setItem("lang", e)
           )}
+          defaultValue={String(lang)}
         >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="en" id="r1" />
-            <Label htmlFor="r1">English</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="de" id="r2" />
-            <Label htmlFor="r2">Deutsch</Label>
-          </div>
-        </RadioGroup>
+          <SelectTrigger>
+            <SelectValue placeholder={t("LangDialog Placeholder")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="de">Deutsch</SelectItem>
+          </SelectContent>
+        </Select>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function ImportDialog() {
-  const queryClient = useQueryClient();
-
-  const { mutateAsync: importEntity } = useMutation({
-    mutationFn: async () =>
-      toast(t(await HandleImport(String(localStorage.getItem("name"))))),
-    onSuccess: () => queryClient.invalidateQueries(),
-  });
-  const { t } = useTranslation();
-
-  return (
-    <Button variant="ghost" size="icon" onClick={() => importEntity()}>
-      <FileDown />
-    </Button>
   );
 }
 
@@ -232,14 +202,13 @@ export function DSNDialog() {
       values.TrustServerCertificate.toString()
     );
     toast(`${t("DSNDialog Toast")}`);
-    increment();
+    appRerender();
     setDsnOpen(false);
   }
 
   const { t } = useTranslation();
 
-  const { dsnOpen, setDsnOpen } = useInit();
-  const { increment } = useSignal();
+  const { dsnOpen, setDsnOpen, appRerender } = useInit();
 
   useEffect(() => {
     if (dsnOpen) {
@@ -257,12 +226,9 @@ export function DSNDialog() {
               TrustServerCertificate: env.TrustServerCertificate === "true",
             });
           }
-        } catch (e) {
-          // Ignorieren, falls keine ENV vorhanden
-        }
+        } catch (e) {}
       })();
     }
-    // eslint-disable-next-line
   }, [dsnOpen]);
 
   return (
@@ -272,138 +238,151 @@ export function DSNDialog() {
         setDsnOpen(dsnOpen && (await CheckEnvInExeDir()) ? false : true);
       }}
     >
-      <DialogContent className="sm:max-w-[30rem]">
-        <DialogHeader>
-          <DialogTitle>{t("DSNForm Title")}</DialogTitle>
-          <DialogDescription>{t("DSNForm Description")}</DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="grid grid-cols-2 gap-7"
-          >
-            <FormField
-              control={form.control}
-              name="Host"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Host</FormLabel>
-                  <FormControl>
-                    <Input placeholder="localhost" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="Port"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Port</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="1433" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="Database"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Database</FormLabel>
-                  <FormControl>
-                    <Input placeholder="db" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="User"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>User</FormLabel>
-                  <FormControl>
-                    <Input placeholder="sa" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="Password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <div className="flex flex-col justify-around ml-2">
-              <FormField
-                control={form.control}
-                name="Encrypted"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col space-y-1 justify-center">
-                    <div className="flex items-center space-x-2">
+      <DialogContent className="p-0 w-1/2">
+        <ScrollArea className="max-h-[90vh]">
+          <div className="p-6">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="py-5 grid grid-cols-2 gap-8"
+              >
+                <DialogTitle className="col-span-2">
+                  {t("DSN FormTitle")}
+                </DialogTitle>
+                <DialogDescription className="col-span-2">
+                  {t("DSN FormDescription")}
+                </DialogDescription>
+                <FormField
+                  control={form.control}
+                  name="Host"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("Host")}</FormLabel>
                       <FormControl>
-                        <input
-                          type="checkbox"
-                          checked={field.value}
-                          onChange={field.onChange}
-                          id="Encrypted"
-                          className="accent-black w-4 h-4"
-                        />
+                        <Input placeholder="localhost" {...field} />
                       </FormControl>
-                      <FormLabel
-                        htmlFor="Encrypted"
-                        className="mb-0 cursor-pointer"
-                      >
-                        Encrypted
-                      </FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="TrustServerCertificate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col space-y-1 justify-center">
-                    <div className="flex items-center space-x-2">
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="Port"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("Port")}</FormLabel>
                       <FormControl>
-                        <input
-                          type="checkbox"
-                          checked={field.value}
-                          onChange={field.onChange}
-                          id="TrustServerCertificate"
-                          className="accent-black w-4 h-4"
-                        />
+                        <Input type="number" placeholder="1433" {...field} />
                       </FormControl>
-                      <FormLabel
-                        htmlFor="TrustServerCertificate"
-                        className="mb-0 cursor-pointer"
-                      >
-                        TrustServer
-                      </FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-            <Button
-              type="submit"
-              variant="outline"
-              className="col-span-2 w-1/3 mx-auto"
-            >
-              Submit
-            </Button>
-          </form>
-        </Form>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="Database"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("DSN Database")}</FormLabel>
+                      <FormControl>
+                        <Input placeholder="db" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="User"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("DSN User")}</FormLabel>
+                      <FormControl>
+                        <Input placeholder="sa" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="Password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("DSN Password")}</FormLabel>
+                      <FormControl>
+                        <PasswordInput placeholder="" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <div className="flex flex-col items-start justify-center gap-2 rounded-md pl-4 border">
+                  <FormField
+                    control={form.control}
+                    name="Encrypted"
+                    render={({ field }) => (
+                      <FormItem className="flex gap-2 justify-center space-y-0">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="hover:cursor-pointer"
+                          />
+                        </FormControl>
+                        <FormLabel className="hover:cursor-pointer">
+                          {t("DSN Encrypted")}
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="TrustServerCertificate"
+                    render={({ field }) => (
+                      <FormItem className="flex gap-2 justify-center space-y-0">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="hover:cursor-pointer"
+                          />
+                        </FormControl>
+                        <FormLabel className="hover:cursor-pointer">
+                          {t("DSN TrustServer")}
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  type="submit"
+                  className="col-span-2 w-1/3 mx-auto"
+                >
+                  {t("Submit")}
+                </Button>
+              </form>
+            </Form>
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
+  );
+}
+
+import { useTheme } from "next-themes";
+import { ScrollArea } from "../ui/scroll-area";
+
+function ThemeSwitch() {
+  const { setTheme } = useTheme();
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() =>
+        setTheme(localStorage.getItem("theme") == "light" ? "dark" : "light")
+      }
+    >
+      {localStorage.getItem("theme") == "light" ? <Moon /> : <Sun />}
+    </Button>
   );
 }
