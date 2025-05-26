@@ -42,6 +42,7 @@ import fertigeJSON from "../../assets/fertigeJSON.json";
 
 import data from "@/assets/dependency.json";
 import { TagsInput } from "../ui/tags-input";
+import { useInit } from "@/App";
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -49,6 +50,7 @@ export function LineForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
+  const { dbState } = useInit();
 
   useEffect(() => {
     (async () => {
@@ -66,7 +68,7 @@ export function LineForm({ entityId }: { entityId: string }) {
         queryKey: ["line", entityId],
       });
     })();
-  }, [observer]);
+  }, [observer, dbState]);
 
   const formSchema = z.object({
     Name: z.string().optional(),
@@ -366,6 +368,7 @@ export function StationForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
+  const { dbState } = useInit();
 
   useEffect(() => {
     (async () => {
@@ -386,7 +389,7 @@ export function StationForm({ entityId }: { entityId: string }) {
         queryKey: ["station", entityId],
       });
     })();
-  }, [observer]);
+  }, [observer, dbState]);
 
   const formSchema = z.object({
     Name: z.string().optional(),
@@ -825,6 +828,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
+  const { dbState } = useInit();
 
   useEffect(() => {
     (async () => {
@@ -868,7 +872,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
         queryKey: ["tool", entityId],
       });
     })();
-  }, [observer]);
+  }, [observer, dbState]);
 
   function resetSps() {
     const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
@@ -1622,6 +1626,8 @@ export function OperationForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
+  const { dbState } = useInit();
+
   const [parentTool, setParentTool] = useState<any>();
 
   useEffect(() => {
@@ -1666,7 +1672,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
         queryKey: ["operation", entityId],
       });
     })();
-  }, [observer]);
+  }, [observer, dbState]);
 
   const formSchema = z.object({
     Name: z.string().optional(),

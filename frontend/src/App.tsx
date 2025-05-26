@@ -26,8 +26,14 @@ import { ScrollArea } from "./components/ui/scroll-area";
 const queryClient = new QueryClient();
 
 function App() {
-  const { initialised, setInitialised, setDsnOpen, appRender, appRerender } =
-    useInit();
+  const {
+    initialised,
+    setInitialised,
+    setDsnOpen,
+    appRender,
+    appRerender,
+    dbChange,
+  } = useInit();
   const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const { setTheme } = useTheme();
@@ -35,6 +41,7 @@ function App() {
   const handler = (ts: string) => {
     console.log("DB Change: ", ts);
     queryClient.invalidateQueries();
+    dbChange();
   };
 
   useEffect(() => {
@@ -127,6 +134,8 @@ export const useInit = create<{
   setDsnOpen: (open: boolean) => void;
   appRender: number;
   appRerender: () => void;
+  dbState: number;
+  dbChange: () => void;
 }>((set) => ({
   initialised: false,
   setInitialised: (initialised) => set({ initialised }),
@@ -134,6 +143,8 @@ export const useInit = create<{
   setDsnOpen: (open) => set({ dsnOpen: open }),
   appRender: 0,
   appRerender: () => set((state) => ({ appRender: state.appRender + 1 })),
+  dbState: 0,
+  dbChange: () => set((state) => ({ dbState: state.dbState + 1 })),
 }));
 
 export default App;
