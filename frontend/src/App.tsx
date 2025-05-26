@@ -9,6 +9,7 @@ import {
   GetPlatformSpecificUserName,
   InitDB,
 } from "../wailsjs/go/main/Core";
+import { EventsOn, EventsOff } from "../wailsjs/runtime";
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -30,6 +31,16 @@ function App() {
   const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const { setTheme } = useTheme();
+
+  const handler = (ts: string) => {
+    console.log("DB Change: ", ts);
+    queryClient.invalidateQueries();
+  };
+
+  useEffect(() => {
+    EventsOn("database:changed", handler);
+    return () => EventsOff("database:changed");
+  }, []);
 
   useEffect(() => {
     localStorage.getItem("lang") == null

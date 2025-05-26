@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -95,6 +96,88 @@ func (c *Core) HandleImport(user string) string {
 }
 
 var DB *gorm.DB
+
+func setupBroker(DB *gorm.DB, dbName string) error {
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return err
+	}
+
+	stmts := []string{
+		fmt.Sprintf(`ALTER DATABASE [%s] SET ENABLE_BROKER WITH ROLLBACK IMMEDIATE;`, dbName),
+
+		`IF NOT EXISTS (SELECT * FROM sys.service_message_types WHERE name = 'DataChanged')
+     CREATE MESSAGE TYPE [DataChanged] VALIDATION = NONE;`,
+
+		`IF NOT EXISTS (SELECT * FROM sys.service_contracts WHERE name = 'DataChangedContract')
+     CREATE CONTRACT [DataChangedContract] ([DataChanged] SENT BY INITIATOR);`,
+
+		`IF NOT EXISTS (SELECT * FROM sys.service_queues WHERE name = 'DataChangeQueue')
+     CREATE QUEUE [dbo].[DataChangeQueue];`,
+
+		`IF NOT EXISTS (SELECT * FROM sys.services WHERE name = 'DataChangeService')
+     CREATE SERVICE [DataChangeService]
+       ON QUEUE [dbo].[DataChangeQueue]
+       ([DataChangedContract]);`,
+
+		`IF OBJECT_ID('dbo.TRG_app_metadata_Notify', 'TR') IS NULL
+     EXEC('
+       CREATE TRIGGER dbo.TRG_app_metadata_Notify
+       ON dbo.app_metadata
+       AFTER INSERT, UPDATE, DELETE
+       AS
+       BEGIN
+         DECLARE @h UNIQUEIDENTIFIER;
+         BEGIN DIALOG CONVERSATION @h
+           FROM SERVICE [DataChangeService]
+           TO SERVICE ''DataChangeService''
+           ON CONTRACT [DataChangedContract]
+           WITH ENCRYPTION = OFF;
+
+         SEND ON CONVERSATION @h
+           MESSAGE TYPE [DataChanged]
+           (CONVERT(nvarchar(max), GETDATE(), 126));
+       END
+     ');`,
+	}
+
+	for _, stmt := range stmts {
+		if err := sqlDB.Ping(); err != nil {
+			return fmt.Errorf("DB not reachable: %w", err)
+		}
+		if _, err := sqlDB.Exec(stmt); err != nil {
+			return fmt.Errorf("setupBroker failed: %w\nSQL: %s", err, stmt)
+		}
+	}
+	return nil
+}
+
+func listenForChanges(ctx context.Context, sqlDB *sql.DB) {
+	for {
+		row := sqlDB.QueryRowContext(ctx, `
+      WAITFOR (
+        RECEIVE TOP(1)
+          conversation_handle,
+          message_body
+        FROM dbo.DataChangeQueue
+      ), TIMEOUT 600000;
+    `)
+
+		var convHandle string
+		var msgBody sql.NullString
+		if err := row.Scan(&convHandle, &msgBody); err != nil {
+			log.Println("Listener error:", err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
+		ws.EventsEmit(ctx, "database:changed", time.Now())
+
+		if _, err := sqlDB.Exec(`END CONVERSATION @h;`, sql.Named("h", convHandle)); err != nil {
+			log.Println("End conversation error:", err)
+		}
+	}
+}
 
 const GlobalMetadataKey = "global_state"
 const OpTypeUpdate = "UPDATE"
@@ -203,6 +286,30 @@ func (c *Core) InitDB() string {
 		return "InitError"
 	}
 	ensureAppMetadataExists(DB)
+
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return "InitError"
+	}
+
+	dbName := u.Query().Get("database")
+
+	if err := setupBroker(DB, dbName); err != nil {
+		log.Fatalf("Broker setup failed: %v", err)
+	}
+	log.Println("Service Broker & Trigger bereit")
+
+	sqlDB, err := DB.DB()
+	if err != nil {
+		log.Fatalf("Failed to get raw DB: %v", err)
+	}
+
+	sqlDB.SetMaxOpenConns(10)
+	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetConnMaxLifetime(30 * time.Minute)
+
+	go listenForChanges(c.ctx, sqlDB)
+
 	log.Println("Successfully connected to and migrated MS SQL server DB.")
 	return "InitSuccess"
 }
