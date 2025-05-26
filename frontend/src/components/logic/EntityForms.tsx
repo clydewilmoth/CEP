@@ -24,6 +24,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  GetAllEntities,
   GetEntityDetails,
   GetGlobalLastUpdateTimestamp,
   UpdateEntityFieldsString,
@@ -132,9 +133,10 @@ export function LineForm({ entityId }: { entityId: string }) {
     const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
 
+    const lineDb = await GetEntityDetails("line", entityId);
     if (!line) return;
     Object.entries(line).forEach(([key, value]) => {
-      if (value.draft) {
+      if (value.draft && lineDb.key != value.data) {
         changesRecord[key] = value.data;
       }
     });
@@ -453,9 +455,10 @@ export function StationForm({ entityId }: { entityId: string }) {
     const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
 
+    const stationDb = await GetEntityDetails("station", entityId);
     if (!station) return;
     Object.entries(station).forEach(([key, value]) => {
-      if (value.draft) {
+      if (value.draft && stationDb.key != value.data) {
         changesRecord[key] = value.data;
       }
     });
@@ -705,7 +708,7 @@ export function StationForm({ entityId }: { entityId: string }) {
                       return (
                         !skip && (
                           <SelectItem
-                            key={stationtype.id}
+                            key={"ST_" + stationtype.id}
                             value={stationtype.id}
                           >
                             {t("ST_" + String(stationtype.id) + "_Name")}
@@ -770,7 +773,7 @@ export function StationForm({ entityId }: { entityId: string }) {
                       return (
                         !skip && (
                           <SelectItem
-                            key={serialorparallel.id}
+                            key={"SOP_" + serialorparallel.id}
                             value={serialorparallel.id}
                           >
                             {t("SOP_" + String(serialorparallel.id) + "_name")}
@@ -962,12 +965,46 @@ export function ToolForm({ entityId }: { entityId: string }) {
     const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
 
+    let resetChildTemplate = false;
+    const toolDb = await GetEntityDetails("tool", entityId);
     if (!tool) return;
     Object.entries(tool).forEach(([key, value]) => {
-      if (value.draft) {
+      if (value.draft && toolDb.key != value.data) {
+        if (key == "ToolClass") resetChildTemplate = true;
         changesRecord[key] = String(value.data);
       }
     });
+
+    if (resetChildTemplate) {
+      const operations = await GetAllEntities("operation", entityId);
+      if (operations) {
+        operations.forEach(async ({ ID }) => {
+          UpdateEntityFieldsString(
+            String(localStorage.getItem("name")),
+            "operation",
+            ID,
+            lastKnownUpdate,
+            {
+              Template: "none",
+              DecisionClass: "none",
+              VerificationClass: "none",
+              GenerationClass: "none",
+              SavingClass: "none",
+            }
+          );
+          const json = JSON.parse(localStorage.getItem(ID) ?? "{}");
+
+          delete json.Template;
+          delete json.DecisionClass;
+          delete json.VerificationClass;
+          delete json.GenerationClass;
+          delete json.SavingClass;
+          if (JSON.stringify(json) != "{}") {
+            localStorage.setItem(ID, JSON.stringify(json));
+          }
+        });
+      }
+    }
 
     await UpdateEntityFieldsString(
       String(localStorage.getItem("name")),
@@ -1206,7 +1243,10 @@ export function ToolForm({ entityId }: { entityId: string }) {
 
                       return (
                         !skip && (
-                          <SelectItem key={toolclass.id} value={toolclass.id}>
+                          <SelectItem
+                            key={"TC_" + toolclass.id}
+                            value={toolclass.id}
+                          >
                             {t("TC_" + String(toolclass.id) + "_ToolClassName")}
                           </SelectItem>
                         )
@@ -1263,11 +1303,11 @@ export function ToolForm({ entityId }: { entityId: string }) {
 
                       return (
                         !skip && (
-                          <TooltipProvider key={tooltype.id}>
+                          <TooltipProvider key={"TT_" + tooltype.id}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SelectItem
-                                  key={tooltype.id}
+                                  key={"TT_" + tooltype.id}
                                   value={tooltype.id}
                                 >
                                   {t(
@@ -1701,9 +1741,10 @@ export function OperationForm({ entityId }: { entityId: string }) {
     const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
 
+    const operationDb = await GetEntityDetails("operation", entityId);
     if (!operation) return;
     Object.entries(operation).forEach(([key, value]) => {
-      if (value.draft) {
+      if (value.draft && operationDb.key != value.data) {
         if (key == "DecisionCriteria") {
           changesRecord[key] = value.data.join("|");
           return;
@@ -1950,23 +1991,10 @@ export function OperationForm({ entityId }: { entityId: string }) {
                     <SelectItem value="none">-</SelectItem>
                     {data.Templates.map((template) => {
                       let skip = true;
-                      let value = "";
-
-                      const toolClassDraft = JSON.parse(
-                        localStorage.getItem(parentTool?.ID) ?? "{}"
-                      ).ToolClass;
-
-                      const toolClassDb = parentTool?.ToolClass;
-
                       template.toolClassesIds.every((tc) => {
-                        if (!toolClassDraft && !toolClassDb) return false;
-                        else if (toolClassDraft == tc) {
+                        if (!parentTool?.ToolClass) return false;
+                        else if (parentTool?.ToolClass == tc) {
                           skip = false;
-                          value = tc;
-                          return false;
-                        } else if (toolClassDb == tc) {
-                          skip = false;
-                          value = tc;
                           return false;
                         }
                         return true;
@@ -1974,7 +2002,10 @@ export function OperationForm({ entityId }: { entityId: string }) {
 
                       return (
                         !skip && (
-                          <SelectItem key={value} value={value}>
+                          <SelectItem
+                            key={"T_" + template.id}
+                            value={template.id}
+                          >
                             {t("T_" + String(template.id) + "_Description")}
                           </SelectItem>
                         )
@@ -2127,11 +2158,13 @@ export function OperationForm({ entityId }: { entityId: string }) {
 
                       return (
                         !skip && (
-                          <TooltipProvider key={decisionclass.id}>
+                          <TooltipProvider
+                            key={"OC_DECISION_" + decisionclass.id}
+                          >
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SelectItem
-                                  key={decisionclass.id}
+                                  key={"OC_DECISION_" + decisionclass.id}
                                   value={decisionclass.id}
                                 >
                                   {t(
@@ -2203,11 +2236,15 @@ export function OperationForm({ entityId }: { entityId: string }) {
 
                       return (
                         !skip && (
-                          <TooltipProvider key={verificationclass.id}>
+                          <TooltipProvider
+                            key={"OC_VERIFICATION_" + verificationclass.id}
+                          >
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SelectItem
-                                  key={verificationclass.id}
+                                  key={
+                                    "OC_VERIFICATION_" + verificationclass.id
+                                  }
                                   value={verificationclass.id}
                                 >
                                   {t(
@@ -2282,11 +2319,13 @@ export function OperationForm({ entityId }: { entityId: string }) {
 
                       return (
                         !skip && (
-                          <TooltipProvider key={generationclass.id}>
+                          <TooltipProvider
+                            key={"OC_GENERATION_" + generationclass.id}
+                          >
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SelectItem
-                                  key={generationclass.id}
+                                  key={"OC_GENERATION_" + generationclass.id}
                                   value={generationclass.id}
                                 >
                                   {t(
@@ -2359,11 +2398,11 @@ export function OperationForm({ entityId }: { entityId: string }) {
 
                       return (
                         !skip && (
-                          <TooltipProvider key={savingclass.id}>
+                          <TooltipProvider key={"OC_SAVING_" + savingclass.id}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SelectItem
-                                  key={savingclass.id}
+                                  key={"OC_SAVING_" + savingclass.id}
                                   value={savingclass.id}
                                 >
                                   {t(
