@@ -53,37 +53,7 @@ import {
   SelectValue,
 } from "../ui/select";
 
-export function Menu() {
-  const { setDsnOpen } = useInit();
-
-  return (
-    <>
-      <DSNDialog />
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon">
-            <Burger />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <UserDialog />
-
-          <DropdownMenuSeparator className="h-[0.05rem]" />
-
-          <LangDialog />
-          <DropdownMenuSeparator className="h-[0.05rem]" />
-          <ThemeSwitch />
-          <DropdownMenuSeparator className="h-[0.05rem]" />
-          <Button variant="ghost" size="icon" onClick={() => setDsnOpen(true)}>
-            <Database />
-          </Button>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </>
-  );
-}
-
-function UserDialog() {
+export function UserDialog() {
   const { t } = useTranslation();
   const [name, setName] = useState<string | null>();
   useEffect(() => {
@@ -104,7 +74,7 @@ function UserDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" className="w-10 h-10">
           <UserRound />
         </Button>
       </DialogTrigger>
@@ -124,14 +94,14 @@ function UserDialog() {
   );
 }
 
-function LangDialog() {
+export function LangDialog() {
   const { t, i18n } = useTranslation();
   const [lang, setLang] = useState<string | null>(localStorage.getItem("lang"));
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" className="w-10 h-10">
           <Globe />
         </Button>
       </DialogTrigger>
@@ -238,6 +208,11 @@ export function DSNDialog() {
         setDsnOpen(dsnOpen && (await CheckEnvInExeDir()) ? false : true);
       }}
     >
+      <DialogTrigger asChild>
+        <Button variant="ghost" className="w-10 h-10">
+          <Database />
+        </Button>
+      </DialogTrigger>
       <DialogContent className="p-0 w-1/2">
         <ScrollArea className="max-h-[90vh]">
           <div className="p-6">
@@ -371,13 +346,13 @@ export function DSNDialog() {
 import { useTheme } from "next-themes";
 import { ScrollArea } from "../ui/scroll-area";
 
-function ThemeSwitch() {
+export function ThemeSwitch() {
   const { setTheme } = useTheme();
 
   return (
     <Button
       variant="ghost"
-      size="icon"
+      className="w-10 h-10"
       onClick={() =>
         setTheme(localStorage.getItem("theme") == "light" ? "dark" : "light")
       }

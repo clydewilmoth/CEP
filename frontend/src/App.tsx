@@ -3,7 +3,6 @@ import Lines from "./pages/Lines";
 import Stations from "./pages/Stations";
 import Tools from "./pages/Tools";
 import Operations from "./pages/Operations";
-import { Header } from "./components/logic/Header";
 import {
   CheckEnvInExeDir,
   GetPlatformSpecificUserName,
@@ -22,6 +21,15 @@ import { Button } from "./components/ui/button";
 import { ThemeProvider } from "./components/ui/theme-provider";
 import { useTheme } from "next-themes";
 import { ScrollArea } from "./components/ui/scroll-area";
+import { Sidebar, SidebarBody, SidebarMenu } from "./components/ui/sidebar";
+import {
+  DSNDialog,
+  LangDialog,
+  ThemeSwitch,
+  UserDialog,
+} from "./components/logic/Menu";
+import { cn } from "./lib/utils";
+import Operation from "./pages/Operation";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +83,8 @@ function App() {
     init();
   }, [appRender]);
 
+  const [open, setOpen] = useState(false);
+
   return (
     <ThemeProvider
       attribute="class"
@@ -83,17 +93,35 @@ function App() {
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
-        <ScrollArea className="h-screen">
-          <div className="flex flex-col items-center justify-start w-full gap-10 p-12">
-            <Header />
-            {isLoading && (
-              <div className="flex flex-row items-center justify-center gap-4 font-semibold">
-                <Loader />
-                <p>{t("InitLoading")}</p>
+        <div
+          className={cn(
+            "flex flex-col md:flex-row w-full flex-1 mx-auto border border-neutral-200 dark:border-neutral-700 overflow-hidden",
+            "h-screen"
+          )}
+        >
+          <Sidebar open={open} setOpen={setOpen}>
+            <SidebarBody className="justify-between gap-10 overflow-hidden">
+              <div className="flex flex-col">
+                <SidebarMenu item={<ThemeSwitch />} text="Theme" />
+                <SidebarMenu item={<LangDialog />} text="Sprache" />
+                <SidebarMenu item={<DSNDialog />} text="Datenbank" />
               </div>
+              <SidebarMenu
+                item={<UserDialog />}
+                text={localStorage.getItem("name") ?? ""}
+              />
+            </SidebarBody>
+          </Sidebar>
+
+          <div className="flex bg-card rounded-l-2xl border flex-col gap-2 flex-1 w-full h-screen">
+            {isLoading && (
+              <Button variant="ghost" className="w-fit" disabled>
+                <Loader />
+                {t("InitLoading")}
+              </Button>
             )}
             {initialised ? (
-              <div className="w-full">
+              <div className="w-full h-full">
                 <Route path={"/"}>
                   <Lines />
                 </Route>
@@ -106,12 +134,20 @@ function App() {
                 <Route path={"/line/:luuid/station/:suuid/tool/:tuuid"}>
                   <Operations />
                 </Route>
+                <Route
+                  path={
+                    "/line/:luuid/station/:suuid/tool/:tuuid/operation/:ouuid"
+                  }
+                >
+                  <Operation />
+                </Route>
               </div>
             ) : (
               !isLoading &&
               !initialised && (
                 <Button
-                  variant="outline"
+                  variant="ghost"
+                  className="w-fit"
                   onClick={() => (setIsLoading(true), appRerender())}
                 >
                   <RefreshCcw />
@@ -121,7 +157,7 @@ function App() {
             )}
             <Toaster />
           </div>
-        </ScrollArea>
+        </div>
       </QueryClientProvider>
     </ThemeProvider>
   );

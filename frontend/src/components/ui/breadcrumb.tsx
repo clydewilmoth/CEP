@@ -1,10 +1,9 @@
-import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
-import { ChevronRight, MoreHorizontal, Folder } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils";
-import { Link } from "wouter";
-import { useTranslation } from "react-i18next";
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { ChevronRight } from "lucide-react";
 
 const Breadcrumb = React.forwardRef<
   HTMLElement,
@@ -21,7 +20,7 @@ const BreadcrumbList = React.forwardRef<
   <ol
     ref={ref}
     className={cn(
-      "flex flex-wrap items-center gap-1.5 break-words text-lg text-muted-foreground sm:gap-2",
+      "flex flex-wrap items-center gap-1.5 break-words text-sm text-muted-foreground sm:gap-2.5",
       className
     )}
     {...props}
@@ -68,7 +67,7 @@ const BreadcrumbPage = React.forwardRef<
     role="link"
     aria-disabled="true"
     aria-current="page"
-    className={cn("font-normal text-foreground", className)}
+    className={cn("text-foreground", className)}
     {...props}
   />
 ));
@@ -79,13 +78,8 @@ const BreadcrumbSeparator = ({
   className,
   ...props
 }: React.ComponentProps<"li">) => (
-  <li
-    role="presentation"
-    aria-hidden="true"
-    className={cn("[&>svg]:w-4 [&>svg]:h-4", className)}
-    {...props}
-  >
-    {children ?? <ChevronRight />}
+  <li role="presentation" aria-hidden="true" className={className} {...props}>
+    {children ?? <ChevronRight size={17} />}
   </li>
 );
 BreadcrumbSeparator.displayName = "BreadcrumbSeparator";
@@ -97,82 +91,20 @@ const BreadcrumbEllipsis = ({
   <span
     role="presentation"
     aria-hidden="true"
-    className={cn("flex h-9 w-9 items-center justify-center", className)}
+    className={cn("flex size-5 items-center justify-center", className)}
     {...props}
   >
-    <MoreHorizontal className="h-4 w-4" />
-    <span className="sr-only">More</span>
+    <DotsHorizontalIcon width={16} height={16} strokeWidth={2} />
   </span>
 );
 BreadcrumbEllipsis.displayName = "BreadcrumbElipssis";
 
 export {
   Breadcrumb,
-  BreadcrumbList,
+  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbLink,
+  BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-  BreadcrumbEllipsis,
 };
-
-export function BreadcrumbWithSeparator({
-  titles,
-  links,
-}: React.PropsWithChildren<{ titles: string[]; links: string[] }>) {
-  const { t } = useTranslation();
-  const onlyFolder = titles.length === 0;
-  return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          {onlyFolder ? (
-            <BreadcrumbLink asChild>
-              <span
-                className="font-bold text-foreground text-xl cursor-default flex items-center"
-                style={{ pointerEvents: "none" }}
-              >
-                <Folder />
-              </span>
-            </BreadcrumbLink>
-          ) : (
-            <BreadcrumbLink asChild>
-              <Link href="/">
-                <span className="flex items-center">
-                  <Folder />
-                </span>
-              </Link>
-            </BreadcrumbLink>
-          )}
-        </BreadcrumbItem>
-        {/* Separator nach dem Ordner */}
-        {titles.length > 0 && <BreadcrumbSeparator key="sep-folder" />}
-        {titles.map((title, index) => {
-          if (title == " " && titles.length > 2) {
-            return <BreadcrumbSeparator key={`sep-${index}`} />;
-          } else if (title == "" || title == " ") {
-            return null;
-          }
-          const isLast = index === titles.length - 1;
-          return (
-            <React.Fragment key={index}>
-              <BreadcrumbItem>
-                {isLast ? (
-                  <BreadcrumbPage className="text-foreground text-xl font-bold">
-                    {t(title)}
-                  </BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink asChild>
-                    <Link href={links[index]}>{title}</Link>
-                  </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-              {/* Separator nur, wenn NICHT das letzte Element */}
-              {!isLast && <BreadcrumbSeparator key={`sep2-${index}`} />}
-            </React.Fragment>
-          );
-        })}
-      </BreadcrumbList>
-    </Breadcrumb>
-  );
-}

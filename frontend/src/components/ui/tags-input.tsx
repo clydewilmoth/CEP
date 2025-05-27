@@ -253,7 +253,7 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
           ref={ref}
           dir={dir}
           className={cn(
-            "flex items-center flex-wrap gap-1 p-1 rounded-lg bg-background overflow-hidden   ring-1 ring-muted  ",
+            "flex items-center flex-wrap gap-1 p-1 rounded-lg bg-card border overflow-hidden   ring-1 ring-muted  ",
             {
               "focus-within:ring-ring": activeIndex === -1,
             },
@@ -267,11 +267,11 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
               aria-disabled={disableButton}
               data-active={activeIndex === index}
               className={cn(
-                "relative px-1 rounded flex items-center gap-1 data-[active='true']:ring-2 data-[active='true']:ring-muted-foreground truncate aria-disabled:opacity-50 aria-disabled:cursor-not-allowed"
+                "relative px-1 rounded flex items-center gap-1 data-[active='true']:ring-2 data-[active='true']:ring-muted-foreground break-all max-w-[120px] aria-disabled:opacity-50 aria-disabled:cursor-not-allowed"
               )}
               variant={"secondary"}
             >
-              <span className="text-xs">{item}</span>
+              <span className="text-xs break-all">{item}</span>
               <button
                 type="button"
                 aria-label={`Remove ${item} option`}

@@ -74,13 +74,13 @@ export function EntityCollection({
   return (
     <div className="flex flex-col gap-7 w-full">
       <SearchField
-        className="max-w-sm rounded-3xl mx-auto shadow-muted-foreground"
+        className="max-w-72 rounded-3xl"
         aria-labelledby="search-field"
       >
         <FieldGroup>
           <SearchIcon aria-hidden className="size-4 text-muted-foreground" />
           <SearchFieldInput
-            placeholder={t("Search")}
+            placeholder={t("Search for Name")}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="outline-none shadow-none"
