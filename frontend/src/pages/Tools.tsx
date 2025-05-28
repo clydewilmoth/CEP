@@ -34,8 +34,8 @@ export default function Tools() {
         </ResizablePanelGroup>
       </ResizablePanel>
       <ResizableHandle disabled />
-      <ResizablePanel defaultSize={80} className="p-8 bg-muted">
-        <div className="h-screen flex flex-col gap-5">
+      <ResizablePanel defaultSize={80}>
+        <div className="p-8 bg-muted h-screen flex flex-col gap-5">
           <h1 className="text-xl font-bold">{t("tools")}</h1>
           <EntityCollection
             entityType="tool"

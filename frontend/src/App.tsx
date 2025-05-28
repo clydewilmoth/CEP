@@ -20,7 +20,6 @@ import { RefreshCcw } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { ThemeProvider } from "./components/ui/theme-provider";
 import { useTheme } from "next-themes";
-import { ScrollArea } from "./components/ui/scroll-area";
 import { Sidebar, SidebarBody, SidebarMenu } from "./components/ui/sidebar";
 import {
   DSNDialog,

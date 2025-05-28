@@ -34,15 +34,17 @@ export default function Operations() {
         </ResizablePanelGroup>
       </ResizablePanel>
       <ResizableHandle disabled />
-      <ResizablePanel defaultSize={80} className="p-8 bg-muted">
-        <div className="h-screen flex flex-col gap-5">
-          <h1 className="text-xl font-bold">{t("operations")}</h1>
-          <EntityCollection
-            entityType="operation"
-            parentId={tuuid}
-            link={`/line/${luuid}/station/${suuid}/tool/${tuuid}/operation/`}
-          />
-        </div>
+      <ResizablePanel defaultSize={80}>
+        <ScrollArea>
+          <div className="p-8 bg-muted h-screen flex flex-col gap-5">
+            <h1 className="text-xl font-bold">{t("operations")}</h1>
+            <EntityCollection
+              entityType="operation"
+              parentId={tuuid}
+              link={`/line/${luuid}/station/${suuid}/tool/${tuuid}/operation/`}
+            />
+          </div>
+        </ScrollArea>
       </ResizablePanel>
     </ResizablePanelGroup>
   );
