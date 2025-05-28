@@ -20,7 +20,7 @@ export default function Stations() {
       direction="horizontal"
       className="w-full h-screen rounded-lg"
     >
-      <ResizablePanel defaultSize={20} className="min-w-72">
+      <ResizablePanel defaultSize={20} className="min-w-72 bg-card">
         <ResizablePanelGroup direction="vertical">
           <ScrollArea className="p-8">
             <ResizablePanel defaultSize={0} className="min-h-fit min-w-fit">

@@ -111,13 +111,14 @@ function App() {
               />
             </SidebarBody>
           </Sidebar>
-
-          <div className="flex bg-card rounded-l-2xl border flex-col gap-2 flex-1 w-full h-screen">
+          <div className="bg-muted border rounded-l-full w-full h-full">
             {isLoading && (
-              <Button variant="ghost" className="w-fit" disabled>
-                <Loader />
-                {t("InitLoading")}
-              </Button>
+              <div className="py-8 px-4">
+                <Button variant="ghost" className="w-fit" disabled>
+                  <Loader />
+                  {t("InitLoading")}
+                </Button>
+              </div>
             )}
             {initialised ? (
               <div className="w-full h-full">
@@ -144,14 +145,16 @@ function App() {
             ) : (
               !isLoading &&
               !initialised && (
-                <Button
-                  variant="ghost"
-                  className="w-fit"
-                  onClick={() => (setIsLoading(true), appRerender())}
-                >
-                  <RefreshCcw />
-                  {t("InitReload")}
-                </Button>
+                <div className="py-8 px-4">
+                  <Button
+                    variant="ghost"
+                    className="w-fit"
+                    onClick={() => (setIsLoading(true), appRerender())}
+                  >
+                    <RefreshCcw />
+                    {t("InitReload")}
+                  </Button>
+                </div>
               )
             )}
             <Toaster />

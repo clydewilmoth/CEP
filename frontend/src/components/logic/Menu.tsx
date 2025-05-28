@@ -1,18 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Menu as Burger,
-  Database,
-  Globe,
-  Moon,
-  Sun,
-  UserRound,
-} from "lucide-react";
+import { Database, Globe, Moon, Sun, UserRound } from "lucide-react";
 import {
   Dialog,
   DialogTrigger,

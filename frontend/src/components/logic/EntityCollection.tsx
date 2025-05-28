@@ -16,7 +16,6 @@ import {
 } from "../../../wailsjs/go/main/Core";
 import {
   Ellipsis,
-  Eye,
   FileDown,
   FileUp,
   Funnel,
@@ -38,7 +37,6 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { LineForm, OperationForm, StationForm, ToolForm } from "./EntityForms";
 import { useInit } from "@/App";
 import {
   SearchField,
@@ -46,8 +44,6 @@ import {
   SearchFieldInput,
 } from "../ui/searchfield";
 import { FieldGroup } from "../ui/field";
-import { ScrollArea } from "../ui/scroll-area";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import {
   DropdownMenu,
@@ -520,57 +516,6 @@ function ImportJSON({ onClick }: { onClick?: () => void }) {
       </Button>
       <p className="text-sm font-semibold">{t("ImportJSON")}</p>
     </div>
-  );
-}
-
-function FormDialog({
-  entityType,
-  entityId,
-  onClose,
-  forceOpen = false,
-}: {
-  entityType: string;
-  entityId: string;
-  onClose?: () => void;
-  forceOpen?: boolean;
-}) {
-  const [open, setOpen] = useState(forceOpen);
-  const { t } = useTranslation();
-
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(open) => (setOpen(open), !open && onClose && onClose())}
-    >
-      {!forceOpen && (
-        <DialogTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <Eye />
-          </Button>
-        </DialogTrigger>
-      )}
-
-      <DialogContent className="w-1/2 p-0" aria-describedby={undefined}>
-        <VisuallyHidden>
-          <DialogTitle>{t("EntityForm Title")}</DialogTitle>
-        </VisuallyHidden>
-        <ScrollArea className="max-h-[90vh]">
-          <div className="p-6">
-            {entityType == "line" ? (
-              <LineForm entityId={entityId} />
-            ) : entityType == "station" ? (
-              <StationForm entityId={entityId} />
-            ) : entityType == "tool" ? (
-              <ToolForm entityId={entityId} />
-            ) : entityType == "operation" ? (
-              <OperationForm entityId={entityId} />
-            ) : (
-              ""
-            )}
-          </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
   );
 }
 

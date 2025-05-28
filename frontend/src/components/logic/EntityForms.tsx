@@ -37,9 +37,6 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
-// @ts-ignore
-import fertigeJSON from "../../assets/fertigeJSON.json";
-
 import data from "@/assets/dependency.json";
 import { TagsInput } from "../ui/tags-input";
 import { useInit } from "@/App";
