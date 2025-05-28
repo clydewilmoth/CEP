@@ -101,9 +101,9 @@ function App() {
           <Sidebar open={open} setOpen={setOpen}>
             <SidebarBody className="justify-between gap-10 overflow-hidden">
               <div className="flex flex-col">
-                <SidebarMenu item={<DSNDialog />} text="Datenbank" />
-                <SidebarMenu item={<LangDialog />} text="Sprache" />
-                <SidebarMenu item={<ThemeSwitch />} text="Theme" />
+                <SidebarMenu item={<DSNDialog />} text={t("Database")} />
+                <SidebarMenu item={<LangDialog />} text={t("Language")} />
+                <SidebarMenu item={<ThemeSwitch />} text={t("Theme")} />
               </div>
               <SidebarMenu
                 item={<UserDialog />}
