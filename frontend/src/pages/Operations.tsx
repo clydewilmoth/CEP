@@ -20,7 +20,10 @@ export default function Operations() {
       direction="horizontal"
       className="w-full h-screen rounded-lg"
     >
-      <ResizablePanel defaultSize={20} className="min-w-72 bg-card">
+      <ResizablePanel
+        defaultSize={20}
+        className="min-w-72 bg-card rounded-tl-3xl"
+      >
         <ResizablePanelGroup direction="vertical">
           <ScrollArea className="p-8">
             <ResizablePanel defaultSize={0} className="min-h-fit">

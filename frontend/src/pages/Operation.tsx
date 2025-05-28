@@ -22,7 +22,10 @@ export default function Operations() {
       direction="horizontal"
       className="w-full h-screen rounded-lg"
     >
-      <ResizablePanel defaultSize={20} className="min-w-72 bg-card">
+      <ResizablePanel
+        defaultSize={20}
+        className="min-w-72 bg-card rounded-tl-3xl"
+      >
         <ResizablePanelGroup direction="vertical">
           <ScrollArea className="p-8">
             <ResizablePanel defaultSize={0} className="min-h-fit">
@@ -41,10 +44,11 @@ export default function Operations() {
         </ResizablePanelGroup>
       </ResizablePanel>
       <ResizableHandle disabled />
-      <ResizablePanel
-        defaultSize={80}
-        className="p-8 bg-muted"
-      ></ResizablePanel>
+      <ResizablePanel>
+        <ScrollArea>
+          <div className="p-8 bg-muted h-screen w-full"></div>
+        </ScrollArea>
+      </ResizablePanel>
     </ResizablePanelGroup>
   );
 }

@@ -111,7 +111,7 @@ function App() {
               />
             </SidebarBody>
           </Sidebar>
-          <div className="bg-muted border rounded-l-full w-full h-full">
+          <div className="bg-muted border rounded-tl-3xl w-full h-full">
             {isLoading && (
               <div className="py-8 px-4">
                 <Button variant="ghost" className="w-fit" disabled>
