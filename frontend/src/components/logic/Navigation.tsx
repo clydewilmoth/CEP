@@ -38,10 +38,10 @@ export function BreadcrumbNavigation({
       const tDetails = tuuid && (await GetEntityDetails("tool", tuuid ?? ""));
       const oDetails =
         ouuid && (await GetEntityDetails("operation", ouuid ?? ""));
-      setLName(lDetails.Name ?? "");
-      setSName(sDetails.Name ?? "");
-      setTName(tDetails.Name ?? "");
-      setOName(oDetails.Name ?? "");
+      setLName(lDetails?.Name ?? "");
+      setSName(sDetails?.Name ?? "");
+      setTName(tDetails?.Name ?? "");
+      setOName(oDetails?.Name ?? "");
     })();
   }, [location]);
 

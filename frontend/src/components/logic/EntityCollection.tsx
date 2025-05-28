@@ -15,13 +15,16 @@ import {
   HandleImport,
 } from "../../../wailsjs/go/main/Core";
 import {
+  Ellipsis,
   Eye,
   FileDown,
   FileUp,
+  Funnel,
   Plus,
   SearchIcon,
   SquarePen,
   Trash2,
+  X,
   XIcon,
 } from "lucide-react";
 import { Button } from "../ui/button";
@@ -33,12 +36,6 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { useState } from "react";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "../ui/context-menu";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { LineForm, OperationForm, StationForm, ToolForm } from "./EntityForms";
@@ -52,6 +49,19 @@ import { FieldGroup } from "../ui/field";
 import { ScrollArea } from "../ui/scroll-area";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "../ui/dropdown-menu";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../ui/select";
 
 export function EntityCollection({
   entityType,
@@ -67,38 +77,123 @@ export function EntityCollection({
     queryFn: () => GetAllEntities(entityType, String(parentId)),
   });
   const { t } = useTranslation();
-  const [filter, setFilter] = useState("");
-  const [formDialogOpen, setFormDialogOpen] = useState(false);
-  const [createdEntityId, setCreatedEntityId] = useState<string | null>(null);
+  const [searchFilter, setSeachFilter] = useState("");
+  const [filter, setFilter] = useState("none");
 
   return (
     <div className="flex flex-col gap-7 w-full">
-      <SearchField
-        className="max-w-72 rounded-3xl"
-        aria-labelledby="search-field"
-      >
-        <FieldGroup>
-          <SearchIcon aria-hidden className="size-4 text-muted-foreground" />
-          <SearchFieldInput
-            placeholder={t("Search for Name")}
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="outline-none shadow-none"
-          />
-          <SearchFieldClear>
-            <XIcon
-              aria-hidden
-              className="size-4"
-              onClick={() => setFilter("")}
+      <div className="flex gap-5 items-center">
+        <SearchField
+          className="max-w-72 rounded-3xl"
+          aria-labelledby="search-field"
+        >
+          <FieldGroup>
+            <SearchIcon aria-hidden className="size-4 text-muted-foreground" />
+            <SearchFieldInput
+              placeholder={t("Search for Name")}
+              value={searchFilter}
+              onChange={(e) => setSeachFilter(e.target.value)}
+              className="outline-none shadow-none"
             />
-          </SearchFieldClear>
-        </FieldGroup>
-      </SearchField>
-
+            <SearchFieldClear>
+              <XIcon
+                aria-hidden
+                className="size-4"
+                onClick={() => setSeachFilter("")}
+              />
+            </SearchFieldClear>
+          </FieldGroup>
+        </SearchField>
+        <Select onValueChange={(value) => setFilter(value)}>
+          <SelectTrigger className="w-fit bg-card h-10">
+            <SelectValue placeholder={<Funnel size={14} />} />
+          </SelectTrigger>
+          <SelectContent className="min-w-0 w-fit">
+            <SelectItem value="none">
+              <div className="flex gap-3 items-center">
+                <X size={14} className="opacity-80" />
+                <p>{t("NoFilter")}</p>
+              </div>
+            </SelectItem>
+            <SelectItem value="red">
+              <div className="flex gap-3 items-center">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 6 6"
+                  fill="rgb(239, 68, 68)"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="border rounded-full"
+                >
+                  <circle cx="3" cy="3" r="3" />
+                </svg>
+                <p>{t("Pending")}</p>
+              </div>
+            </SelectItem>
+            <SelectItem value="amber">
+              <div className="flex gap-3 items-center">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 6 6"
+                  fill="rgb(245, 158, 11)"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="border rounded-full"
+                >
+                  <circle cx="3" cy="3" r="3" />
+                </svg>
+                <p>{t("InProgress")}</p>
+              </div>
+            </SelectItem>
+            <SelectItem value="emerald">
+              <div className="flex gap-3 items-center">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 6 6"
+                  fill="rgb(16, 185, 129)"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="border rounded-full"
+                >
+                  <circle cx="3" cy="3" r="3" />
+                </svg>
+                <p>{t("Ready")}</p>
+              </div>
+            </SelectItem>
+            <SelectItem value="draft">
+              <div className="flex gap-3 items-center">
+                <SquarePen size={14} className="opacity-80" />
+                <p>{t("Draft")}</p>
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <div className="flex flex-wrap gap-7">
-        {entities?.map(
-          (entity, index) =>
-            StringNullToBlank(entity.Name).includes(filter) && (
+        {entities?.map((entity, index) => {
+          let filterCondition = true;
+          switch (filter) {
+            case "none":
+              filterCondition = true;
+              break;
+            case "red":
+              filterCondition = entity.StatusColor == "red";
+              break;
+            case "amber":
+              filterCondition = entity.StatusColor == "amber";
+              break;
+            case "emerald":
+              filterCondition = entity.StatusColor == "emerald";
+              break;
+            case "draft":
+              filterCondition = Boolean(localStorage.getItem(entity.ID));
+              break;
+            default:
+              filterCondition = true;
+          }
+          return (
+            StringNullToBlank(entity.Name).includes(searchFilter) &&
+            filterCondition && (
               <EntityCard
                 entityType={entityType}
                 entityId={entity.ID}
@@ -111,24 +206,14 @@ export function EntityCollection({
                 key={index}
               />
             )
-        )}
+          );
+        })}
         <CreateEntityCard
           entityType={entityType}
           parentId={parentId}
-          onCreated={(id: string) => {
-            setCreatedEntityId(id);
-            setFormDialogOpen(true);
-          }}
+          link={link}
         />
       </div>
-      {formDialogOpen && createdEntityId && (
-        <FormDialog
-          entityType={entityType}
-          entityId={createdEntityId}
-          onClose={() => setFormDialogOpen(false)}
-          forceOpen={true}
-        />
-      )}
     </div>
   );
 }
@@ -136,11 +221,11 @@ export function EntityCollection({
 function CreateEntityCard({
   entityType,
   parentId,
-  onCreated,
+  link,
 }: {
   entityType: string;
   parentId: string;
-  onCreated: (id: string) => void;
+  link: string;
 }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -160,36 +245,45 @@ function CreateEntityCard({
     onSuccess: (res) => (
       queryClient.invalidateQueries(),
       toast(`${t(entityType)} ${t("CreateToast")}`),
-      onCreated && onCreated(res.ID)
+      navigate(`${link}${res.ID}`)
     ),
   });
 
   const [key, setKey] = useState(0);
+  const [, navigate] = useLocation();
 
   return (
-    <ContextMenu key={key}>
-      <ContextMenuTrigger>
-        <Card
-          className="w-36 flex justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all"
-          onClick={async () => {
-            await createEntity({
-              name: String(localStorage.getItem("name")),
-              entityType: entityType,
-              parentId: parentId,
-            });
-          }}
-        >
-          <Button variant="ghost" size="icon" className="hover:bg-background">
-            <Plus />
-          </Button>
-        </Card>
-      </ContextMenuTrigger>
-      {entityType == "line" && (
-        <ContextMenuContent className="min-w-0">
-          <ImportJSON onClick={() => setKey((k) => k + 1)} />
-        </ContextMenuContent>
-      )}
-    </ContextMenu>
+    <Card
+      className="w-36 flex relative justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all"
+      onClick={async () =>
+        await createEntity({
+          name: String(localStorage.getItem("name")),
+          entityType: entityType,
+          parentId: parentId,
+        })
+      }
+    >
+      <div className="absolute top-0 left-0">
+        <DropdownMenu key={key}>
+          {entityType == "line" && (
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Ellipsis />
+              </Button>
+            </DropdownMenuTrigger>
+          )}
+          <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+            <>
+              {/*<ContextMenuSeparator />*/}
+              <ImportJSON onClick={() => setKey((k) => k + 1)} />
+            </>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <Button variant="ghost" size="icon" className="hover:bg-card">
+        <Plus />
+      </Button>
+    </Card>
   );
 }
 
@@ -209,80 +303,98 @@ function EntityCard({
   link: string;
 }) {
   const [key, setKey] = useState(0);
-  const [_, navigate] = useLocation();
+  const [, navigate] = useLocation();
 
   return (
-    <ContextMenu key={key}>
-      <ContextMenuTrigger>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Card
-                onClick={() => {
-                  link != "" && navigate(`${link}${entityId}`);
-                }}
-                className="w-36 hover:cursor-pointer hover:translate-y-1 transition-all h-fit flex gap-3 justify-center items-center px-5 py-1"
-              >
-                {entityName && (
-                  <CardTitle className="break-words max-w-24 text-center">
-                    {entityName}
-                  </CardTitle>
-                )}
-                {(localStorage.getItem(entityId) || entityStatusColor) && (
-                  <div className="flex flex-col gap-3 justify-between items-center">
-                    {localStorage.getItem(entityId) && <SquarePen size={15} />}
-                    {entityStatusColor && (
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 6 6"
-                        fill={
-                          entityStatusColor == "red"
-                            ? "rgb(239, 68, 68)"
-                            : entityStatusColor == "amber"
-                            ? "rgb(245, 158, 11)"
-                            : "rgb(16, 185, 129)"
-                        }
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <circle cx="3" cy="3" r="3" />
-                      </svg>
-                    )}
-                  </div>
-                )}
-              </Card>
-            </TooltipTrigger>
-            {typeof entityComment == "string" && entityComment != "" && (
-              <TooltipContent>{entityComment}</TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
-      </ContextMenuTrigger>
-      <ContextMenuContent className="min-w-0">
-        <FormDialog
-          entityType={entityType}
-          entityId={entityId}
-          onClose={() => setKey((k) => k + 1)}
-        />
-        <ContextMenuSeparator />
-        <DeleteEntityDialog
-          entityType={entityType}
-          entityId={entityId}
-          onClose={() => setKey((k) => k + 1)}
-        />
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Card
+            onClick={() => {
+              link != "" && navigate(`${link}${entityId}`);
+            }}
+            className="relative w-36 hover:cursor-pointer hover:translate-y-1 transition-all h-fit flex gap-3 justify-center items-center py-4"
+          >
+            <div className="absolute top-0 left-0">
+              <DropdownMenu key={key}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Ellipsis />
+                  </Button>
+                </DropdownMenuTrigger>
 
-        {entityType == "line" && (
-          <>
-            <ContextMenuSeparator />
-            <ExportJSON
-              entityType={entityType}
-              entityId={entityId}
-              onClick={() => setKey((k) => k + 1)}
-            />
-          </>
+                <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+                  <DeleteEntityDialog
+                    entityType={entityType}
+                    entityId={entityId}
+                    onClose={() => setKey((k) => k + 1)}
+                  />
+
+                  {entityType == "line" && (
+                    <>
+                      <DropdownMenuSeparator className="bg-accent" />
+                      <ExportJSON
+                        entityType={entityType}
+                        entityId={entityId}
+                        onClick={() => setKey((k) => k + 1)}
+                      />
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            {(localStorage.getItem(entityId) || entityStatusColor) && (
+              <div className="flex flex-col items-center absolute top-0 right-0">
+                {entityStatusColor && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled
+                    className="disabled:opacity-100"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 6 6"
+                      fill={
+                        entityStatusColor == "red"
+                          ? "rgb(239, 68, 68)"
+                          : entityStatusColor == "amber"
+                          ? "rgb(245, 158, 11)"
+                          : "rgb(16, 185, 129)"
+                      }
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="border rounded-full"
+                    >
+                      <circle cx="3" cy="3" r="3" />
+                    </svg>
+                  </Button>
+                )}
+                {localStorage.getItem(entityId) && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled
+                    className="disabled:opacity-80"
+                  >
+                    <SquarePen size={15} />
+                  </Button>
+                )}
+              </div>
+            )}
+            {entityName && (
+              <CardTitle className="break-words max-w-24 text-center">
+                {entityName}
+              </CardTitle>
+            )}
+          </Card>
+        </TooltipTrigger>
+
+        {typeof entityComment == "string" && entityComment != "" && (
+          <TooltipContent>{entityComment}</TooltipContent>
         )}
-      </ContextMenuContent>
-    </ContextMenu>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -325,11 +437,14 @@ function DeleteEntityDialog({
       open={open}
       onOpenChange={(open) => (setOpen(open), !open && onClose && onClose())}
     >
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Trash2 />
-        </Button>
-      </DialogTrigger>
+      <div className="flex gap-1 items-center pr-2">
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <Trash2 />
+          </Button>
+        </DialogTrigger>
+        <p className="text-sm font-semibold">{t("DeleteEntity")}</p>
+      </div>
       <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
         <DialogTitle>{t("DeleteDialog Title")}</DialogTitle>
         <DialogDescription>
@@ -368,15 +483,19 @@ function ExportJSON({
   const { t } = useTranslation();
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={async () => (
-        toast(t(await HandleExport(entityType, entityId))), onClick && onClick()
-      )}
-    >
-      <FileUp />
-    </Button>
+    <div className="flex gap-1 items-center pr-2">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={async () => (
+          toast(t(await HandleExport(entityType, entityId))),
+          onClick && onClick()
+        )}
+      >
+        <FileUp />
+      </Button>
+      <p className="text-sm font-semibold">{t("ExportJSON")}</p>
+    </div>
   );
 }
 
@@ -391,13 +510,16 @@ function ImportJSON({ onClick }: { onClick?: () => void }) {
   const { t } = useTranslation();
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => (importEntity(), onClick && onClick())}
-    >
-      <FileDown />
-    </Button>
+    <div className="flex gap-1 items-center pr-2">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => (importEntity(), onClick && onClick())}
+      >
+        <FileDown />
+      </Button>
+      <p className="text-sm font-semibold">{t("ImportJSON")}</p>
+    </div>
   );
 }
 
