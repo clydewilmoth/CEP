@@ -41,10 +41,7 @@ export default function Operations() {
         </ResizablePanelGroup>
       </ResizablePanel>
       <ResizableHandle disabled />
-      <ResizablePanel
-        defaultSize={80}
-        className="p-8 bg-muted"
-      ></ResizablePanel>
+      <ResizablePanel defaultSize={80} className="p-8 bg-card"></ResizablePanel>
     </ResizablePanelGroup>
   );
 }

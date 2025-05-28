@@ -67,4 +67,7 @@
   body {
     @apply bg-background text-foreground;
   }
+  [data-radix-scroll-area-viewport] > div {
+    display: block !important;
+  }
 }

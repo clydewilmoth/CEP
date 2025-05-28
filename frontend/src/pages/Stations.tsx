@@ -23,7 +23,7 @@ export default function Stations() {
       <ResizablePanel defaultSize={20} className="min-w-72">
         <ResizablePanelGroup direction="vertical">
           <ScrollArea className="p-8">
-            <ResizablePanel defaultSize={0} className="min-h-fit">
+            <ResizablePanel defaultSize={0} className="min-h-fit min-w-fit">
               <BreadcrumbNavigation luuid={luuid} />
             </ResizablePanel>
             <ResizableHandle disabled />
