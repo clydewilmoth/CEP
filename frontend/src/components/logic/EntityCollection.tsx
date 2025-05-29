@@ -14,6 +14,7 @@ import {
   HandleExport,
   HandleImport,
   CopyEntityHierarchyToClipboard,
+  PasteEntityHierarchyFromClipboard as PasteEntityHierarchyFromClipboardAPI,
 } from "../../../wailsjs/go/main/Core";
 import {
   Ellipsis,
@@ -274,6 +275,12 @@ function CreateEntityCard({
             <>
               {/*<ContextMenuSeparator />*/}
               <ImportJSON onClick={() => setKey((k) => k + 1)} />
+              <DropdownMenuSeparator className="bg-accent" />
+              <PasteEntityHierarchyFromClipboard
+                entityType={entityType}
+                parentId={parentId}
+                onClick={() => setKey((k) => k + 1)}
+              />
             </>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -559,6 +566,55 @@ function ImportJSON({ onClick }: { onClick?: () => void }) {
     </div>
   );
 }
+
+function PasteEntityHierarchyFromClipboard({
+  entityType,
+  parentId,
+  onClick,
+}: {
+  entityType: string;
+  parentId: string;
+  onClick?: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+
+  const { mutateAsync: pasteEntity } = useMutation({
+    mutationFn: async () => {
+      return await PasteEntityHierarchyFromClipboardAPI(
+        String(localStorage.getItem("name")), // userName
+        entityType,
+        parentId
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+      toast.success(t("PasteFromClipboardSuccess"));
+    },
+    onError: (error: any) => {
+      toast.error(t("PasteFromClipboardError"), {
+        description: error?.message ?? String(error),
+      });
+    },
+  });
+
+  return (
+    <div className="flex gap-1 items-center pr-2">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => {
+          pasteEntity();
+          onClick?.();
+        }}
+      >
+        <Clipboard />
+      </Button>
+      <p className="text-sm font-semibold">{t("PasteFromClipboard")}</p>
+    </div>
+  );
+}
+
 
 export function StringNullToBlank(value: string) {
   return value ? String(value) : "";

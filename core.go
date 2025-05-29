@@ -1441,6 +1441,195 @@ func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr 
 	log.Printf("Hierarchy of %s copied to clipboard successfully.", entityTypeStr)
 	return nil
 }
+
+func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntityType string, parentIDStrOptional string) error {
+	if DB == nil {
+		return errors.New("DB not initialized")
+	}
+	if userName == "" {
+		return errors.New("userName is required")
+	}
+
+	clipboardData, err := clipboard.ReadAll()
+	if err != nil {
+		return fmt.Errorf("error reading from clipboard: %w", err)
+	}
+
+	if expectedEntityType != "line" {
+		return fmt.Errorf("Paste is only allowed on the line page, but you're on '%s'", expectedEntityType)
+	}
+
+	var line Line
+	if err := json.Unmarshal([]byte(clipboardData), &line); err != nil {
+		return fmt.Errorf("Clipboard does not contain a valid Line structure: %w", err)
+	}
+	if line.ID == (mssql.UniqueIdentifier{}) {
+		return errors.New("Line object has no ID – likely invalid clipboard content")
+	}
+
+	var parentID mssql.UniqueIdentifier
+	if parentIDStrOptional != "" {
+		parentID, err = parseMSSQLUniqueIdentifierFromString(parentIDStrOptional)
+		if err != nil {
+			return fmt.Errorf("invalid parent ID: %w", err)
+		}
+	}
+
+	tx := DB.Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("failed to begin transaction: %w", tx.Error)
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			log.Printf("Paste (panic): %v", r)
+		} else if err != nil {
+			tx.Rollback()
+			log.Printf("Paste (failed): %v", err)
+		} else {
+			if commitErr := tx.Commit().Error; commitErr != nil {
+				log.Printf("Commit error: %v", commitErr)
+				err = commitErr
+			} else {
+				log.Println("Paste successful.")
+			}
+		}
+	}()
+
+	idMap := make(map[mssql.UniqueIdentifier]mssql.UniqueIdentifier)
+	_, err = importCopiedEntityRecursive(tx, userName, &line, "line", parentID, idMap)
+	if err != nil {
+		return err
+	}
+
+	return updateGlobalLastUpdateTimestampAndLogChange(tx, mssql.UniqueIdentifier{}, "system", OpTypeSystemEvent, strPtr(userName))
+}
+
+func createBaseFromOriginal(original BaseModel, userName string) BaseModel {
+	now := time.Now()
+	newID := mssql.UniqueIdentifier{}
+	_ = newID.Scan(uuid.New().String())
+
+	return BaseModel{
+		ID:        newID,
+		Name:      original.Name,
+		Comment:   original.Comment,
+		CreatedAt: now,
+		UpdatedAt: now,
+		CreatedBy: strPtr(userName),
+		UpdatedBy: strPtr(userName),
+	}
+}
+
+func importCopiedEntityRecursive(
+	tx *gorm.DB,
+	userName string,
+	original interface{},
+	entityTypeStr string,
+	newParentID mssql.UniqueIdentifier,
+	idMap map[mssql.UniqueIdentifier]mssql.UniqueIdentifier,
+) (mssql.UniqueIdentifier, error) {
+
+	newUUID := mssql.UniqueIdentifier{}
+	_ = newUUID.Scan(uuid.New().String())
+
+	switch e := original.(type) {
+	case *Line:
+		newLine := Line{
+			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
+			AssemblyArea: e.AssemblyArea,
+			Stations:    []Station{},
+		}
+		if err := tx.Create(&newLine).Error; err != nil {
+			return newUUID, fmt.Errorf("failed to insert new Line: %w", err)
+		}
+		idMap[e.ID] = newLine.ID
+		for i := range e.Stations {
+			_, err := importCopiedEntityRecursive(tx, userName, &e.Stations[i], "station", newLine.ID, idMap)
+			if err != nil {
+				return newUUID, err
+			}
+		}
+		return newLine.ID, nil
+
+	case *Station:
+		newStation := Station{
+			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
+			Description: e.Description,
+			StationType: e.StationType,
+			SerialOrParallel: e.SerialOrParallel,
+			ParentID:    newParentID,
+			Tools:       []Tool{},
+		}
+		if err := tx.Create(&newStation).Error; err != nil {
+			return newUUID, fmt.Errorf("failed to insert new Station: %w", err)
+		}
+		idMap[e.ID] = newStation.ID
+		for i := range e.Tools {
+			_, err := importCopiedEntityRecursive(tx, userName, &e.Tools[i], "tool", newStation.ID, idMap)
+			if err != nil {
+				return newUUID, err
+			}
+		}
+		return newStation.ID, nil
+
+	case *Tool:
+		newTool := Tool{
+			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
+			ToolClass: e.ToolClass,
+			ToolType:  e.ToolType,
+			Description: e.Description,
+			IpAddressDevice: e.IpAddressDevice,
+			SPSPLCNameSPAService: e.SPSPLCNameSPAService,
+			SPSDBNoSend: e.SPSDBNoSend,
+			SPSDBNoReceive: e.SPSDBNoReceive,
+			SPSPreCheck: e.SPSPreCheck,
+			SPSAddressInSendDB: e.SPSAddressInSendDB,
+			SPSAddressInReceiveDB: e.SPSAddressInReceiveDB,
+			ParentID:    newParentID,
+			Operations:  []Operation{},
+		}
+		if err := tx.Create(&newTool).Error; err != nil {
+			return newUUID, fmt.Errorf("failed to insert new Tool: %w", err)
+		}
+		idMap[e.ID] = newTool.ID
+		for i := range e.Operations {
+			_, err := importCopiedEntityRecursive(tx, userName, &e.Operations[i], "operation", newTool.ID, idMap)
+			if err != nil {
+				return newUUID, err
+			}
+		}
+		return newTool.ID, nil
+
+	case *Operation:
+		newOp := Operation{
+			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
+			Description: e.Description,
+			DecisionCriteria: e.DecisionCriteria,
+			SequenceGroup: e.SequenceGroup,
+			Sequence: e.Sequence,
+			AlwaysPerform: e.AlwaysPerform,
+			QGateRelevant: e.QGateRelevant,
+			Template: e.Template,
+			DecisionClass: e.DecisionClass,
+			SavingClass: e.SavingClass,
+			VerificationClass: e.VerificationClass,
+			GenerationClass: e.GenerationClass,
+			OperationDecisions: e.OperationDecisions,
+			ParentID:    newParentID,
+		}
+		if err := tx.Create(&newOp).Error; err != nil {
+			return newUUID, fmt.Errorf("failed to insert new Operation: %w", err)
+		}
+		idMap[e.ID] = newOp.ID
+		return newOp.ID, nil
+
+	default:
+		return newUUID, fmt.Errorf("unsupported type in import: %T", original)
+	}
+}
+
 /*
 func (c *Core) ImportEntityHierarchyFromClipboard_UseOriginalData(userName string) error {
 	if DB == nil {
