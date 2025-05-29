@@ -1398,22 +1398,47 @@ func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr 
 		return errors.New("DB not initialized")
 	}
 
-	hierarchyData, err := internalGetEntityHierarchy(entityTypeStr, entityIDStr)
-	if err != nil {
-		return fmt.Errorf("error loading hierarchy for clipboard copy: %w", err)
+	entityTypeStr = strings.ToLower(entityTypeStr)
+
+	// Hierarchisches Preloading je nach Entity-Typ
+	var tx *gorm.DB
+	switch entityTypeStr {
+	case "line":
+		tx = DB.Preload("Stations.Tools.Operations")
+	case "station":
+		tx = DB.Preload("Tools.Operations")
+	case "tool":
+		tx = DB.Preload("Operations")
+	case "operation":
+		tx = DB // keine Preloads nötig
+	default:
+		return fmt.Errorf("unsupported entity type: %s", entityTypeStr)
 	}
 
-	jsonData, err := json.MarshalIndent(hierarchyData, "", "  ")
+	entityID, err := parseMSSQLUniqueIdentifierFromString(entityIDStr)
+	if err != nil {
+		return fmt.Errorf("invalid ID: %w", err)
+	}
+
+	modelInstance, err := getModelInstance(entityTypeStr)
+	if err != nil {
+		return err
+	}
+
+	if err := tx.First(modelInstance, "id = ?", entityID).Error; err != nil {
+		return fmt.Errorf("error loading entity with hierarchy: %w", err)
+	}
+
+	jsonData, err := json.MarshalIndent(modelInstance, "", "  ")
 	if err != nil {
 		return fmt.Errorf("error converting to JSON: %w", err)
 	}
 
-	err = clipboard.WriteAll(string(jsonData))
-	if err != nil {
+	if err := clipboard.WriteAll(string(jsonData)); err != nil {
 		return fmt.Errorf("error writing to clipboard: %w", err)
 	}
 
-	log.Println("Hierarchy copied to clipboard successfully.")
+	log.Printf("Hierarchy of %s copied to clipboard successfully.", entityTypeStr)
 	return nil
 }
 /*

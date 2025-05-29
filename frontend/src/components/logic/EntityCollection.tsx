@@ -327,17 +327,16 @@ function EntityCard({
                     entityId={entityId}
                     onClose={() => setKey((k) => k + 1)}
                   />
-
+                  <DropdownMenuSeparator className="bg-accent" />
+                  <ClipboardExportButton
+                    entityType={entityType}
+                    entityId={entityId}
+                    onClick={() => setKey((k) => k + 1)}
+                  />
                   {entityType == "line" && (
                     <>
                       <DropdownMenuSeparator className="bg-accent" />
                       <ExportJSON
-                        entityType={entityType}
-                        entityId={entityId}
-                        onClick={() => setKey((k) => k + 1)}
-                      />
-                      <DropdownMenuSeparator className="bg-accent" />
-                      <ClipboardExportButton
                         entityType={entityType}
                         entityId={entityId}
                         onClick={() => setKey((k) => k + 1)}
