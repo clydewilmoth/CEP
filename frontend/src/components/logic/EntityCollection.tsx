@@ -13,11 +13,13 @@ import {
   DeleteEntityByIDString,
   HandleExport,
   HandleImport,
+  CopyEntityHierarchyToClipboard,
 } from "../../../wailsjs/go/main/Core";
 import {
   Ellipsis,
   FileDown,
   FileUp,
+  Clipboard,
   Funnel,
   Plus,
   SearchIcon,
@@ -334,6 +336,12 @@ function EntityCard({
                         entityId={entityId}
                         onClick={() => setKey((k) => k + 1)}
                       />
+                      <DropdownMenuSeparator className="bg-accent" />
+                      <ClipboardExportButton
+                        entityType={entityType}
+                        entityId={entityId}
+                        onClick={() => setKey((k) => k + 1)}
+                      />
                     </>
                   )}
                 </DropdownMenuContent>
@@ -491,6 +499,40 @@ function ExportJSON({
         <FileUp />
       </Button>
       <p className="text-sm font-semibold">{t("ExportJSON")}</p>
+    </div>
+  );
+}
+
+function ClipboardExportButton({
+  entityType,
+  entityId,
+  onClick,
+}: {
+  entityType: string;
+  entityId: string;
+  onClick?: () => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex gap-1 items-center pr-2">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={async () => {
+          try {
+            await CopyEntityHierarchyToClipboard(entityType, entityId);
+            toast(t("CopiedToClipboard"));
+            onClick?.();
+          } catch (err) {
+            console.error(err);
+            toast(t("ClipboardCopyFailed"));
+          }
+        }}
+      >
+        <Clipboard />
+      </Button>
+      <p className="text-sm font-semibold">{t("CopyToClipboard")}</p>
     </div>
   );
 }

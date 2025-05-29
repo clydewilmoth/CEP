@@ -22,6 +22,7 @@ import (
 	"github.com/joho/godotenv"
 	mssql "github.com/microsoft/go-mssqldb"
 	ws "github.com/wailsapp/wails/v2/pkg/runtime"
+	"github.com/atotto/clipboard"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -1391,6 +1392,88 @@ func importEntityRecursive_UseOriginalData(currentTx *gorm.DB, originalEntityDat
 	}
 	return nil
 }
+
+func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr string) error {
+	if DB == nil {
+		return errors.New("DB not initialized")
+	}
+
+	hierarchyData, err := internalGetEntityHierarchy(entityTypeStr, entityIDStr)
+	if err != nil {
+		return fmt.Errorf("error loading hierarchy for clipboard copy: %w", err)
+	}
+
+	jsonData, err := json.MarshalIndent(hierarchyData, "", "  ")
+	if err != nil {
+		return fmt.Errorf("error converting to JSON: %w", err)
+	}
+
+	err = clipboard.WriteAll(string(jsonData))
+	if err != nil {
+		return fmt.Errorf("error writing to clipboard: %w", err)
+	}
+
+	log.Println("Hierarchy copied to clipboard successfully.")
+	return nil
+}
+/*
+func (c *Core) ImportEntityHierarchyFromClipboard_UseOriginalData(userName string) error {
+	if DB == nil {
+		return errors.New("DB not initialized")
+	}
+
+	jsonData, err := clipboard.ReadAll()
+	if err != nil {
+		return fmt.Errorf("error reading from clipboard: %w", err)
+	}
+
+	var rootImportedLine Line
+	if err = json.Unmarshal([]byte(jsonData), &rootImportedLine); err != nil {
+		return fmt.Errorf("error unmarshalling JSON from clipboard: %w", err)
+	}
+
+	emptyID := mssql.UniqueIdentifier{}
+	tx := DB.Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("error starting DB transaction: %w", tx.Error)
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			log.Printf("Import (clipboard) panic: %v", r)
+		} else if err != nil {
+			tx.Rollback()
+			log.Printf("Import (clipboard) failed: %v", err)
+		} else {
+			commitErr := tx.Commit().Error
+			if commitErr != nil {
+				log.Printf("Commit error: %v", commitErr)
+				err = commitErr
+			} else {
+				log.Println("Import from clipboard successful.")
+			}
+		}
+	}()
+
+	err = importEntityRecursive_UseOriginalData(tx, &rootImportedLine, "line", emptyID)
+	if err == nil {
+		_ = updateGlobalLastUpdateTimestampAndLogChange(tx, emptyID, "system", OpTypeSystemEvent, strPtr(userName))
+	}
+	return err
+}
+
+func importCopiedEntityRecursive(
+	tx *gorm.DB,
+	userName string,
+	originalEntityData interface{},
+	entityTypeStr string,
+	newParentID mssql.UniqueIdentifier,
+	idMap map[mssql.UniqueIdentifier]mssql.UniqueIdentifier,
+) (mssql.UniqueIdentifier, error) {
+	
+	return [16]byte{}, errors.New("not implemented yet")
+}
+*/
 
 /*
 func (c *Core) ImportCopiedEntityHierarchyFromJSON(userName string, entityTypeStr string, parentIDStrIfApplicable string, jsonData string) (interface{}, error) {
