@@ -20,7 +20,8 @@ import {
   Ellipsis,
   FileDown,
   FileUp,
-  Clipboard,
+  ClipboardCopy,
+  ClipboardPaste,
   Funnel,
   Plus,
   SearchIcon,
@@ -451,11 +452,11 @@ function DeleteEntityDialog({
     >
       <div className="flex gap-1 items-center pr-2">
         <DialogTrigger asChild>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" className="w-full justify-start flex items-center gap-2 px-3 py-2">
             <Trash2 />
+            <span className="text-sm font-semibold">{t("DeleteEntity")}</span>
           </Button>
-        </DialogTrigger>
-        <p className="text-sm font-semibold">{t("DeleteEntity")}</p>
+        </DialogTrigger> 
       </div>
       <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
         <DialogTitle>{t("DeleteDialog Title")}</DialogTitle>
@@ -498,15 +499,15 @@ function ExportJSON({
     <div className="flex gap-1 items-center pr-2">
       <Button
         variant="ghost"
-        size="icon"
+        className="w-full justify-start flex items-center gap-2 px-3 py-2"
         onClick={async () => (
           toast(t(await HandleExport(entityType, entityId))),
           onClick && onClick()
         )}
       >
         <FileUp />
+        <span className="text-sm font-semibold">{t("ExportJSON")}</span>
       </Button>
-      <p className="text-sm font-semibold">{t("ExportJSON")}</p>
     </div>
   );
 }
@@ -526,7 +527,7 @@ function ClipboardExportButton({
     <div className="flex gap-1 items-center pr-2">
       <Button
         variant="ghost"
-        size="icon"
+        className="w-full justify-start flex items-center gap-2 px-3 py-2"
         onClick={async () => {
           try {
             await CopyEntityHierarchyToClipboard(entityType, entityId);
@@ -538,9 +539,9 @@ function ClipboardExportButton({
           }
         }}
       >
-        <Clipboard />
+        <ClipboardCopy className="w-4 h-4" />
+        <span className="text-sm font-semibold">{t("CopyToClipboard")}</span>
       </Button>
-      <p className="text-sm font-semibold">{t("CopyToClipboard")}</p>
     </div>
   );
 }
@@ -559,12 +560,12 @@ function ImportJSON({ onClick }: { onClick?: () => void }) {
     <div className="flex gap-1 items-center pr-2">
       <Button
         variant="ghost"
-        size="icon"
+        className="w-full justify-start flex items-center gap-2 px-3 py-2"
         onClick={() => (importEntity(), onClick && onClick())}
       >
         <FileDown />
+        <span className="text-sm font-semibold">{t("ImportJSON")}</span>
       </Button>
-      <p className="text-sm font-semibold">{t("ImportJSON")}</p>
     </div>
   );
 }
@@ -584,7 +585,7 @@ function PasteEntityHierarchyFromClipboard({
   const { mutateAsync: pasteEntity } = useMutation({
     mutationFn: async () => {
       return await PasteEntityHierarchyFromClipboardAPI(
-        String(localStorage.getItem("name")), // userName
+        String(localStorage.getItem("name")),
         entityType,
         parentId
       );
@@ -594,8 +595,31 @@ function PasteEntityHierarchyFromClipboard({
       toast.success(t("PasteFromClipboardSuccess"));
     },
     onError: (error: any) => {
-      toast.error(t("PasteFromClipboardError"), {
-        description: error?.message ?? String(error),
+      console.error("Paste error:", error);
+      
+      let errorMessage = t("PasteFromClipboardError");
+      let description = error?.message ?? String(error);
+
+      if (description.includes("type mismatch")) {
+        errorMessage = t("PasteTypeMismatchError");
+        const match = description.match(/clipboard contains '(\w+)' but expected '(\w+)'/);
+        if (match) {
+          description = t("PasteTypeMismatchDescription", {
+            clipboardType: t(match[1]),
+            expectedType: t(match[2])
+          });
+        }
+      } else if (description.includes("could not detect entity type")) {
+        errorMessage = t("PasteInvalidDataError");
+        description = t("PasteInvalidDataDescription");
+      } else if (description.includes("clipboard does not contain valid")) {
+        errorMessage = t("PasteInvalidFormatError");
+        description = t("PasteInvalidFormatDescription");
+      }
+
+      toast.error(errorMessage, {
+        description: description,
+        duration: 5000,
       });
     },
   });
@@ -604,15 +628,15 @@ function PasteEntityHierarchyFromClipboard({
     <div className="flex gap-1 items-center pr-2">
       <Button
         variant="ghost"
-        size="icon"
+        className="w-full justify-start flex items-center gap-2 px-3 py-2"
         onClick={() => {
           pasteEntity();
           onClick?.();
         }}
       >
-        <Clipboard />
+        <ClipboardPaste />
+        <span className="text-sm font-semibold">{t("PasteFromClipboard")}</span>
       </Button>
-      <p className="text-sm font-semibold">{t("PasteFromClipboard")}</p>
     </div>
   );
 }

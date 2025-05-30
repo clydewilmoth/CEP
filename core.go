@@ -1451,33 +1451,42 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 		return fmt.Errorf("error reading from clipboard: %w", err)
 	}
 
+	actualEntityType, err := detectEntityTypeFromClipboard(clipboardData)
+	if err != nil {
+		return fmt.Errorf("could not detect entity type from clipboard: %w", err)
+	}
+
+	if strings.ToLower(actualEntityType) != strings.ToLower(expectedEntityType) {
+		return fmt.Errorf("type mismatch: clipboard contains '%s' but expected '%s'", actualEntityType, expectedEntityType)
+	}
+
 	var root interface{}
 	switch strings.ToLower(expectedEntityType) {
 	case "line":
 		var line Line
 		if err := json.Unmarshal([]byte(clipboardData), &line); err != nil {
-			return errors.New("clipboard does not contain a valid Line")
+			return fmt.Errorf("clipboard does not contain a valid Line: %w", err)
 		}
 		root = &line
 
 	case "station":
 		var station Station
 		if err := json.Unmarshal([]byte(clipboardData), &station); err != nil {
-			return errors.New("clipboard does not contain a valid Station")
+			return fmt.Errorf("clipboard does not contain a valid Station: %w", err)
 		}
 		root = &station
 
 	case "tool":
 		var tool Tool
 		if err := json.Unmarshal([]byte(clipboardData), &tool); err != nil {
-			return errors.New("clipboard does not contain a valid Tool")
+			return fmt.Errorf("clipboard does not contain a valid Tool: %w", err)
 		}
 		root = &tool
 
 	case "operation":
 		var op Operation
 		if err := json.Unmarshal([]byte(clipboardData), &op); err != nil {
-			return errors.New("clipboard does not contain a valid Operation")
+			return fmt.Errorf("clipboard does not contain a valid Operation: %w", err)
 		}
 		root = &op
 
@@ -1485,7 +1494,6 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 		return fmt.Errorf("unknown expected entity type: '%s'", expectedEntityType)
 	}
 
-	// Optional: Parent-ID
 	var parentID mssql.UniqueIdentifier
 	if parentIDStrOptional != "" {
 		parentID, err = parseMSSQLUniqueIdentifierFromString(parentIDStrOptional)
@@ -1494,7 +1502,6 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 		}
 	}
 
-	// Transaktion starten
 	tx := DB.Begin()
 	if tx.Error != nil {
 		return fmt.Errorf("failed to begin transaction: %w", tx.Error)
@@ -1524,6 +1531,50 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 	}
 
 	return updateGlobalLastUpdateTimestampAndLogChange(tx, mssql.UniqueIdentifier{}, "system", OpTypeSystemEvent, strPtr(userName))
+}
+
+func detectEntityTypeFromClipboard(clipboardData string) (string, error) {
+	var tempMap map[string]interface{}
+	if err := json.Unmarshal([]byte(clipboardData), &tempMap); err != nil {
+		return "", fmt.Errorf("clipboard does not contain valid JSON: %w", err)
+	}
+	if _, hasAssemblyArea := tempMap["AssemblyArea"]; hasAssemblyArea {
+		if _, hasStations := tempMap["Stations"]; hasStations {
+			return "line", nil
+		}
+	}
+	if _, hasStationType := tempMap["StationType"]; hasStationType {
+		if _, hasTools := tempMap["Tools"]; hasTools {
+			return "station", nil
+		}
+	}
+	if _, hasToolClass := tempMap["ToolClass"]; hasToolClass {
+		if _, hasOperations := tempMap["Operations"]; hasOperations {
+			return "tool", nil
+		}
+	}
+	if _, hasDecisionCriteria := tempMap["DecisionCriteria"]; hasDecisionCriteria {
+		if _, hasSequenceGroup := tempMap["SequenceGroup"]; hasSequenceGroup {
+			return "operation", nil
+		}
+	}
+	var line Line
+	if err := json.Unmarshal([]byte(clipboardData), &line); err == nil && line.ID != (mssql.UniqueIdentifier{}) {
+		return "line", nil
+	}
+	var station Station
+	if err := json.Unmarshal([]byte(clipboardData), &station); err == nil && station.ID != (mssql.UniqueIdentifier{}) {
+		return "station", nil
+	}
+	var tool Tool
+	if err := json.Unmarshal([]byte(clipboardData), &tool); err == nil && tool.ID != (mssql.UniqueIdentifier{}) {
+		return "tool", nil
+	}
+	var operation Operation
+	if err := json.Unmarshal([]byte(clipboardData), &operation); err == nil && operation.ID != (mssql.UniqueIdentifier{}) {
+		return "operation", nil
+	}
+	return "", errors.New("could not determine entity type from clipboard data")
 }
 
 func createBaseFromOriginal(original BaseModel, userName string) BaseModel {
