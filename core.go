@@ -652,7 +652,6 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 				}
 				return fmt.Errorf("error loading entity for update check: %w", err)
 			}
-			currentDBUpdatedAt = m.UpdatedAt
 		case "station":
 			var m Station
 			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
@@ -661,7 +660,6 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 				}
 				return fmt.Errorf("error loading entity for update check: %w", err)
 			}
-			currentDBUpdatedAt = m.UpdatedAt
 		case "tool":
 			var m Tool
 			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
@@ -670,7 +668,6 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 				}
 				return fmt.Errorf("error loading entity for update check: %w", err)
 			}
-			currentDBUpdatedAt = m.UpdatedAt
 		case "operation":
 			var m Operation
 			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
@@ -679,7 +676,6 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 				}
 				return fmt.Errorf("error loading entity for update check: %w", err)
 			}
-			currentDBUpdatedAt = m.UpdatedAt
 		default:
 			return fmt.Errorf("unknown type for timestamp extraction: %s", entityTypeStr)
 		}
@@ -1455,18 +1451,41 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 		return fmt.Errorf("error reading from clipboard: %w", err)
 	}
 
-	if expectedEntityType != "line" {
-		return fmt.Errorf("Paste is only allowed on the line page, but you're on '%s'", expectedEntityType)
+	var root interface{}
+	switch strings.ToLower(expectedEntityType) {
+	case "line":
+		var line Line
+		if err := json.Unmarshal([]byte(clipboardData), &line); err != nil {
+			return errors.New("clipboard does not contain a valid Line")
+		}
+		root = &line
+
+	case "station":
+		var station Station
+		if err := json.Unmarshal([]byte(clipboardData), &station); err != nil {
+			return errors.New("clipboard does not contain a valid Station")
+		}
+		root = &station
+
+	case "tool":
+		var tool Tool
+		if err := json.Unmarshal([]byte(clipboardData), &tool); err != nil {
+			return errors.New("clipboard does not contain a valid Tool")
+		}
+		root = &tool
+
+	case "operation":
+		var op Operation
+		if err := json.Unmarshal([]byte(clipboardData), &op); err != nil {
+			return errors.New("clipboard does not contain a valid Operation")
+		}
+		root = &op
+
+	default:
+		return fmt.Errorf("unknown expected entity type: '%s'", expectedEntityType)
 	}
 
-	var line Line
-	if err := json.Unmarshal([]byte(clipboardData), &line); err != nil {
-		return fmt.Errorf("Clipboard does not contain a valid Line structure: %w", err)
-	}
-	if line.ID == (mssql.UniqueIdentifier{}) {
-		return errors.New("Line object has no ID – likely invalid clipboard content")
-	}
-
+	// Optional: Parent-ID
 	var parentID mssql.UniqueIdentifier
 	if parentIDStrOptional != "" {
 		parentID, err = parseMSSQLUniqueIdentifierFromString(parentIDStrOptional)
@@ -1475,6 +1494,7 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 		}
 	}
 
+	// Transaktion starten
 	tx := DB.Begin()
 	if tx.Error != nil {
 		return fmt.Errorf("failed to begin transaction: %w", tx.Error)
@@ -1498,7 +1518,7 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 	}()
 
 	idMap := make(map[mssql.UniqueIdentifier]mssql.UniqueIdentifier)
-	_, err = importCopiedEntityRecursive(tx, userName, &line, "line", parentID, idMap)
+	_, err = importCopiedEntityRecursive(tx, userName, root, expectedEntityType, parentID, idMap)
 	if err != nil {
 		return err
 	}
@@ -1512,9 +1532,10 @@ func createBaseFromOriginal(original BaseModel, userName string) BaseModel {
 	_ = newID.Scan(uuid.New().String())
 
 	return BaseModel{
-		ID:        newID,
 		Name:      original.Name,
 		Comment:   original.Comment,
+		StatusColor: original.StatusColor,
+		ID:        newID,
 		CreatedAt: now,
 		UpdatedAt: now,
 		CreatedBy: strPtr(userName),
