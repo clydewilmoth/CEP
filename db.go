@@ -75,6 +75,7 @@ type Operation struct {
 	AlwaysPerform      *string                `gorm:"default:null"`
 	QGateRelevant      *string                `gorm:"default:null"`
 	Template           *string                `gorm:"default:null"`
+	SerialOrParallel   *string                `gorm:"default:null"`
 	DecisionClass      *string                `gorm:"default:null"`
 	SavingClass        *string                `gorm:"default:null"`
 	VerificationClass  *string                `gorm:"default:null"`

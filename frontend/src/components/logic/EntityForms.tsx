@@ -1556,7 +1556,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
         Sequence: json.Sequence ?? operation.Sequence ?? "",
         AlwaysPerform: json.AlwaysPerform ?? operation.AlwaysPerform ?? "",
         Template: json.Template ?? operation.Template ?? "",
-        SerialOrParallel:  json.SerialOrParallel ?? parentStation.SerialOrParallel ?? "",
+        SerialOrParallel:  json.SerialOrParallel ?? operation.SerialOrParallel ?? "",
         DecisionClass: json.DecisionClass ?? operation.DecisionClass ?? "",
         VerificationClass:
           json.VerificationClass ?? operation.VerificationClass ?? "",
