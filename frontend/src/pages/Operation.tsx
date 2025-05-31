@@ -1,5 +1,4 @@
-import { EntityCollection } from "@/components/logic/EntityCollection";
-import { LineForm } from "@/components/logic/EntityForms";
+import { OperationForm } from "@/components/logic/EntityForms";
 import { BreadcrumbNavigation } from "@/components/logic/Navigation";
 import {
   ResizableHandle,
@@ -7,13 +6,16 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useTranslation } from "react-i18next";
 import { useParams } from "wouter";
 
-export default function Stations() {
-  const params = useParams<{ luuid: string }>();
-  const { luuid } = params;
-  const { t } = useTranslation();
+export default function Operations() {
+  const params = useParams<{
+    luuid: string;
+    suuid: string;
+    tuuid: string;
+    ouuid: string;
+  }>();
+  const { luuid, suuid, tuuid, ouuid } = params;
 
   return (
     <ResizablePanelGroup
@@ -26,26 +28,26 @@ export default function Stations() {
       >
         <ResizablePanelGroup direction="vertical">
           <ScrollArea className="p-8">
-            <ResizablePanel defaultSize={0} className="min-h-fit min-w-fit">
-              <BreadcrumbNavigation luuid={luuid} />
+            <ResizablePanel defaultSize={0} className="min-h-fit">
+              <BreadcrumbNavigation
+                luuid={luuid}
+                suuid={suuid}
+                tuuid={tuuid}
+                ouuid={ouuid}
+              />
             </ResizablePanel>
             <ResizableHandle disabled />
             <ResizablePanel defaultSize={100}>
-              <LineForm entityId={luuid} />
+              <OperationForm entityId={ouuid} />
             </ResizablePanel>
           </ScrollArea>
         </ResizablePanelGroup>
       </ResizablePanel>
       <ResizableHandle disabled />
-      <ResizablePanel defaultSize={80}>
-        <div className="p-8 bg-muted h-screen flex flex-col gap-5">
-          <h1 className="text-xl font-bold">{t("stations")}</h1>
-          <EntityCollection
-            entityType="station"
-            parentId={luuid}
-            link={`/line/${luuid}/station/`}
-          />
-        </div>
+      <ResizablePanel>
+        <ScrollArea>
+          <div className="p-8 bg-muted h-screen w-full"></div>
+        </ScrollArea>
       </ResizablePanel>
     </ResizablePanelGroup>
   );

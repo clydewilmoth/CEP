@@ -37,11 +37,9 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
-// @ts-ignore
-import fertigeJSON from "../../assets/fertigeJSON.json";
-
 import data from "@/assets/dependency.json";
 import { TagsInput } from "../ui/tags-input";
+import { useInit } from "@/App";
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -49,6 +47,7 @@ export function LineForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
+  const { dbState } = useInit();
 
   useEffect(() => {
     (async () => {
@@ -66,7 +65,7 @@ export function LineForm({ entityId }: { entityId: string }) {
         queryKey: ["line", entityId],
       });
     })();
-  }, [observer]);
+  }, [observer, dbState]);
 
   const formSchema = z.object({
     Name: z.string().optional(),
@@ -161,19 +160,18 @@ export function LineForm({ entityId }: { entityId: string }) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(() => submitForm())}
-          className="py-5 pt-7 grid grid-cols-2 gap-8"
+          className="py-5 pt-7 flex flex-col gap-8"
         >
-          <div className="col-span-2 flex gap-3">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <h1 className="text-xl font-bold">{t("line")}</h1>
-                </TooltipTrigger>
-                <TooltipContent>{t("Line Description")}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <div className="flex gap-3 items-center my-auto ml-auto">
+          <div className="flex gap-3 items-center justify-between">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCommentOpen(commentOpen ? false : true)}
+              type="button"
+            >
+              {commentOpen ? <ChevronUp /> : <ChevronDown />}
+            </Button>
+            <div className="flex gap-3 items-center">
               {line && line.StatusColor?.draft && <SquarePen size={15} />}
               <FormField
                 control={form.control}
@@ -199,22 +197,22 @@ export function LineForm({ entityId }: { entityId: string }) {
                         <RadioGroupItem
                           value="empty"
                           aria-label="empty"
-                          className="size-6 border-foreground bg-foreground shadow-none data-[state=checked]:border-foreground data-[state=checked]:bg-foreborder-foreground"
+                          className="size-6 border bg-background"
                         />
                         <RadioGroupItem
                           value="red"
                           aria-label="red"
-                          className="size-6 border-red-500 bg-red-500 shadow-none data-[state=checked]:border-red-500 data-[state=checked]:bg-red-500"
+                          className="size-6 border bg-red-500"
                         />
                         <RadioGroupItem
                           value="amber"
                           aria-label="amber"
-                          className="size-6 border-amber-500 bg-amber-500 shadow-none data-[state=checked]:border-amber-500 data-[state=checked]:bg-amber-500"
+                          className="size-6 border bg-amber-500"
                         />
                         <RadioGroupItem
                           value="emerald"
                           aria-label="emerald"
-                          className="size-6 border-emerald-500 bg-emerald-500 shadow-none data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500"
+                          className="size-6 border bg-emerald-500"
                         />
                       </RadioGroup>
                     </FormControl>
@@ -222,19 +220,9 @@ export function LineForm({ entityId }: { entityId: string }) {
                 )}
               />
             </div>
-            <div className="flex gap-3 items-center">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setCommentOpen(commentOpen ? false : true)}
-                type="button"
-              >
-                {commentOpen ? <ChevronUp /> : <ChevronDown />}
-              </Button>
-            </div>
           </div>
           {commentOpen && (
-            <div className="col-span-2 flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
               <div className="flex gap-3 ">
                 <FormLabel>{t("Comment")}</FormLabel>
                 {line && line.Comment?.draft && <SquarePen size={15} />}
@@ -328,17 +316,20 @@ export function LineForm({ entityId }: { entityId: string }) {
               </FormItem>
             )}
           />
-          <Button
-            variant="outline"
-            type="button"
-            onClick={async () => discardDrafts()}
-          >
-            {t("Discard")}
-          </Button>
-          <Button variant="outline" type="submit">
-            {t("Submit")}
-          </Button>
-          <div className="col-span-2 flex justify-center items-center">
+          <div className="flex gap-5 justify-center">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={async () => discardDrafts()}
+              className="w-full"
+            >
+              {t("Discard")}
+            </Button>
+            <Button variant="outline" type="submit" className="w-full">
+              {t("Submit")}
+            </Button>
+          </div>
+          <div className="flex justify-center items-center">
             <div className="max-w-80 text-center italic text-sm">
               {t("EntityMetaData", {
                 name: meta?.UpdatedBy,
@@ -366,6 +357,7 @@ export function StationForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
+  const { dbState } = useInit();
 
   useEffect(() => {
     (async () => {
@@ -386,7 +378,7 @@ export function StationForm({ entityId }: { entityId: string }) {
         queryKey: ["station", entityId],
       });
     })();
-  }, [observer]);
+  }, [observer, dbState]);
 
   const formSchema = z.object({
     Name: z.string().optional(),
@@ -483,19 +475,18 @@ export function StationForm({ entityId }: { entityId: string }) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(() => submitForm())}
-          className="py-5 pt-7 grid grid-cols-2 gap-8"
+          className="py-5 pt-7 flex flex-col gap-8"
         >
-          <div className="col-span-2 flex gap-3">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <h1 className="text-xl font-bold">{t("station")}</h1>
-                </TooltipTrigger>
-                <TooltipContent>{t("Station Description")}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <div className="flex gap-3 items-center my-auto ml-auto">
+          <div className="flex gap-3 items-center justify-between">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCommentOpen(commentOpen ? false : true)}
+              type="button"
+            >
+              {commentOpen ? <ChevronUp /> : <ChevronDown />}
+            </Button>
+            <div className="flex gap-3 items-center">
               {station && station.StatusColor?.draft && <SquarePen size={15} />}
               <FormField
                 control={form.control}
@@ -521,22 +512,22 @@ export function StationForm({ entityId }: { entityId: string }) {
                         <RadioGroupItem
                           value="empty"
                           aria-label="empty"
-                          className="size-6 border-foreground bg-foreground shadow-none data-[state=checked]:border-foreground data-[state=checked]:bg-foreborder-foreground"
+                          className="size-6 border bg-background"
                         />
                         <RadioGroupItem
                           value="red"
                           aria-label="red"
-                          className="size-6 border-red-500 bg-red-500 shadow-none data-[state=checked]:border-red-500 data-[state=checked]:bg-red-500"
+                          className="size-6 border bg-red-500"
                         />
                         <RadioGroupItem
                           value="amber"
                           aria-label="amber"
-                          className="size-6 border-amber-500 bg-amber-500 shadow-none data-[state=checked]:border-amber-500 data-[state=checked]:bg-amber-500"
+                          className="size-6 border bg-amber-500"
                         />
                         <RadioGroupItem
                           value="emerald"
                           aria-label="emerald"
-                          className="size-6 border-emerald-500 bg-emerald-500 shadow-none data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500"
+                          className="size-6 border bg-emerald-500"
                         />
                       </RadioGroup>
                     </FormControl>
@@ -544,19 +535,9 @@ export function StationForm({ entityId }: { entityId: string }) {
                 )}
               />
             </div>
-            <div className="flex gap-3 items-center">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setCommentOpen(commentOpen ? false : true)}
-                type="button"
-              >
-                {commentOpen ? <ChevronUp /> : <ChevronDown />}
-              </Button>
-            </div>
           </div>
           {commentOpen && (
-            <div className="col-span-2 flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
               <div className="flex gap-3 ">
                 <FormLabel>{t("Comment")}</FormLabel>
                 {station && station.Comment?.draft && <SquarePen size={15} />}
@@ -787,17 +768,20 @@ export function StationForm({ entityId }: { entityId: string }) {
             )}
           />
 
-          <Button
-            variant="outline"
-            type="button"
-            onClick={async () => discardDrafts()}
-          >
-            {t("Discard")}
-          </Button>
-          <Button variant="outline" type="submit">
-            {t("Submit")}
-          </Button>
-          <div className="col-span-2 flex justify-center items-center">
+          <div className="flex gap-5 justify-center">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={async () => discardDrafts()}
+              className="w-full"
+            >
+              {t("Discard")}
+            </Button>
+            <Button variant="outline" type="submit" className="w-full">
+              {t("Submit")}
+            </Button>
+          </div>
+          <div className="flex justify-center items-center">
             <div className="max-w-80 text-center italic text-sm">
               {t("EntityMetaData", {
                 name: meta?.UpdatedBy,
@@ -825,6 +809,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
+  const { dbState } = useInit();
 
   useEffect(() => {
     (async () => {
@@ -868,7 +853,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
         queryKey: ["tool", entityId],
       });
     })();
-  }, [observer]);
+  }, [observer, dbState]);
 
   function resetSps() {
     const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
@@ -1027,19 +1012,18 @@ export function ToolForm({ entityId }: { entityId: string }) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(() => submitForm())}
-          className="py-5 pt-7 grid grid-cols-2 gap-8"
+          className="py-5 pt-7 flex flex-col gap-8"
         >
-          <div className="col-span-2 flex gap-3">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <h1 className="text-xl font-bold">{t("tool")}</h1>
-                </TooltipTrigger>
-                <TooltipContent>{t("Tool Description")}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <div className="flex gap-3 items-center my-auto ml-auto">
+          <div className="flex gap-3 items-center justify-between">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCommentOpen(commentOpen ? false : true)}
+              type="button"
+            >
+              {commentOpen ? <ChevronUp /> : <ChevronDown />}
+            </Button>
+            <div className="flex gap-3 items-center">
               {tool && tool.StatusColor?.draft && <SquarePen size={15} />}
               <FormField
                 control={form.control}
@@ -1065,22 +1049,22 @@ export function ToolForm({ entityId }: { entityId: string }) {
                         <RadioGroupItem
                           value="empty"
                           aria-label="empty"
-                          className="size-6 border-foreground bg-foreground shadow-none data-[state=checked]:border-foreground data-[state=checked]:bg-foreborder-foreground"
+                          className="size-6 border bg-background"
                         />
                         <RadioGroupItem
                           value="red"
                           aria-label="red"
-                          className="size-6 border-red-500 bg-red-500 shadow-none data-[state=checked]:border-red-500 data-[state=checked]:bg-red-500"
+                          className="size-6 border bg-red-500"
                         />
                         <RadioGroupItem
                           value="amber"
                           aria-label="amber"
-                          className="size-6 border-amber-500 bg-amber-500 shadow-none data-[state=checked]:border-amber-500 data-[state=checked]:bg-amber-500"
+                          className="size-6 border bg-amber-500"
                         />
                         <RadioGroupItem
                           value="emerald"
                           aria-label="emerald"
-                          className="size-6 border-emerald-500 bg-emerald-500 shadow-none data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500"
+                          className="size-6 border bg-emerald-500"
                         />
                       </RadioGroup>
                     </FormControl>
@@ -1088,19 +1072,9 @@ export function ToolForm({ entityId }: { entityId: string }) {
                 )}
               />
             </div>
-            <div className="flex gap-3 items-center">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setCommentOpen(commentOpen ? false : true)}
-                type="button"
-              >
-                {commentOpen ? <ChevronUp /> : <ChevronDown />}
-              </Button>
-            </div>
           </div>
           {commentOpen && (
-            <div className="col-span-2 flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
               <div className="flex gap-3 ">
                 <FormLabel>{t("Comment")}</FormLabel>
                 {tool && tool.Comment?.draft && <SquarePen size={15} />}
@@ -1374,7 +1348,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
           />
 
           <div
-            className="flex flex-row items-center gap-2 rounded-md pl-4 border hover:cursor-pointer"
+            className="flex flex-row items-center gap-2 rounded-md pl-4 border hover:cursor-pointer h-10"
             onClick={async () => (
               spsChecked && resetSps(), setSpsChecked((checked) => !checked)
             )}
@@ -1584,17 +1558,20 @@ export function ToolForm({ entityId }: { entityId: string }) {
               />
             </>
           )}
-          <Button
-            variant="outline"
-            type="button"
-            onClick={async () => discardDrafts()}
-          >
-            {t("Discard")}
-          </Button>
-          <Button variant="outline" type="submit">
-            {t("Submit")}
-          </Button>
-          <div className="col-span-2 flex justify-center items-center">
+          <div className="flex gap-5 justify-center">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={async () => discardDrafts()}
+              className="w-full"
+            >
+              {t("Discard")}
+            </Button>
+            <Button variant="outline" type="submit" className="w-full">
+              {t("Submit")}
+            </Button>
+          </div>
+          <div className="flex justify-center items-center">
             <div className="max-w-80 text-center italic text-sm">
               {t("EntityMetaData", {
                 name: meta?.UpdatedBy,
@@ -1622,6 +1599,8 @@ export function OperationForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
+  const { dbState } = useInit();
+
   const [parentTool, setParentTool] = useState<any>();
 
   useEffect(() => {
@@ -1666,7 +1645,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
         queryKey: ["operation", entityId],
       });
     })();
-  }, [observer]);
+  }, [observer, dbState]);
 
   const formSchema = z.object({
     Name: z.string().optional(),
@@ -1773,19 +1752,18 @@ export function OperationForm({ entityId }: { entityId: string }) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(() => submitForm())}
-          className="py-5 pt-7 grid grid-cols-2 gap-8"
+          className="py-5 pt-7 flex flex-col gap-8"
         >
-          <div className="col-span-2 flex gap-3">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <h1 className="text-xl font-bold">{t("operation")}</h1>
-                </TooltipTrigger>
-                <TooltipContent>{t("Operation Description")}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <div className="flex gap-3 items-center my-auto ml-auto">
+          <div className="flex gap-3 items-center justify-between">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCommentOpen(commentOpen ? false : true)}
+              type="button"
+            >
+              {commentOpen ? <ChevronUp /> : <ChevronDown />}
+            </Button>
+            <div className="flex gap-3 items-center">
               {operation && operation.StatusColor?.draft && (
                 <SquarePen size={15} />
               )}
@@ -1813,22 +1791,22 @@ export function OperationForm({ entityId }: { entityId: string }) {
                         <RadioGroupItem
                           value="empty"
                           aria-label="empty"
-                          className="size-6 border-foreground bg-foreground shadow-none data-[state=checked]:border-foreground data-[state=checked]:bg-foreborder-foreground"
+                          className="size-6 border bg-background"
                         />
                         <RadioGroupItem
                           value="red"
                           aria-label="red"
-                          className="size-6 border-red-500 bg-red-500 shadow-none data-[state=checked]:border-red-500 data-[state=checked]:bg-red-500"
+                          className="size-6 border bg-red-500"
                         />
                         <RadioGroupItem
                           value="amber"
                           aria-label="amber"
-                          className="size-6 border-amber-500 bg-amber-500 shadow-none data-[state=checked]:border-amber-500 data-[state=checked]:bg-amber-500"
+                          className="size-6 border bg-amber-500"
                         />
                         <RadioGroupItem
                           value="emerald"
                           aria-label="emerald"
-                          className="size-6 border-emerald-500 bg-emerald-500 shadow-none data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500"
+                          className="size-6 border bg-emerald-500"
                         />
                       </RadioGroup>
                     </FormControl>
@@ -1836,19 +1814,9 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 )}
               />
             </div>
-            <div className="flex gap-3 items-center">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setCommentOpen(commentOpen ? false : true)}
-                type="button"
-              >
-                {commentOpen ? <ChevronUp /> : <ChevronDown />}
-              </Button>
-            </div>
           </div>
           {commentOpen && (
-            <div className="col-span-2 flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
               <div className="flex gap-3 ">
                 <FormLabel>{t("Comment")}</FormLabel>
                 {operation && operation.Comment?.draft && (
@@ -2466,18 +2434,21 @@ export function OperationForm({ entityId }: { entityId: string }) {
               </FormItem>
             )}
           />
-          <Button
-            variant="outline"
-            type="button"
-            onClick={async () => discardDrafts()}
-          >
-            {t("Discard")}
-          </Button>
-          <Button variant="outline" type="submit">
-            {t("Submit")}
-          </Button>
+          <div className="flex gap-5 justify-center">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={async () => discardDrafts()}
+              className="w-full"
+            >
+              {t("Discard")}
+            </Button>
+            <Button variant="outline" type="submit" className="w-full">
+              {t("Submit")}
+            </Button>
+          </div>
 
-          <div className="col-span-2 flex justify-center items-center">
+          <div className="flex justify-center items-center">
             <div className="max-w-80 text-center italic text-sm">
               {t("EntityMetaData", {
                 name: meta?.UpdatedBy,

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -21,6 +22,7 @@ import (
 	"github.com/joho/godotenv"
 	mssql "github.com/microsoft/go-mssqldb"
 	ws "github.com/wailsapp/wails/v2/pkg/runtime"
+	"github.com/atotto/clipboard"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -95,6 +97,88 @@ func (c *Core) HandleImport(user string) string {
 }
 
 var DB *gorm.DB
+
+func setupBroker(DB *gorm.DB, dbName string) error {
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return err
+	}
+
+	stmts := []string{
+		fmt.Sprintf(`ALTER DATABASE [%s] SET ENABLE_BROKER WITH ROLLBACK IMMEDIATE;`, dbName),
+
+		`IF NOT EXISTS (SELECT * FROM sys.service_message_types WHERE name = 'DataChanged')
+     CREATE MESSAGE TYPE [DataChanged] VALIDATION = NONE;`,
+
+		`IF NOT EXISTS (SELECT * FROM sys.service_contracts WHERE name = 'DataChangedContract')
+     CREATE CONTRACT [DataChangedContract] ([DataChanged] SENT BY INITIATOR);`,
+
+		`IF NOT EXISTS (SELECT * FROM sys.service_queues WHERE name = 'DataChangeQueue')
+     CREATE QUEUE [dbo].[DataChangeQueue];`,
+
+		`IF NOT EXISTS (SELECT * FROM sys.services WHERE name = 'DataChangeService')
+     CREATE SERVICE [DataChangeService]
+       ON QUEUE [dbo].[DataChangeQueue]
+       ([DataChangedContract]);`,
+
+		`IF OBJECT_ID('dbo.TRG_app_metadata_Notify', 'TR') IS NULL
+     EXEC('
+       CREATE TRIGGER dbo.TRG_app_metadata_Notify
+       ON dbo.app_metadata
+       AFTER INSERT, UPDATE, DELETE
+       AS
+       BEGIN
+         DECLARE @h UNIQUEIDENTIFIER;
+         BEGIN DIALOG CONVERSATION @h
+           FROM SERVICE [DataChangeService]
+           TO SERVICE ''DataChangeService''
+           ON CONTRACT [DataChangedContract]
+           WITH ENCRYPTION = OFF;
+
+         SEND ON CONVERSATION @h
+           MESSAGE TYPE [DataChanged]
+           (CONVERT(nvarchar(max), GETDATE(), 126));
+       END
+     ');`,
+	}
+
+	for _, stmt := range stmts {
+		if err := sqlDB.Ping(); err != nil {
+			return fmt.Errorf("DB not reachable: %w", err)
+		}
+		if _, err := sqlDB.Exec(stmt); err != nil {
+			return fmt.Errorf("setupBroker failed: %w\nSQL: %s", err, stmt)
+		}
+	}
+	return nil
+}
+
+func listenForChanges(ctx context.Context, sqlDB *sql.DB) {
+	for {
+		row := sqlDB.QueryRowContext(ctx, `
+      WAITFOR (
+        RECEIVE TOP(1)
+          conversation_handle,
+          message_body
+        FROM dbo.DataChangeQueue
+      ), TIMEOUT 600000;
+    `)
+
+		var convHandle string
+		var msgBody sql.NullString
+		if err := row.Scan(&convHandle, &msgBody); err != nil {
+			log.Println("Listener error:", err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
+		ws.EventsEmit(ctx, "database:changed", time.Now())
+
+		if _, err := sqlDB.Exec(`END CONVERSATION @h;`, sql.Named("h", convHandle)); err != nil {
+			log.Println("End conversation error:", err)
+		}
+	}
+}
 
 const GlobalMetadataKey = "global_state"
 const OpTypeUpdate = "UPDATE"
@@ -203,6 +287,30 @@ func (c *Core) InitDB() string {
 		return "InitError"
 	}
 	ensureAppMetadataExists(DB)
+
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return "InitError"
+	}
+
+	dbName := u.Query().Get("database")
+
+	if err := setupBroker(DB, dbName); err != nil {
+		log.Fatalf("Broker setup failed: %v", err)
+	}
+	log.Println("Service Broker & Trigger bereit")
+
+	sqlDB, err := DB.DB()
+	if err != nil {
+		log.Fatalf("Failed to get raw DB: %v", err)
+	}
+
+	sqlDB.SetMaxOpenConns(10)
+	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetConnMaxLifetime(30 * time.Minute)
+
+	go listenForChanges(c.ctx, sqlDB)
+
 	log.Println("Successfully connected to and migrated MS SQL server DB.")
 	return "InitSuccess"
 }
@@ -544,7 +652,6 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 				}
 				return fmt.Errorf("error loading entity for update check: %w", err)
 			}
-			currentDBUpdatedAt = m.UpdatedAt
 		case "station":
 			var m Station
 			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
@@ -553,7 +660,6 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 				}
 				return fmt.Errorf("error loading entity for update check: %w", err)
 			}
-			currentDBUpdatedAt = m.UpdatedAt
 		case "tool":
 			var m Tool
 			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
@@ -562,7 +668,6 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 				}
 				return fmt.Errorf("error loading entity for update check: %w", err)
 			}
-			currentDBUpdatedAt = m.UpdatedAt
 		case "operation":
 			var m Operation
 			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
@@ -571,7 +676,6 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 				}
 				return fmt.Errorf("error loading entity for update check: %w", err)
 			}
-			currentDBUpdatedAt = m.UpdatedAt
 		default:
 			return fmt.Errorf("unknown type for timestamp extraction: %s", entityTypeStr)
 		}
@@ -1284,6 +1388,378 @@ func importEntityRecursive_UseOriginalData(currentTx *gorm.DB, originalEntityDat
 	}
 	return nil
 }
+
+func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr string) error {
+	if DB == nil {
+		return errors.New("DB not initialized")
+	}
+
+	entityTypeStr = strings.ToLower(entityTypeStr)
+
+	// Hierarchisches Preloading je nach Entity-Typ
+	var tx *gorm.DB
+	switch entityTypeStr {
+	case "line":
+		tx = DB.Preload("Stations.Tools.Operations")
+	case "station":
+		tx = DB.Preload("Tools.Operations")
+	case "tool":
+		tx = DB.Preload("Operations")
+	case "operation":
+		tx = DB // keine Preloads nötig
+	default:
+		return fmt.Errorf("unsupported entity type: %s", entityTypeStr)
+	}
+
+	entityID, err := parseMSSQLUniqueIdentifierFromString(entityIDStr)
+	if err != nil {
+		return fmt.Errorf("invalid ID: %w", err)
+	}
+
+	modelInstance, err := getModelInstance(entityTypeStr)
+	if err != nil {
+		return err
+	}
+
+	if err := tx.First(modelInstance, "id = ?", entityID).Error; err != nil {
+		return fmt.Errorf("error loading entity with hierarchy: %w", err)
+	}
+
+	jsonData, err := json.MarshalIndent(modelInstance, "", "  ")
+	if err != nil {
+		return fmt.Errorf("error converting to JSON: %w", err)
+	}
+
+	if err := clipboard.WriteAll(string(jsonData)); err != nil {
+		return fmt.Errorf("error writing to clipboard: %w", err)
+	}
+
+	log.Printf("Hierarchy of %s copied to clipboard successfully.", entityTypeStr)
+	return nil
+}
+
+func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntityType string, parentIDStrOptional string) error {
+	if DB == nil {
+		return errors.New("DB not initialized")
+	}
+	if userName == "" {
+		return errors.New("userName is required")
+	}
+
+	clipboardData, err := clipboard.ReadAll()
+	if err != nil {
+		return fmt.Errorf("error reading from clipboard: %w", err)
+	}
+
+	actualEntityType, err := detectEntityTypeFromClipboard(clipboardData)
+	if err != nil {
+		return fmt.Errorf("could not detect entity type from clipboard: %w", err)
+	}
+
+	if strings.ToLower(actualEntityType) != strings.ToLower(expectedEntityType) {
+		return fmt.Errorf("type mismatch: clipboard contains '%s' but expected '%s'", actualEntityType, expectedEntityType)
+	}
+
+	var root interface{}
+	switch strings.ToLower(expectedEntityType) {
+	case "line":
+		var line Line
+		if err := json.Unmarshal([]byte(clipboardData), &line); err != nil {
+			return fmt.Errorf("clipboard does not contain a valid Line: %w", err)
+		}
+		root = &line
+
+	case "station":
+		var station Station
+		if err := json.Unmarshal([]byte(clipboardData), &station); err != nil {
+			return fmt.Errorf("clipboard does not contain a valid Station: %w", err)
+		}
+		root = &station
+
+	case "tool":
+		var tool Tool
+		if err := json.Unmarshal([]byte(clipboardData), &tool); err != nil {
+			return fmt.Errorf("clipboard does not contain a valid Tool: %w", err)
+		}
+		root = &tool
+
+	case "operation":
+		var op Operation
+		if err := json.Unmarshal([]byte(clipboardData), &op); err != nil {
+			return fmt.Errorf("clipboard does not contain a valid Operation: %w", err)
+		}
+		root = &op
+
+	default:
+		return fmt.Errorf("unknown expected entity type: '%s'", expectedEntityType)
+	}
+
+	var parentID mssql.UniqueIdentifier
+	if parentIDStrOptional != "" {
+		parentID, err = parseMSSQLUniqueIdentifierFromString(parentIDStrOptional)
+		if err != nil {
+			return fmt.Errorf("invalid parent ID: %w", err)
+		}
+	}
+
+	tx := DB.Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("failed to begin transaction: %w", tx.Error)
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			log.Printf("Paste (panic): %v", r)
+		} else if err != nil {
+			tx.Rollback()
+			log.Printf("Paste (failed): %v", err)
+		} else {
+			if commitErr := tx.Commit().Error; commitErr != nil {
+				log.Printf("Commit error: %v", commitErr)
+				err = commitErr
+			} else {
+				log.Println("Paste successful.")
+			}
+		}
+	}()
+
+	idMap := make(map[mssql.UniqueIdentifier]mssql.UniqueIdentifier)
+	_, err = importCopiedEntityRecursive(tx, userName, root, expectedEntityType, parentID, idMap)
+	if err != nil {
+		return err
+	}
+
+	return updateGlobalLastUpdateTimestampAndLogChange(tx, mssql.UniqueIdentifier{}, "system", OpTypeSystemEvent, strPtr(userName))
+}
+
+func detectEntityTypeFromClipboard(clipboardData string) (string, error) {
+	var tempMap map[string]interface{}
+	if err := json.Unmarshal([]byte(clipboardData), &tempMap); err != nil {
+		return "", fmt.Errorf("clipboard does not contain valid JSON: %w", err)
+	}
+	if _, hasAssemblyArea := tempMap["AssemblyArea"]; hasAssemblyArea {
+		if _, hasStations := tempMap["Stations"]; hasStations {
+			return "line", nil
+		}
+	}
+	if _, hasStationType := tempMap["StationType"]; hasStationType {
+		if _, hasTools := tempMap["Tools"]; hasTools {
+			return "station", nil
+		}
+	}
+	if _, hasToolClass := tempMap["ToolClass"]; hasToolClass {
+		if _, hasOperations := tempMap["Operations"]; hasOperations {
+			return "tool", nil
+		}
+	}
+	if _, hasDecisionCriteria := tempMap["DecisionCriteria"]; hasDecisionCriteria {
+		if _, hasSequenceGroup := tempMap["SequenceGroup"]; hasSequenceGroup {
+			return "operation", nil
+		}
+	}
+	var line Line
+	if err := json.Unmarshal([]byte(clipboardData), &line); err == nil && line.ID != (mssql.UniqueIdentifier{}) {
+		return "line", nil
+	}
+	var station Station
+	if err := json.Unmarshal([]byte(clipboardData), &station); err == nil && station.ID != (mssql.UniqueIdentifier{}) {
+		return "station", nil
+	}
+	var tool Tool
+	if err := json.Unmarshal([]byte(clipboardData), &tool); err == nil && tool.ID != (mssql.UniqueIdentifier{}) {
+		return "tool", nil
+	}
+	var operation Operation
+	if err := json.Unmarshal([]byte(clipboardData), &operation); err == nil && operation.ID != (mssql.UniqueIdentifier{}) {
+		return "operation", nil
+	}
+	return "", errors.New("could not determine entity type from clipboard data")
+}
+
+func createBaseFromOriginal(original BaseModel, userName string) BaseModel {
+	now := time.Now()
+	newID := mssql.UniqueIdentifier{}
+	_ = newID.Scan(uuid.New().String())
+
+	return BaseModel{
+		Name:      original.Name,
+		Comment:   original.Comment,
+		StatusColor: original.StatusColor,
+		ID:        newID,
+		CreatedAt: now,
+		UpdatedAt: now,
+		CreatedBy: strPtr(userName),
+		UpdatedBy: strPtr(userName),
+	}
+}
+
+func importCopiedEntityRecursive(
+	tx *gorm.DB,
+	userName string,
+	original interface{},
+	entityTypeStr string,
+	newParentID mssql.UniqueIdentifier,
+	idMap map[mssql.UniqueIdentifier]mssql.UniqueIdentifier,
+) (mssql.UniqueIdentifier, error) {
+
+	newUUID := mssql.UniqueIdentifier{}
+	_ = newUUID.Scan(uuid.New().String())
+
+	switch e := original.(type) {
+	case *Line:
+		newLine := Line{
+			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
+			AssemblyArea: e.AssemblyArea,
+			Stations:    []Station{},
+		}
+		if err := tx.Create(&newLine).Error; err != nil {
+			return newUUID, fmt.Errorf("failed to insert new Line: %w", err)
+		}
+		idMap[e.ID] = newLine.ID
+		for i := range e.Stations {
+			_, err := importCopiedEntityRecursive(tx, userName, &e.Stations[i], "station", newLine.ID, idMap)
+			if err != nil {
+				return newUUID, err
+			}
+		}
+		return newLine.ID, nil
+
+	case *Station:
+		newStation := Station{
+			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
+			Description: e.Description,
+			StationType: e.StationType,
+			SerialOrParallel: e.SerialOrParallel,
+			ParentID:    newParentID,
+			Tools:       []Tool{},
+		}
+		if err := tx.Create(&newStation).Error; err != nil {
+			return newUUID, fmt.Errorf("failed to insert new Station: %w", err)
+		}
+		idMap[e.ID] = newStation.ID
+		for i := range e.Tools {
+			_, err := importCopiedEntityRecursive(tx, userName, &e.Tools[i], "tool", newStation.ID, idMap)
+			if err != nil {
+				return newUUID, err
+			}
+		}
+		return newStation.ID, nil
+
+	case *Tool:
+		newTool := Tool{
+			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
+			ToolClass: e.ToolClass,
+			ToolType:  e.ToolType,
+			Description: e.Description,
+			IpAddressDevice: e.IpAddressDevice,
+			SPSPLCNameSPAService: e.SPSPLCNameSPAService,
+			SPSDBNoSend: e.SPSDBNoSend,
+			SPSDBNoReceive: e.SPSDBNoReceive,
+			SPSPreCheck: e.SPSPreCheck,
+			SPSAddressInSendDB: e.SPSAddressInSendDB,
+			SPSAddressInReceiveDB: e.SPSAddressInReceiveDB,
+			ParentID:    newParentID,
+			Operations:  []Operation{},
+		}
+		if err := tx.Create(&newTool).Error; err != nil {
+			return newUUID, fmt.Errorf("failed to insert new Tool: %w", err)
+		}
+		idMap[e.ID] = newTool.ID
+		for i := range e.Operations {
+			_, err := importCopiedEntityRecursive(tx, userName, &e.Operations[i], "operation", newTool.ID, idMap)
+			if err != nil {
+				return newUUID, err
+			}
+		}
+		return newTool.ID, nil
+
+	case *Operation:
+		newOp := Operation{
+			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
+			Description: e.Description,
+			DecisionCriteria: e.DecisionCriteria,
+			SequenceGroup: e.SequenceGroup,
+			Sequence: e.Sequence,
+			AlwaysPerform: e.AlwaysPerform,
+			QGateRelevant: e.QGateRelevant,
+			Template: e.Template,
+			DecisionClass: e.DecisionClass,
+			SavingClass: e.SavingClass,
+			VerificationClass: e.VerificationClass,
+			GenerationClass: e.GenerationClass,
+			OperationDecisions: e.OperationDecisions,
+			ParentID:    newParentID,
+		}
+		if err := tx.Create(&newOp).Error; err != nil {
+			return newUUID, fmt.Errorf("failed to insert new Operation: %w", err)
+		}
+		idMap[e.ID] = newOp.ID
+		return newOp.ID, nil
+
+	default:
+		return newUUID, fmt.Errorf("unsupported type in import: %T", original)
+	}
+}
+
+/*
+func (c *Core) ImportEntityHierarchyFromClipboard_UseOriginalData(userName string) error {
+	if DB == nil {
+		return errors.New("DB not initialized")
+	}
+
+	jsonData, err := clipboard.ReadAll()
+	if err != nil {
+		return fmt.Errorf("error reading from clipboard: %w", err)
+	}
+
+	var rootImportedLine Line
+	if err = json.Unmarshal([]byte(jsonData), &rootImportedLine); err != nil {
+		return fmt.Errorf("error unmarshalling JSON from clipboard: %w", err)
+	}
+
+	emptyID := mssql.UniqueIdentifier{}
+	tx := DB.Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("error starting DB transaction: %w", tx.Error)
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			log.Printf("Import (clipboard) panic: %v", r)
+		} else if err != nil {
+			tx.Rollback()
+			log.Printf("Import (clipboard) failed: %v", err)
+		} else {
+			commitErr := tx.Commit().Error
+			if commitErr != nil {
+				log.Printf("Commit error: %v", commitErr)
+				err = commitErr
+			} else {
+				log.Println("Import from clipboard successful.")
+			}
+		}
+	}()
+
+	err = importEntityRecursive_UseOriginalData(tx, &rootImportedLine, "line", emptyID)
+	if err == nil {
+		_ = updateGlobalLastUpdateTimestampAndLogChange(tx, emptyID, "system", OpTypeSystemEvent, strPtr(userName))
+	}
+	return err
+}
+
+func importCopiedEntityRecursive(
+	tx *gorm.DB,
+	userName string,
+	originalEntityData interface{},
+	entityTypeStr string,
+	newParentID mssql.UniqueIdentifier,
+	idMap map[mssql.UniqueIdentifier]mssql.UniqueIdentifier,
+) (mssql.UniqueIdentifier, error) {
+	
+	return [16]byte{}, errors.New("not implemented yet")
+}
+*/
 
 /*
 func (c *Core) ImportCopiedEntityHierarchyFromJSON(userName string, entityTypeStr string, parentIDStrIfApplicable string, jsonData string) (interface{}, error) {

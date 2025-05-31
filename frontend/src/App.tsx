@@ -3,12 +3,12 @@ import Lines from "./pages/Lines";
 import Stations from "./pages/Stations";
 import Tools from "./pages/Tools";
 import Operations from "./pages/Operations";
-import { Header } from "./components/logic/Header";
 import {
   CheckEnvInExeDir,
   GetPlatformSpecificUserName,
   InitDB,
 } from "../wailsjs/go/main/Core";
+import { EventsOn, EventsOff } from "../wailsjs/runtime";
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -20,16 +20,41 @@ import { RefreshCcw } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { ThemeProvider } from "./components/ui/theme-provider";
 import { useTheme } from "next-themes";
-import { ScrollArea } from "./components/ui/scroll-area";
+import { Sidebar, SidebarBody, SidebarMenu } from "./components/ui/sidebar";
+import {
+  DSNDialog,
+  LangDialog,
+  ThemeSwitch,
+  UserDialog,
+} from "./components/logic/Menu";
+import { cn } from "./lib/utils";
+import Operation from "./pages/Operation";
 
 const queryClient = new QueryClient();
 
 function App() {
-  const { initialised, setInitialised, setDsnOpen, appRender, appRerender } =
-    useInit();
+  const {
+    initialised,
+    setInitialised,
+    setDsnOpen,
+    appRender,
+    appRerender,
+    dbChange,
+  } = useInit();
   const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const { setTheme } = useTheme();
+
+  const handler = (ts: string) => {
+    console.log("DB Change: ", ts);
+    queryClient.invalidateQueries();
+    dbChange();
+  };
+
+  useEffect(() => {
+    EventsOn("database:changed", handler);
+    return () => EventsOff("database:changed");
+  }, []);
 
   useEffect(() => {
     localStorage.getItem("lang") == null
@@ -57,6 +82,8 @@ function App() {
     init();
   }, [appRender]);
 
+  const [open, setOpen] = useState(false);
+
   return (
     <ThemeProvider
       attribute="class"
@@ -65,17 +92,36 @@ function App() {
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
-        <ScrollArea className="h-screen">
-          <div className="flex flex-col items-center justify-start w-full gap-10 p-12">
-            <Header />
+        <div
+          className={cn(
+            "flex flex-col md:flex-row w-full flex-1 mx-auto border border-neutral-200 dark:border-neutral-700 overflow-hidden",
+            "h-screen"
+          )}
+        >
+          <Sidebar open={open} setOpen={setOpen}>
+            <SidebarBody className="justify-between gap-10 overflow-hidden">
+              <div className="flex flex-col">
+                <SidebarMenu item={<DSNDialog />} text={t("Database")} />
+                <SidebarMenu item={<LangDialog />} text={t("Language")} />
+                <SidebarMenu item={<ThemeSwitch />} text={t("Theme")} />
+              </div>
+              <SidebarMenu
+                item={<UserDialog />}
+                text={localStorage.getItem("name") ?? ""}
+              />
+            </SidebarBody>
+          </Sidebar>
+          <div className="bg-muted border rounded-tl-3xl w-full h-full">
             {isLoading && (
-              <div className="flex flex-row items-center justify-center gap-4 font-semibold">
-                <Loader />
-                <p>{t("InitLoading")}</p>
+              <div className="py-8 px-4">
+                <Button variant="ghost" className="w-fit" disabled>
+                  <Loader />
+                  {t("InitLoading")}
+                </Button>
               </div>
             )}
             {initialised ? (
-              <div className="w-full">
+              <div className="w-full h-full">
                 <Route path={"/"}>
                   <Lines />
                 </Route>
@@ -88,22 +134,32 @@ function App() {
                 <Route path={"/line/:luuid/station/:suuid/tool/:tuuid"}>
                   <Operations />
                 </Route>
+                <Route
+                  path={
+                    "/line/:luuid/station/:suuid/tool/:tuuid/operation/:ouuid"
+                  }
+                >
+                  <Operation />
+                </Route>
               </div>
             ) : (
               !isLoading &&
               !initialised && (
-                <Button
-                  variant="outline"
-                  onClick={() => (setIsLoading(true), appRerender())}
-                >
-                  <RefreshCcw />
-                  {t("InitReload")}
-                </Button>
+                <div className="py-8 px-4">
+                  <Button
+                    variant="ghost"
+                    className="w-fit"
+                    onClick={() => (setIsLoading(true), appRerender())}
+                  >
+                    <RefreshCcw />
+                    {t("InitReload")}
+                  </Button>
+                </div>
               )
             )}
             <Toaster />
           </div>
-        </ScrollArea>
+        </div>
       </QueryClientProvider>
     </ThemeProvider>
   );
@@ -116,6 +172,8 @@ export const useInit = create<{
   setDsnOpen: (open: boolean) => void;
   appRender: number;
   appRerender: () => void;
+  dbState: number;
+  dbChange: () => void;
 }>((set) => ({
   initialised: false,
   setInitialised: (initialised) => set({ initialised }),
@@ -123,6 +181,8 @@ export const useInit = create<{
   setDsnOpen: (open) => set({ dsnOpen: open }),
   appRender: 0,
   appRerender: () => set((state) => ({ appRender: state.appRender + 1 })),
+  dbState: 0,
+  dbChange: () => set((state) => ({ dbState: state.dbState + 1 })),
 }));
 
 export default App;
