@@ -39,7 +39,7 @@ import {
 
 import data from "@/assets/dependency.json";
 import { TagsInput } from "../ui/tags-input";
-import { useInit } from "@/store";
+import { useContext } from "@/store";
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -47,7 +47,7 @@ export function LineForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
-  const { dbState } = useInit();
+  const { dbState } = useContext();
 
   useEffect(() => {
     (async () => {
@@ -357,7 +357,7 @@ export function StationForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
-  const { dbState } = useInit();
+  const { dbState } = useContext();
 
   useEffect(() => {
     (async () => {
@@ -809,7 +809,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
-  const { dbState } = useInit();
+  const { dbState } = useContext();
 
   useEffect(() => {
     (async () => {
@@ -1599,7 +1599,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
-  const { dbState } = useInit();
+  const { dbState } = useContext();
 
   const [parentTool, setParentTool] = useState<any>();
 

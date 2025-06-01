@@ -41,7 +41,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { useInit } from "@/store";
+import { useContext } from "@/store";
 import {
   SearchField,
   SearchFieldClear,
@@ -72,9 +72,9 @@ export function EntityCollection({
   parentId: string;
   link: string;
 }) {
-  const { data: entities } = useQuery({
+  const { data: entities, status } = useQuery({
     queryKey: ["entities", entityType, parentId],
-    queryFn: () => GetAllEntities(entityType, String(parentId)),
+    queryFn: async () => await GetAllEntities(entityType, String(parentId)),
   });
   const { t } = useTranslation();
   const [searchFilter, setSeachFilter] = useState("");
@@ -437,12 +437,8 @@ function DeleteEntityDialog({
       queryClient.invalidateQueries(),
       toast(`${t(entityType)} ${t("DeleteToast")}`)
     ),
-    onError: () => {
-      appRerender();
-    },
   });
 
-  const { appRerender } = useInit();
   const [open, setOpen] = useState(false);
 
   return (
@@ -450,7 +446,7 @@ function DeleteEntityDialog({
       open={open}
       onOpenChange={(open) => (setOpen(open), !open && onClose && onClose())}
     >
-      <div className="flex gap-1 items-center pr-2">
+      <div className="flex gap-1 items-center">
         <DialogTrigger asChild>
           <Button
             variant="ghost"
@@ -499,7 +495,7 @@ function ExportJSON({
   const { t } = useTranslation();
 
   return (
-    <div className="flex gap-1 items-center pr-2">
+    <div className="flex gap-1 items-center">
       <Button
         variant="ghost"
         className="w-full justify-start flex items-center gap-2 px-3 py-2"
@@ -527,7 +523,7 @@ function ClipboardExportButton({
   const { t } = useTranslation();
 
   return (
-    <div className="flex gap-1 items-center pr-2">
+    <div className="flex gap-1 items-center">
       <Button
         variant="ghost"
         className="w-full justify-start flex items-center gap-2 px-3 py-2"
@@ -560,7 +556,7 @@ function ImportJSON({ onClick }: { onClick?: () => void }) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex gap-1 items-center pr-2">
+    <div className="flex gap-1 items-center">
       <Button
         variant="ghost"
         className="w-full justify-start flex items-center gap-2 px-3 py-2"
@@ -630,7 +626,7 @@ function PasteEntityHierarchyFromClipboard({
   });
 
   return (
-    <div className="flex gap-1 items-center pr-2">
+    <div className="flex gap-1 items-center">
       <Button
         variant="ghost"
         className="w-full justify-start flex items-center gap-2 px-3 py-2"

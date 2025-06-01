@@ -22,7 +22,7 @@ import { useTheme } from "next-themes";
 import { Menu } from "./components/logic/Menu";
 import { cn } from "./lib/utils";
 import Operation from "./pages/Operation";
-import { useInit } from "./store";
+import { useContext } from "./store";
 
 const queryClient = new QueryClient();
 
@@ -30,24 +30,14 @@ export default function App() {
   const {
     initialised,
     setInitialised,
-    setDsnOpen,
-    appRender,
-    appRerender,
     dbState,
     dbChange,
-  } = useInit();
+    tryInitialiseListener,
+    tryInitialise,
+  } = useContext();
   const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const { setTheme } = useTheme();
-
-  useEffect(() => {
-    EventsOn("database:changed", (ts: string) => {
-      console.log("DB Change: ", ts);
-      queryClient.invalidateQueries();
-      dbChange();
-    });
-    return () => EventsOff("database:changed");
-  }, []);
 
   useEffect(() => {
     localStorage.getItem("lang") == null
@@ -61,18 +51,34 @@ export default function App() {
         localStorage.setItem("name", await GetPlatformSpecificUserName());
     })();
     (async () => {
-      (await CheckEnvInExeDir())
-        ? (async () => {
-            const initMessage = await InitDB();
-            setInitialised(false);
-            setIsLoading(false);
-            toast(t(initMessage));
-            initMessage == "InitSuccess" && setInitialised(true);
-            setDsnOpen(false);
-          })()
-        : setDsnOpen(true);
+      const initMessage = await InitDB();
+      setInitialised(initMessage == "InitSuccess" ? true : false);
+      setIsLoading(false);
+      toast(t(initMessage));
     })();
-  }, [appRender, dbState]);
+    EventsOn("database:changed", (ts: string) => {
+      console.log("DB Change: ", ts);
+      dbChange();
+    });
+    EventsOn("database:connection_lost", (err: string) => {
+      console.log("DB Connection Lost: ", err);
+      dbChange();
+    });
+    return () => EventsOff("database:changed", "database:connection_lost");
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const initMessage = await InitDB();
+      setInitialised(initMessage == "InitSuccess" ? true : false);
+      setIsLoading(false);
+      toast(t(initMessage));
+    })();
+  }, [tryInitialiseListener]);
+
+  useEffect(() => {
+    queryClient.invalidateQueries();
+  }, [dbState]);
 
   return (
     <ThemeProvider attribute="class" enableSystem disableTransitionOnChange>
@@ -93,7 +99,7 @@ export default function App() {
                 </Button>
               </div>
             )}
-            {initialised ? (
+            {!isLoading && initialised ? (
               <div className="w-full h-full">
                 <Route path={"/"} component={Lines} />
                 <Route path={"/line/:luuid"} component={Stations} />
@@ -116,7 +122,7 @@ export default function App() {
                   <Button
                     variant="ghost"
                     className="w-fit"
-                    onClick={() => (setIsLoading(true), appRerender())}
+                    onClick={() => tryInitialise()}
                   >
                     <RefreshCcw />
                     {t("InitReload")}

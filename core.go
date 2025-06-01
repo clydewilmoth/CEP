@@ -18,11 +18,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/atotto/clipboard"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	mssql "github.com/microsoft/go-mssqldb"
 	ws "github.com/wailsapp/wails/v2/pkg/runtime"
-	"github.com/atotto/clipboard"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -52,7 +52,8 @@ func parseTimestampFlexible(ts string) (time.Time, error) {
 }
 
 type Core struct {
-	ctx context.Context
+	ctx            context.Context
+	listenerCancel context.CancelFunc // Zum Stoppen des DB-Listeners
 }
 
 func NewCore() *Core {
@@ -154,7 +155,19 @@ func setupBroker(DB *gorm.DB, dbName string) error {
 }
 
 func listenForChanges(ctx context.Context, sqlDB *sql.DB) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("PANIC in listenForChanges: %v", r)
+		}
+	}()
 	for {
+		select {
+		case <-ctx.Done():
+			log.Println("Listener stopped (context canceled)")
+			return
+		default:
+		}
+
 		row := sqlDB.QueryRowContext(ctx, `
       WAITFOR (
         RECEIVE TOP(1)
@@ -167,11 +180,16 @@ func listenForChanges(ctx context.Context, sqlDB *sql.DB) {
 		var convHandle string
 		var msgBody sql.NullString
 		if err := row.Scan(&convHandle, &msgBody); err != nil {
+			if ctx.Err() != nil || strings.Contains(err.Error(), "database is closed") {
+				log.Println("Listener beendet wegen DB close oder context cancel.")
+				return
+			}
 			log.Println("Listener error:", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
 
+		// ws.EventsEmit gibt keinen Fehler zurück, daher einfach nur aufrufen
 		ws.EventsEmit(ctx, "database:changed", time.Now())
 
 		if _, err := sqlDB.Exec(`END CONVERSATION @h;`, sql.Named("h", convHandle)); err != nil {
@@ -262,6 +280,17 @@ func loadConfiguration() {
 	}
 }
 func (c *Core) InitDB() string {
+	if c.listenerCancel != nil {
+		c.listenerCancel()
+		c.listenerCancel = nil
+	}
+	if DB != nil {
+		sqlDB, err := DB.DB()
+		if err == nil {
+			sqlDB.Close()
+		}
+		DB = nil
+	}
 	loadConfiguration()
 	dsn := os.Getenv("MSSQL_DSN")
 	if dsn == "" {
@@ -296,20 +325,26 @@ func (c *Core) InitDB() string {
 	dbName := u.Query().Get("database")
 
 	if err := setupBroker(DB, dbName); err != nil {
-		log.Fatalf("Broker setup failed: %v", err)
+		return "InitError"
 	}
 	log.Println("Service Broker & Trigger bereit")
 
 	sqlDB, err := DB.DB()
 	if err != nil {
-		log.Fatalf("Failed to get raw DB: %v", err)
+		return "InitError"
 	}
 
 	sqlDB.SetMaxOpenConns(10)
 	sqlDB.SetMaxIdleConns(5)
 	sqlDB.SetConnMaxLifetime(30 * time.Minute)
 
-	go listenForChanges(c.ctx, sqlDB)
+	if c.ctx == nil {
+		log.Println("WARN: c.ctx ist nil, Listener wird nicht gestartet!")
+		return "InitSuccess"
+	}
+	listenerCtx, cancel := context.WithCancel(c.ctx)
+	c.listenerCancel = cancel
+	go listenForChanges(listenerCtx, sqlDB)
 
 	log.Println("Successfully connected to and migrated MS SQL server DB.")
 	return "InitSuccess"
@@ -1504,6 +1539,7 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 
 	tx := DB.Begin()
 	if tx.Error != nil {
+
 		return fmt.Errorf("failed to begin transaction: %w", tx.Error)
 	}
 
@@ -1583,14 +1619,15 @@ func createBaseFromOriginal(original BaseModel, userName string) BaseModel {
 	_ = newID.Scan(uuid.New().String())
 
 	return BaseModel{
-		Name:      original.Name,
-		Comment:   original.Comment,
+		Name:    original.Name,
+		Comment: original.Comment,
+
 		StatusColor: original.StatusColor,
-		ID:        newID,
-		CreatedAt: now,
-		UpdatedAt: now,
-		CreatedBy: strPtr(userName),
-		UpdatedBy: strPtr(userName),
+		ID:          newID,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+		CreatedBy:   strPtr(userName),
+		UpdatedBy:   strPtr(userName),
 	}
 }
 
@@ -1609,9 +1646,9 @@ func importCopiedEntityRecursive(
 	switch e := original.(type) {
 	case *Line:
 		newLine := Line{
-			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
+			BaseModel:    createBaseFromOriginal(e.BaseModel, userName),
 			AssemblyArea: e.AssemblyArea,
-			Stations:    []Station{},
+			Stations:     []Station{},
 		}
 		if err := tx.Create(&newLine).Error; err != nil {
 			return newUUID, fmt.Errorf("failed to insert new Line: %w", err)
@@ -1627,12 +1664,12 @@ func importCopiedEntityRecursive(
 
 	case *Station:
 		newStation := Station{
-			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
-			Description: e.Description,
-			StationType: e.StationType,
+			BaseModel:        createBaseFromOriginal(e.BaseModel, userName),
+			Description:      e.Description,
+			StationType:      e.StationType,
 			SerialOrParallel: e.SerialOrParallel,
-			ParentID:    newParentID,
-			Tools:       []Tool{},
+			ParentID:         newParentID,
+			Tools:            []Tool{},
 		}
 		if err := tx.Create(&newStation).Error; err != nil {
 			return newUUID, fmt.Errorf("failed to insert new Station: %w", err)
@@ -1648,19 +1685,19 @@ func importCopiedEntityRecursive(
 
 	case *Tool:
 		newTool := Tool{
-			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
-			ToolClass: e.ToolClass,
-			ToolType:  e.ToolType,
-			Description: e.Description,
-			IpAddressDevice: e.IpAddressDevice,
-			SPSPLCNameSPAService: e.SPSPLCNameSPAService,
-			SPSDBNoSend: e.SPSDBNoSend,
-			SPSDBNoReceive: e.SPSDBNoReceive,
-			SPSPreCheck: e.SPSPreCheck,
-			SPSAddressInSendDB: e.SPSAddressInSendDB,
+			BaseModel:             createBaseFromOriginal(e.BaseModel, userName),
+			ToolClass:             e.ToolClass,
+			ToolType:              e.ToolType,
+			Description:           e.Description,
+			IpAddressDevice:       e.IpAddressDevice,
+			SPSPLCNameSPAService:  e.SPSPLCNameSPAService,
+			SPSDBNoSend:           e.SPSDBNoSend,
+			SPSDBNoReceive:        e.SPSDBNoReceive,
+			SPSPreCheck:           e.SPSPreCheck,
+			SPSAddressInSendDB:    e.SPSAddressInSendDB,
 			SPSAddressInReceiveDB: e.SPSAddressInReceiveDB,
-			ParentID:    newParentID,
-			Operations:  []Operation{},
+			ParentID:              newParentID,
+			Operations:            []Operation{},
 		}
 		if err := tx.Create(&newTool).Error; err != nil {
 			return newUUID, fmt.Errorf("failed to insert new Tool: %w", err)
@@ -1676,20 +1713,20 @@ func importCopiedEntityRecursive(
 
 	case *Operation:
 		newOp := Operation{
-			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
-			Description: e.Description,
-			DecisionCriteria: e.DecisionCriteria,
-			SequenceGroup: e.SequenceGroup,
-			Sequence: e.Sequence,
-			AlwaysPerform: e.AlwaysPerform,
-			QGateRelevant: e.QGateRelevant,
-			Template: e.Template,
-			DecisionClass: e.DecisionClass,
-			SavingClass: e.SavingClass,
-			VerificationClass: e.VerificationClass,
-			GenerationClass: e.GenerationClass,
+			BaseModel:          createBaseFromOriginal(e.BaseModel, userName),
+			Description:        e.Description,
+			DecisionCriteria:   e.DecisionCriteria,
+			SequenceGroup:      e.SequenceGroup,
+			Sequence:           e.Sequence,
+			AlwaysPerform:      e.AlwaysPerform,
+			QGateRelevant:      e.QGateRelevant,
+			Template:           e.Template,
+			DecisionClass:      e.DecisionClass,
+			SavingClass:        e.SavingClass,
+			VerificationClass:  e.VerificationClass,
+			GenerationClass:    e.GenerationClass,
 			OperationDecisions: e.OperationDecisions,
-			ParentID:    newParentID,
+			ParentID:           newParentID,
 		}
 		if err := tx.Create(&newOp).Error; err != nil {
 			return newUUID, fmt.Errorf("failed to insert new Operation: %w", err)
@@ -1756,11 +1793,10 @@ func importCopiedEntityRecursive(
 	newParentID mssql.UniqueIdentifier,
 	idMap map[mssql.UniqueIdentifier]mssql.UniqueIdentifier,
 ) (mssql.UniqueIdentifier, error) {
-	
+
 	return [16]byte{}, errors.New("not implemented yet")
 }
 */
-
 /*
 func (c *Core) ImportCopiedEntityHierarchyFromJSON(userName string, entityTypeStr string, parentIDStrIfApplicable string, jsonData string) (interface{}, error) {
 	if DB == nil {
@@ -1859,5 +1895,4 @@ func importCopiedEntityRecursive(tx *gorm.DB, userName string, originalEntityDat
 		}
 	}
 	return newActualDBID, nil
-}
-*/
+}*/

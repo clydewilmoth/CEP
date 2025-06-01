@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/form";
 import { ConfigureAndSaveDSN } from "../../../wailsjs/go/main/Core";
 
-import { useInit } from "@/store";
+import { useContext } from "@/store";
 import { toast } from "sonner";
 import { PasswordInput } from "../ui/password-input";
 import {
@@ -43,7 +43,7 @@ import {
 import { useTheme } from "next-themes";
 import { ScrollArea } from "../ui/scroll-area";
 import { Sidebar, SidebarBody, SidebarMenu } from "../ui/sidebar";
-import { t } from "i18next";
+import { init, t } from "i18next";
 
 export function UserDialog({ onClose }: { onClose?: () => void }) {
   const { t } = useTranslation();
@@ -165,42 +165,39 @@ export function DSNDialog({ onClose }: { onClose?: () => void }) {
       values.TrustServerCertificate.toString()
     );
     toast(`${t("DSNDialog Toast")}`);
-    appRerender();
-    setDsnOpen(false);
+    tryInitialise();
+    setOpen(false);
   }
 
   const { t } = useTranslation();
 
-  const { dsnOpen, setDsnOpen, appRerender } = useInit();
+  const { tryInitialise } = useContext();
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (dsnOpen) {
-      (async () => {
-        try {
-          const env = await ParseDSNFromEnv();
-          if (env) {
-            form.reset({
-              Host: env.Host || "localhost",
-              Port: Number(env.Port) || 1433,
-              Database: env.Database || "db",
-              User: env.User || "sa",
-              Password: env.Password || "",
-              Encrypted: env.Encrypt === "true",
-              TrustServerCertificate: env.TrustServerCertificate === "true",
-            });
-          }
-        } catch (e) {}
-      })();
-    }
-  }, [dsnOpen]);
+    (async () => setOpen(!(await CheckEnvInExeDir())))();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const env = await ParseDSNFromEnv();
+      env &&
+        form.reset({
+          Host: env.Host || "localhost",
+          Port: Number(env.Port) || 1433,
+          Database: env.Database || "db",
+          User: env.User || "sa",
+          Password: env.Password || "",
+          Encrypted: env.Encrypt === "true",
+          TrustServerCertificate: env.TrustServerCertificate === "true",
+        });
+    })();
+  }, [open]);
 
   return (
     <Dialog
-      open={dsnOpen}
-      onOpenChange={async (open) => {
-        setDsnOpen(dsnOpen && (await CheckEnvInExeDir()) ? false : true);
-        open && onClose && onClose();
-      }}
+      open={open}
+      onOpenChange={(open) => (setOpen(open), open && onClose && onClose())}
     >
       <DialogTrigger asChild>
         <Button variant="ghost" className="w-10 h-10">
@@ -276,7 +273,11 @@ export function DSNDialog({ onClose }: { onClose?: () => void }) {
                     <FormItem>
                       <FormLabel>{t("DSN Password")}</FormLabel>
                       <FormControl>
-                        <PasswordInput placeholder="" {...field} />
+                        <PasswordInput
+                          placeholder=""
+                          {...field}
+                          autoComplete=""
+                        />
                       </FormControl>
                     </FormItem>
                   )}
