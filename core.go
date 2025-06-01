@@ -185,6 +185,7 @@ func listenForChanges(ctx context.Context, sqlDB *sql.DB) {
 				return
 			}
 			log.Println("Listener error:", err)
+			ws.EventsEmit(ctx, "database:connection_lost", err.Error())
 			time.Sleep(5 * time.Second)
 			continue
 		}

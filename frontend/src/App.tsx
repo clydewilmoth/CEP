@@ -62,13 +62,14 @@ export default function App() {
     });
     EventsOn("database:connection_lost", (err: string) => {
       console.log("DB Connection Lost: ", err);
-      dbChange();
+      tryInitialise();
     });
     return () => EventsOff("database:changed", "database:connection_lost");
   }, []);
 
   useEffect(() => {
     (async () => {
+      setIsLoading(true);
       const initMessage = await InitDB();
       setInitialised(initMessage == "InitSuccess" ? true : false);
       setIsLoading(false);
