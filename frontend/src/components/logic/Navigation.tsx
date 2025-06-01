@@ -11,6 +11,7 @@ import { Button } from "../ui/button";
 import { useTranslation } from "react-i18next";
 import { GetEntityDetails } from "../../../wailsjs/go/main/Core";
 import { useEffect, useState } from "react";
+import { useInit } from "../../store";
 
 export function BreadcrumbNavigation({
   luuid,
@@ -23,6 +24,7 @@ export function BreadcrumbNavigation({
   tuuid?: string;
   ouuid?: string;
 }) {
+  const { dbState } = useInit();
   const [location, navigate] = useLocation();
   const { t } = useTranslation();
   const [lName, setLName] = useState("");
@@ -43,7 +45,7 @@ export function BreadcrumbNavigation({
       setTName(tDetails?.Name ?? "");
       setOName(oDetails?.Name ?? "");
     })();
-  }, [location]);
+  }, [location, dbState]);
 
   return (
     <div className="min-h-fit pb-3" key={location}>
