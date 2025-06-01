@@ -177,9 +177,9 @@ func listenForChanges(ctx context.Context, sqlDB *sql.DB) {
       ), TIMEOUT 600000;
     `)
 
-		var convHandle string
+		var convHandleRaw []byte
 		var msgBody sql.NullString
-		if err := row.Scan(&convHandle, &msgBody); err != nil {
+		if err := row.Scan(&convHandleRaw, &msgBody); err != nil {
 			if ctx.Err() != nil || strings.Contains(err.Error(), "database is closed") {
 				log.Println("Listener beendet wegen DB close oder context cancel.")
 				return
@@ -190,11 +190,22 @@ func listenForChanges(ctx context.Context, sqlDB *sql.DB) {
 			continue
 		}
 
-		// ws.EventsEmit gibt keinen Fehler zurück, daher einfach nur aufrufen
+		convHandle := ""
+		if len(convHandleRaw) == 16 {
+			convHandle = uuid.UUID(convHandleRaw).String()
+		}
+
 		ws.EventsEmit(ctx, "database:changed", time.Now())
 
-		if _, err := sqlDB.Exec(`END CONVERSATION @h;`, sql.Named("h", convHandle)); err != nil {
-			log.Println("End conversation error:", err)
+		if convHandle != "" {
+			if _, err := sqlDB.Exec(`END CONVERSATION @h;`, sql.Named("h", convHandle)); err != nil {
+				if !strings.Contains(err.Error(), "is not found") {
+					log.Printf("End conversation error (convHandle=%q): %v", convHandle, err)
+				}
+				// Sonst ignoriere den Fehler still
+			}
+		} else {
+			log.Printf("End conversation skipped: convHandle is empty or invalid (raw: %v)", convHandleRaw)
 		}
 	}
 }
@@ -1585,6 +1596,7 @@ func detectEntityTypeFromClipboard(clipboardData string) (string, error) {
 			return "station", nil
 		}
 	}
+
 	if _, hasToolClass := tempMap["ToolClass"]; hasToolClass {
 		if _, hasOperations := tempMap["Operations"]; hasOperations {
 			return "tool", nil
@@ -1896,4 +1908,5 @@ func importCopiedEntityRecursive(tx *gorm.DB, userName string, originalEntityDat
 		}
 	}
 	return newActualDBID, nil
-}*/
+}
+*/
