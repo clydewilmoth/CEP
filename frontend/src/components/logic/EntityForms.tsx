@@ -1952,7 +1952,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t("TemplatePlaceholder")} />
+                      <SelectValue placeholder={t("Template Placeholder")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -2108,7 +2108,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t("DecisionPlaceholder")} />
+                      <SelectValue placeholder={t("Decision Placeholder")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -2189,7 +2189,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t("VerificationPlaceholder")} />
+                      <SelectValue placeholder={t("Verification Placeholder")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -2273,7 +2273,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t("GenerationPlaceholder")} />
+                      <SelectValue placeholder={t("Generation Placeholder")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -2354,7 +2354,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t("SavingPlaceholder")} />
+                      <SelectValue placeholder={t("Saving Placeholder")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

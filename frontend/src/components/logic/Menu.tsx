@@ -219,7 +219,7 @@ export function DSNDialog() {
                   name="Host"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("Host")}</FormLabel>
+                      <FormLabel>{t("DSN Host")}</FormLabel>
                       <FormControl>
                         <Input placeholder="localhost" {...field} />
                       </FormControl>
@@ -231,7 +231,7 @@ export function DSNDialog() {
                   name="Port"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("Port")}</FormLabel>
+                      <FormLabel>{t("DSN Port")}</FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="1433" {...field} />
                       </FormControl>
