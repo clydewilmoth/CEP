@@ -41,7 +41,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { useInit } from "@/App";
+import { useInit } from "@/store";
 import {
   SearchField,
   SearchFieldClear,
@@ -452,11 +452,14 @@ function DeleteEntityDialog({
     >
       <div className="flex gap-1 items-center pr-2">
         <DialogTrigger asChild>
-          <Button variant="ghost" className="w-full justify-start flex items-center gap-2 px-3 py-2">
+          <Button
+            variant="ghost"
+            className="w-full justify-start flex items-center gap-2 px-3 py-2"
+          >
             <Trash2 />
             <span className="text-sm font-semibold">{t("DeleteEntity")}</span>
           </Button>
-        </DialogTrigger> 
+        </DialogTrigger>
       </div>
       <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
         <DialogTitle>{t("DeleteDialog Title")}</DialogTitle>
@@ -596,17 +599,19 @@ function PasteEntityHierarchyFromClipboard({
     },
     onError: (error: any) => {
       console.error("Paste error:", error);
-      
+
       let errorMessage = t("PasteFromClipboardError");
       let description = error?.message ?? String(error);
 
       if (description.includes("type mismatch")) {
         errorMessage = t("PasteTypeMismatchError");
-        const match = description.match(/clipboard contains '(\w+)' but expected '(\w+)'/);
+        const match = description.match(
+          /clipboard contains '(\w+)' but expected '(\w+)'/
+        );
         if (match) {
           description = t("PasteTypeMismatchDescription", {
             clipboardType: t(match[1]),
-            expectedType: t(match[2])
+            expectedType: t(match[2]),
           });
         }
       } else if (description.includes("could not detect entity type")) {
@@ -640,7 +645,6 @@ function PasteEntityHierarchyFromClipboard({
     </div>
   );
 }
-
 
 export function StringNullToBlank(value: string) {
   return value ? String(value) : "";

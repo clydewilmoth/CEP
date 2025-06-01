@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/form";
 import { ConfigureAndSaveDSN } from "../../../wailsjs/go/main/Core";
 
-import { useInit } from "@/App";
+import { useInit } from "@/store";
 import { toast } from "sonner";
 import { PasswordInput } from "../ui/password-input";
 import {
@@ -40,7 +40,12 @@ import {
   SelectValue,
 } from "../ui/select";
 
-export function UserDialog() {
+import { useTheme } from "next-themes";
+import { ScrollArea } from "../ui/scroll-area";
+import { Sidebar, SidebarBody, SidebarMenu } from "../ui/sidebar";
+import { t } from "i18next";
+
+export function UserDialog({ onClose }: { onClose?: () => void }) {
   const { t } = useTranslation();
   const [name, setName] = useState<string | null>();
   useEffect(() => {
@@ -54,10 +59,11 @@ export function UserDialog() {
 
   return (
     <Dialog
-      onOpenChange={async () => {
+      onOpenChange={async (open) => {
         name == "" &&
           (setName(await GetPlatformSpecificUserName()),
           localStorage.setItem("name", await GetPlatformSpecificUserName()));
+        open && onClose && onClose();
       }}
     >
       <DialogTrigger asChild>
@@ -81,12 +87,12 @@ export function UserDialog() {
   );
 }
 
-export function LangDialog() {
+export function LangDialog({ onClose }: { onClose?: () => void }) {
   const { t, i18n } = useTranslation();
   const [lang, setLang] = useState<string | null>(localStorage.getItem("lang"));
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={(open) => open && onClose && onClose()}>
       <DialogTrigger asChild>
         <Button variant="ghost" className="w-10 h-10">
           <Globe />
@@ -114,7 +120,7 @@ export function LangDialog() {
   );
 }
 
-export function DSNDialog() {
+export function DSNDialog({ onClose }: { onClose?: () => void }) {
   const formSchema = z.object({
     Host: z.string().min(1, {
       message: "Required!",
@@ -191,8 +197,9 @@ export function DSNDialog() {
   return (
     <Dialog
       open={dsnOpen}
-      onOpenChange={async () => {
+      onOpenChange={async (open) => {
         setDsnOpen(dsnOpen && (await CheckEnvInExeDir()) ? false : true);
+        open && onClose && onClose();
       }}
     >
       <DialogTrigger asChild>
@@ -330,9 +337,6 @@ export function DSNDialog() {
   );
 }
 
-import { useTheme } from "next-themes";
-import { ScrollArea } from "../ui/scroll-area";
-
 export function ThemeSwitch() {
   const { setTheme } = useTheme();
 
@@ -346,5 +350,31 @@ export function ThemeSwitch() {
     >
       {localStorage.getItem("theme") == "light" ? <Moon /> : <Sun />}
     </Button>
+  );
+}
+
+export function Menu() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Sidebar open={open} setOpen={setOpen}>
+      <SidebarBody className="justify-between gap-10 overflow-hidden">
+        <div className="flex flex-col">
+          <SidebarMenu
+            item={<DSNDialog onClose={() => setOpen(false)} />}
+            text={t("Database")}
+          />
+          <SidebarMenu
+            item={<LangDialog onClose={() => setOpen(false)} />}
+            text={t("Language")}
+          />
+          <SidebarMenu item={<ThemeSwitch />} text={t("Theme")} />
+        </div>
+        <SidebarMenu
+          item={<UserDialog onClose={() => setOpen(false)} />}
+          text={localStorage.getItem("name") ?? ""}
+        />
+      </SidebarBody>
+    </Sidebar>
   );
 }
