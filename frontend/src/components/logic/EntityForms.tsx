@@ -1629,6 +1629,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
         SequenceGroup: json.SequenceGroup ?? operation.SequenceGroup ?? "",
         Sequence: json.Sequence ?? operation.Sequence ?? "",
         AlwaysPerform: json.AlwaysPerform ?? operation.AlwaysPerform ?? "",
+        QGateRelevant: json.QGateRelevant ?? operation.QGateRelevant ?? "",
         Template: json.Template ?? operation.Template ?? "",
         DecisionClass: json.DecisionClass ?? operation.DecisionClass ?? "",
         VerificationClass:
@@ -1655,6 +1656,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
     SequenceGroup: z.string().optional(),
     Sequence: z.string().optional(),
     AlwaysPerform: z.string().optional(),
+    QGateRelevant: z.string().optional(),
     Template: z.string().optional(),
     DecisionClass: z.string().optional(),
     VerificationClass: z.string().optional(),
@@ -2077,6 +2079,54 @@ export function OperationForm({ entityId }: { entityId: string }) {
                     }}
                   />
                 </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="QGateRelevant"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex gap-3">
+                  <FormLabel>{t("QGateRelevant")}</FormLabel>
+                  {operation && operation.QGateRelevant?.draft && (
+                    <SquarePen size={15} />
+                  )}
+                </div>
+                <Select
+                  value={field.value ?? ""}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.QGateRelevant = value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["operation", entityId],
+                    });
+                  }}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("QGateRelevant Placeholder")} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">-</SelectItem>
+                    {data.QGateRelevant.map((qgaterelevant) => {
+                      return (
+                          <SelectItem
+                            key={"QR_" + qgaterelevant.id}
+                            value={qgaterelevant.id}
+                          >
+                             {t("QR_" + String(qgaterelevant.id) + "_name")}
+                          </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
               </FormItem>
             )}
           />

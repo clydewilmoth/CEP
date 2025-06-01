@@ -392,19 +392,19 @@
     ,
   "QGateRelevant": [
     {
-      "qGateRelevant":"0",
+      "id":"0",
       "name":"Nicht relevant"
     },
     {
-      "qGateRelevant":"1",
+      "id":"1",
       "name":"Relevant"
     },
     {
-      "qGateRelevant":"2",
+      "id":"2",
       "name":"Relevant + auto IO"
     },
     {
-      "qGateRelevant":"3",
+      "id":"3",
       "name":"Relevant + IO"
     }
   ],
