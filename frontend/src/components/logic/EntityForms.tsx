@@ -127,7 +127,7 @@ export function LineForm({ entityId }: { entityId: string }) {
   });
 
   async function onSubmit() {
-    if (!checkDraftsAvailable()) return toast(t("LineForm NoDrafts"));
+    if (!checkDraftsAvailable()) return toast(t("NoDraft"));
 
     const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
@@ -150,7 +150,7 @@ export function LineForm({ entityId }: { entityId: string }) {
 
     discardDrafts();
 
-    toast(t("LineForm Success"));
+    toast(t("SubmitSuccess", { entityType: t("line") }));
   }
 
   const [commentOpen, setCommentOpen] = useState(false);
@@ -442,7 +442,7 @@ export function StationForm({ entityId }: { entityId: string }) {
   });
 
   async function onSubmit() {
-    if (!checkDraftsAvailable()) return toast(t("StationForm NoDrafts"));
+    if (!checkDraftsAvailable()) return toast(t("NoDraft"));
 
     const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
@@ -465,7 +465,7 @@ export function StationForm({ entityId }: { entityId: string }) {
 
     discardDrafts();
 
-    toast(t("StationForm Success"));
+    toast(t("SubmitSuccess", { entityType: t("station") }));
   }
 
   const [commentOpen, setCommentOpen] = useState(false);
@@ -945,7 +945,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
   });
 
   async function onSubmit() {
-    if (!checkDraftsAvailable()) return toast(t("ToolForm NoDrafts"));
+    if (!checkDraftsAvailable()) return toast(t("NoDraft"));
 
     const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
@@ -1001,7 +1001,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
 
     discardDrafts();
 
-    toast(t("ToolForm Success"));
+    toast(t("SubmitSuccess", { entityType: t("tool") }));
   }
 
   const [commentOpen, setCommentOpen] = useState(false);
@@ -1717,7 +1717,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
   });
 
   async function onSubmit() {
-    if (!checkDraftsAvailable()) return toast(t("OperationForm NoDrafts"));
+    if (!checkDraftsAvailable()) return toast(t("NoDraft"));
 
     const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
@@ -1744,7 +1744,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
 
     discardDrafts();
 
-    toast(t("OperationForm Success"));
+    toast(t("SubmitSuccess", { entityType: t("operation") }));
   }
 
   const [commentOpen, setCommentOpen] = useState(false);
