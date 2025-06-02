@@ -100,75 +100,165 @@ func (c *Core) HandleImport(user string) string {
 }
 
 func setupBroker(DB *gorm.DB, dbName string) (string, error) {
-	// For multi-user scenarios, we'll use polling instead of Service Broker
-	// Service Broker queues only allow one consumer at a time
-	// This function now just ensures the database is ready for polling
-	_ = dbName // Suppress unused parameter warning
 	sqlDB, err := DB.DB()
 	if err != nil {
 		return "", err
 	}
 
-	// Just ensure DB is accessible
-	if err := sqlDB.Ping(); err != nil {
-		return "", fmt.Errorf("DB not reachable: %w", err)
+	// Generate unique session ID for tracking
+	sessionID := uuid.New().String()
+	queueName := fmt.Sprintf("DataChangeQueue_%s", strings.ReplaceAll(sessionID, "-", ""))
+	serviceName := fmt.Sprintf("DataChangeService_%s", strings.ReplaceAll(sessionID, "-", ""))
+
+	stmts := []string{
+		// Enable Service Broker on the database
+		fmt.Sprintf(`ALTER DATABASE [%s] SET ENABLE_BROKER WITH ROLLBACK IMMEDIATE;`, dbName),
+
+		// Create message type if not exists
+		`IF NOT EXISTS (SELECT * FROM sys.service_message_types WHERE name = 'DataChanged')
+		 CREATE MESSAGE TYPE [DataChanged] VALIDATION = NONE;`,
+
+		// Create contract if not exists
+		`IF NOT EXISTS (SELECT * FROM sys.service_contracts WHERE name = 'DataChangedContract')
+		 CREATE CONTRACT [DataChangedContract] ([DataChanged] SENT BY INITIATOR);`,
+
+		// Create unique queue for this session
+		fmt.Sprintf(`IF NOT EXISTS (SELECT * FROM sys.service_queues WHERE name = '%s')
+		 CREATE QUEUE [dbo].[%s];`, queueName, queueName),
+
+		// Create unique service for this session
+		fmt.Sprintf(`IF NOT EXISTS (SELECT * FROM sys.services WHERE name = '%s')
+		 CREATE SERVICE [%s] ON QUEUE [dbo].[%s] ([DataChangedContract]);`,
+			serviceName, serviceName, queueName),
+
+		// Create or replace the trigger that sends to ALL active services
+		`IF OBJECT_ID('dbo.TRG_app_metadata_Notify_All', 'TR') IS NOT NULL
+		 DROP TRIGGER dbo.TRG_app_metadata_Notify_All;`,
+
+		fmt.Sprintf(`CREATE TRIGGER dbo.TRG_app_metadata_Notify_All
+		 ON dbo.app_metadata
+		 AFTER INSERT, UPDATE, DELETE
+		 AS
+		 BEGIN
+		   SET NOCOUNT ON;
+		   
+		   -- Send notification to ALL active DataChangeService queues
+		   DECLARE @serviceName NVARCHAR(256);
+		   DECLARE service_cursor CURSOR FOR
+		     SELECT name FROM sys.services 
+		     WHERE name LIKE 'DataChangeService_%%';
+		   
+		   OPEN service_cursor;
+		   FETCH NEXT FROM service_cursor INTO @serviceName;
+		   
+		   WHILE @@FETCH_STATUS = 0
+		   BEGIN
+		     BEGIN TRY
+		       DECLARE @dialog UNIQUEIDENTIFIER;
+		       BEGIN DIALOG CONVERSATION @dialog
+		         FROM SERVICE @serviceName
+		         TO SERVICE @serviceName
+		         ON CONTRACT [DataChangedContract]
+		         WITH ENCRYPTION = OFF;
+
+		       SEND ON CONVERSATION @dialog
+		         MESSAGE TYPE [DataChanged]
+		         ('database_changed');
+		         
+		       END CONVERSATION @dialog;
+		     END TRY
+		     BEGIN CATCH
+		       -- Ignore errors for inactive services
+		     END CATCH
+		     
+		     FETCH NEXT FROM service_cursor INTO @serviceName;
+		   END;
+		   
+		   CLOSE service_cursor;
+		   DEALLOCATE service_cursor;
+		 END;`),
 	}
 
-	// Return a dummy queue name since we're not using Service Broker anymore
-	return "polling_mode", nil
+	for _, stmt := range stmts {
+		if _, err := sqlDB.Exec(stmt); err != nil {
+			// Don't fail for broker already enabled
+			if !strings.Contains(err.Error(), "already enabled") {
+				log.Printf("Warning: Service Broker setup issue: %v", err)
+			}
+		}
+	}
+
+	log.Printf("Service Broker setup completed for session: %s", sessionID)
+	return queueName, nil
 }
 
 func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB) {
-	_ = sqlDB // Suppress unused parameter warning (we use GORM instead)
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("PANIC in listenForChanges: %v", r)
 		}
 	}()
 
-	// Store the last known timestamp for this instance
-	var lastKnownTimestamp time.Time
-	var err error
-
-	// Get initial timestamp
-	currentGlobalTsStr, err := c.GetGlobalLastUpdateTimestamp()
-	if err == nil {
-		lastKnownTimestamp, _ = parseTimestampFlexible(currentGlobalTsStr)
-	} else {
-		lastKnownTimestamp = time.Now().Add(-1 * time.Hour) // Start from 1 hour ago if we can't get current
-	}
-
-	log.Printf("Starting polling-based change listener (session: %s)", c.queueName)
-
-	ticker := time.NewTicker(1 * time.Second) // Poll every second
-	defer ticker.Stop()
+	log.Printf("Starting Service Broker listener (session: %s)", c.queueName)
 
 	for {
 		select {
 		case <-ctx.Done():
 			log.Println("Listener stopped (context canceled)")
 			return
-		case <-ticker.C:
-			// Check for changes since last known timestamp
-			currentGlobalTsStr, err := c.GetGlobalLastUpdateTimestamp()
-			if err != nil {
-				// Don't emit connection lost for temporary errors
-				log.Printf("Error getting global timestamp: %v", err)
+		default:
+		}
+
+		// Use WAITFOR RECEIVE to block until a message arrives (no polling!)
+		query := fmt.Sprintf(`
+			WAITFOR (
+				RECEIVE TOP(1) message_body 
+				FROM [dbo].[%s]
+			), TIMEOUT 30000;
+		`, c.queueName)
+
+		ctx_timeout, cancel := context.WithTimeout(ctx, 35*time.Second)
+		row := sqlDB.QueryRowContext(ctx_timeout, query)
+
+		var messageBody sql.NullString
+		err := row.Scan(&messageBody)
+		cancel()
+
+		if err != nil {
+			if ctx.Err() != nil {
+				log.Println("Listener stopped due to context cancellation")
+				return
+			}
+
+			// Check for connection errors
+			if strings.Contains(err.Error(), "connection") ||
+				strings.Contains(err.Error(), "network") ||
+				strings.Contains(err.Error(), "timeout") ||
+				strings.Contains(err.Error(), "database is closed") ||
+				strings.Contains(err.Error(), "transport") {
+				log.Printf("Database connection lost: %v", err)
+				ws.EventsEmit(ctx, "database:connection_lost", err.Error())
+				time.Sleep(5 * time.Second)
 				continue
 			}
 
-			currentGlobalTime, err := parseTimestampFlexible(currentGlobalTsStr)
-			if err != nil {
-				log.Printf("Error parsing timestamp: %v", err)
+			// Handle timeout (no messages) - this is normal, continue listening
+			if strings.Contains(err.Error(), "no rows") ||
+				strings.Contains(err.Error(), "WAITFOR") ||
+				strings.Contains(err.Error(), "timeout") {
+				// No messages received within timeout period - continue listening
 				continue
 			}
 
-			// If there are changes, emit the event
-			if currentGlobalTime.After(lastKnownTimestamp) {
-				log.Printf("Changes detected: %s > %s", currentGlobalTime.Format(time.RFC3339), lastKnownTimestamp.Format(time.RFC3339))
-				ws.EventsEmit(ctx, "database:changed", currentGlobalTime)
-				lastKnownTimestamp = currentGlobalTime
-			}
+			log.Printf("Service Broker listener error: %v", err)
+			time.Sleep(2 * time.Second)
+			continue
+		}
+
+		// If we reach here, a message was received (database changed!)
+		if messageBody.Valid {
+			log.Printf("Database change notification received: %s", messageBody.String)
+			ws.EventsEmit(ctx, "database:changed", time.Now())
 		}
 	}
 }
@@ -291,19 +381,17 @@ func (c *Core) InitDB() string {
 		return "InitError"
 	}
 	ensureAppMetadataExists(c.DB)
-
 	u, err := url.Parse(dsn)
 	if err != nil {
 		return "InitError"
 	}
-
 	dbName := u.Query().Get("database")
 	queueName, err := setupBroker(c.DB, dbName)
 	if err != nil {
 		return "InitError"
 	}
 	c.queueName = queueName // Store queue name for this instance
-	log.Println("Service Broker & Trigger bereit")
+	log.Println("Service Broker setup complete")
 
 	sqlDB, err := c.DB.DB()
 	if err != nil {
