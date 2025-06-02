@@ -50,7 +50,6 @@ export default function App() {
       const initMessage = await InitDB();
       setInitialised(initMessage == "InitSuccess" ? true : false);
       setIsLoading(false);
-      toast.success(t(initMessage));
     })();
     EventsOn("database:changed", (ts: string) => {
       console.log("DB Change: ", ts);
@@ -69,7 +68,9 @@ export default function App() {
       const initMessage = await InitDB();
       setInitialised(initMessage == "InitSuccess" ? true : false);
       setIsLoading(false);
-      toast.success(t(initMessage));
+      initMessage == "InitSuccess"
+        ? toast.success(t(initMessage))
+        : toast.error(t(initMessage));
     })();
   }, [tryInitialiseListener]);
 
