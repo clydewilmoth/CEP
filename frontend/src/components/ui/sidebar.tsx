@@ -2,14 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import React, { useState, createContext, useContext } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
-
-interface Links {
-  label: string;
-  href: string;
-  icon: React.JSX.Element | React.ReactNode;
-}
+import { motion } from "framer-motion";
 
 interface SidebarContextProps {
   open: boolean;
@@ -83,11 +76,13 @@ export const DesktopSidebar = ({
   return (
     <motion.div
       className={cn(
-        "h-full px-[0.55rem] py-4 flex flex-col flex-shrink-0",
+        "h-full px-[0.55rem] py-4 flex flex-col flex-shrink-0 min-w-0",
         className
       )}
       animate={{
-        width: animate ? (open ? "200px" : "60px") : "200px",
+        width: animate ? (open ? "12.5rem" : "3.75rem") : "3.75rem",
+        minWidth: animate ? (open ? "12.5rem" : "3.75rem") : "3.75rem",
+        maxWidth: animate ? (open ? "12.5rem" : "3.75rem") : "3.75rem",
       }}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
@@ -118,7 +113,7 @@ export const SidebarMenu = ({
       {item}
       <motion.span
         animate={{
-          display: animate ? (open ? "inline-block" : "none") : "inline-block",
+          display: animate ? (open ? "inline-block" : "none") : "none",
           opacity: animate ? (open ? 1 : 0) : 1,
         }}
         className="text-neutral-700 dark:text-neutral-200 text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0"
