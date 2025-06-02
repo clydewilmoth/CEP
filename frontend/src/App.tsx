@@ -3,11 +3,7 @@ import Lines from "./pages/Lines";
 import Stations from "./pages/Stations";
 import Tools from "./pages/Tools";
 import Operations from "./pages/Operations";
-import {
-  CheckEnvInExeDir,
-  GetPlatformSpecificUserName,
-  InitDB,
-} from "../wailsjs/go/main/Core";
+import { GetPlatformSpecificUserName, InitDB } from "../wailsjs/go/main/Core";
 import { EventsOn, EventsOff } from "../wailsjs/runtime";
 import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -54,7 +50,7 @@ export default function App() {
       const initMessage = await InitDB();
       setInitialised(initMessage == "InitSuccess" ? true : false);
       setIsLoading(false);
-      toast(t(initMessage));
+      toast.success(t(initMessage));
     })();
     EventsOn("database:changed", (ts: string) => {
       console.log("DB Change: ", ts);
@@ -73,7 +69,7 @@ export default function App() {
       const initMessage = await InitDB();
       setInitialised(initMessage == "InitSuccess" ? true : false);
       setIsLoading(false);
-      toast(t(initMessage));
+      toast.success(t(initMessage));
     })();
   }, [tryInitialiseListener]);
 

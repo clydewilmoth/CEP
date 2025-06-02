@@ -43,7 +43,7 @@ import {
 import { useTheme } from "next-themes";
 import { ScrollArea } from "../ui/scroll-area";
 import { Sidebar, SidebarBody, SidebarMenu } from "../ui/sidebar";
-import { init, t } from "i18next";
+import { t } from "i18next";
 
 export function UserDialog({ onClose }: { onClose?: () => void }) {
   const { t } = useTranslation();
@@ -164,7 +164,7 @@ export function DSNDialog({ onClose }: { onClose?: () => void }) {
       values.Encrypted.toString(),
       values.TrustServerCertificate.toString()
     );
-    toast(`${t("DSNDialog Toast")}`);
+    toast.success(`${t("DSNDialog Toast")}`);
     tryInitialise();
     setOpen(false);
   }

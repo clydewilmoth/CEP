@@ -41,7 +41,6 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { useContext } from "@/store";
 import {
   SearchField,
   SearchFieldClear,
@@ -244,7 +243,7 @@ function CreateEntityCard({
     },
     onSuccess: (res) => (
       queryClient.invalidateQueries(),
-      toast(`${t(entityType)} ${t("CreateToast")}`),
+      toast.success(`${t(entityType)} ${t("CreateToast")}`),
       navigate(`${link}${res.ID}`)
     ),
   });
@@ -435,7 +434,7 @@ function DeleteEntityDialog({
     }) => DeleteEntityByIDString(name, entityType, entityId),
     onSuccess: () => (
       queryClient.invalidateQueries(),
-      toast(`${t(entityType)} ${t("DeleteToast")}`)
+      toast.success(`${t(entityType)} ${t("DeleteToast")}`)
     ),
   });
 
@@ -499,10 +498,11 @@ function ExportJSON({
       <Button
         variant="ghost"
         className="w-full justify-start flex items-center gap-2 px-3 py-2"
-        onClick={async () => (
-          toast(t(await HandleExport(entityType, entityId))),
-          onClick && onClick()
-        )}
+        onClick={async () => {
+          const res = await HandleExport(entityType, entityId);
+          res == "ExportSuccess" ? toast.success(t(res)) : toast.error(t(res));
+          onClick && onClick();
+        }}
       >
         <FileUp />
         <span className="text-sm font-semibold">{t("ExportJSON")}</span>
@@ -530,11 +530,11 @@ function ClipboardExportButton({
         onClick={async () => {
           try {
             await CopyEntityHierarchyToClipboard(entityType, entityId);
-            toast(t("CopiedToClipboard"));
+            toast.success(t("CopiedToClipboard"));
             onClick?.();
           } catch (err) {
             console.error(err);
-            toast(t("ClipboardCopyFailed"));
+            toast.error(t("ClipboardCopyFailed"));
           }
         }}
       >
@@ -549,8 +549,10 @@ function ImportJSON({ onClick }: { onClick?: () => void }) {
   const queryClient = useQueryClient();
 
   const { mutateAsync: importEntity } = useMutation({
-    mutationFn: async () =>
-      toast(t(await HandleImport(String(localStorage.getItem("name"))))),
+    mutationFn: async () => {
+      const res = await HandleImport(localStorage.getItem("name") ?? "");
+      res == "ImportSuccess" ? toast.success(t(res)) : toast.error(t(res));
+    },
     onSuccess: () => queryClient.invalidateQueries(),
   });
   const { t } = useTranslation();
