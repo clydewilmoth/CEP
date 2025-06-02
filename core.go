@@ -56,6 +56,7 @@ type Core struct {
 	listenerCancel context.CancelFunc
 	DB             *gorm.DB // Jede Instanz hat ihre eigene Verbindung
 	queueName      string   // Unique queue name for this instance
+	serviceName    string   // Unique service name for this instance
 }
 
 func NewCore() *Core {
@@ -99,20 +100,22 @@ func (c *Core) HandleImport(user string) string {
 	}
 }
 
-func setupBroker(DB *gorm.DB, dbName string) (string, error) {
+func setupBroker(DB *gorm.DB, dbName string) (string, string, error) {
 	sqlDB, err := DB.DB()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	// Generate unique session ID for tracking
 	sessionID := uuid.New().String()
 	queueName := fmt.Sprintf("DataChangeQueue_%s", strings.ReplaceAll(sessionID, "-", ""))
 	serviceName := fmt.Sprintf("DataChangeService_%s", strings.ReplaceAll(sessionID, "-", ""))
-
 	stmts := []string{
-		// Enable Service Broker on the database
-		fmt.Sprintf(`ALTER DATABASE [%s] SET ENABLE_BROKER WITH ROLLBACK IMMEDIATE;`, dbName),
+		// Enable Service Broker on the database (only if not already enabled)
+		fmt.Sprintf(`IF (SELECT is_broker_enabled FROM sys.databases WHERE name = '%s') = 0
+		 BEGIN
+		   ALTER DATABASE [%s] SET ENABLE_BROKER;
+		 END;`, dbName, dbName),
 
 		// Create message type if not exists
 		`IF NOT EXISTS (SELECT * FROM sys.service_message_types WHERE name = 'DataChanged')
@@ -131,52 +134,52 @@ func setupBroker(DB *gorm.DB, dbName string) (string, error) {
 		 CREATE SERVICE [%s] ON QUEUE [dbo].[%s] ([DataChangedContract]);`,
 			serviceName, serviceName, queueName),
 
-		// Create or replace the trigger that sends to ALL active services
-		`IF OBJECT_ID('dbo.TRG_app_metadata_Notify_All', 'TR') IS NOT NULL
-		 DROP TRIGGER dbo.TRG_app_metadata_Notify_All;`,
-
-		fmt.Sprintf(`CREATE TRIGGER dbo.TRG_app_metadata_Notify_All
-		 ON dbo.app_metadata
-		 AFTER INSERT, UPDATE, DELETE
-		 AS
+		// Create the trigger only if it doesn't exist (don't drop and recreate)
+		`IF OBJECT_ID('dbo.TRG_app_metadata_Notify_All', 'TR') IS NULL
 		 BEGIN
-		   SET NOCOUNT ON;
-		   
-		   -- Send notification to ALL active DataChangeService queues
-		   DECLARE @serviceName NVARCHAR(256);
-		   DECLARE service_cursor CURSOR FOR
-		     SELECT name FROM sys.services 
-		     WHERE name LIKE 'DataChangeService_%%';
-		   
-		   OPEN service_cursor;
-		   FETCH NEXT FROM service_cursor INTO @serviceName;
-		   
-		   WHILE @@FETCH_STATUS = 0
-		   BEGIN
-		     BEGIN TRY
-		       DECLARE @dialog UNIQUEIDENTIFIER;
-		       BEGIN DIALOG CONVERSATION @dialog
-		         FROM SERVICE @serviceName
-		         TO SERVICE @serviceName
-		         ON CONTRACT [DataChangedContract]
-		         WITH ENCRYPTION = OFF;
+		   EXEC('CREATE TRIGGER dbo.TRG_app_metadata_Notify_All
+		     ON dbo.app_metadata
+		     AFTER INSERT, UPDATE, DELETE
+		     AS
+		     BEGIN
+		       SET NOCOUNT ON;
+		       
+		       -- Send notification to ALL active DataChangeService queues
+		       DECLARE @serviceName NVARCHAR(256);
+		       DECLARE service_cursor CURSOR FOR
+		         SELECT name FROM sys.services 
+		         WHERE name LIKE ''DataChangeService_%'';
+		       
+		       OPEN service_cursor;
+		       FETCH NEXT FROM service_cursor INTO @serviceName;
+		       
+		       WHILE @@FETCH_STATUS = 0
+		       BEGIN
+		         BEGIN TRY
+		           DECLARE @dialog UNIQUEIDENTIFIER;
+		           BEGIN DIALOG CONVERSATION @dialog
+		             FROM SERVICE @serviceName
+		             TO SERVICE @serviceName
+		             ON CONTRACT [DataChangedContract]
+		             WITH ENCRYPTION = OFF;
 
-		       SEND ON CONVERSATION @dialog
-		         MESSAGE TYPE [DataChanged]
-		         ('database_changed');
+		           SEND ON CONVERSATION @dialog
+		             MESSAGE TYPE [DataChanged]
+		             (''database_changed'');
+		             
+		           END CONVERSATION @dialog;
+		         END TRY
+		         BEGIN CATCH
+		           -- Ignore errors for inactive services
+		         END CATCH
 		         
-		       END CONVERSATION @dialog;
-		     END TRY
-		     BEGIN CATCH
-		       -- Ignore errors for inactive services
-		     END CATCH
-		     
-		     FETCH NEXT FROM service_cursor INTO @serviceName;
-		   END;
-		   
-		   CLOSE service_cursor;
-		   DEALLOCATE service_cursor;
-		 END;`),
+		         FETCH NEXT FROM service_cursor INTO @serviceName;
+		       END;
+		       
+		       CLOSE service_cursor;
+		       DEALLOCATE service_cursor;
+		     END;');
+		 END;`,
 	}
 
 	for _, stmt := range stmts {
@@ -187,9 +190,8 @@ func setupBroker(DB *gorm.DB, dbName string) (string, error) {
 			}
 		}
 	}
-
 	log.Printf("Service Broker setup completed for session: %s", sessionID)
-	return queueName, nil
+	return queueName, serviceName, nil
 }
 
 func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB) {
@@ -345,10 +347,16 @@ func loadConfiguration() {
 	}
 }
 func (c *Core) InitDB() string {
+	// Stop any existing listener
 	if c.listenerCancel != nil {
 		c.listenerCancel()
 		c.listenerCancel = nil
 	}
+
+	// Clean up existing Service Broker resources before closing DB
+	c.cleanupBroker()
+
+	// Close existing DB connection
 	if c.DB != nil {
 		sqlDB, err := c.DB.DB()
 		if err == nil {
@@ -356,6 +364,10 @@ func (c *Core) InitDB() string {
 		}
 		c.DB = nil
 	}
+
+	// Clear queue and service names
+	c.queueName = ""
+	c.serviceName = ""
 	loadConfiguration()
 	dsn := os.Getenv("MSSQL_DSN")
 	if dsn == "" {
@@ -386,11 +398,12 @@ func (c *Core) InitDB() string {
 		return "InitError"
 	}
 	dbName := u.Query().Get("database")
-	queueName, err := setupBroker(c.DB, dbName)
+	queueName, serviceName, err := setupBroker(c.DB, dbName)
 	if err != nil {
 		return "InitError"
 	}
-	c.queueName = queueName // Store queue name for this instance
+	c.queueName = queueName     // Store queue name for this instance
+	c.serviceName = serviceName // Store service name for this instance
 	log.Println("Service Broker setup complete")
 
 	sqlDB, err := c.DB.DB()
@@ -1552,161 +1565,34 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 	return err
 }
 
-/*
-func (c *Core) ImportEntityHierarchyFromClipboard_UseOriginalData(userName string) error {
-	if DB == nil {
-		return errors.New("DB not initialized")
+// cleanupBroker removes the queue and service for this instance
+func (c *Core) cleanupBroker() {
+	if c.DB == nil || c.queueName == "" || c.serviceName == "" {
+		return
 	}
 
-	jsonData, err := clipboard.ReadAll()
+	sqlDB, err := c.DB.DB()
 	if err != nil {
-		return fmt.Errorf("error reading from clipboard: %w", err)
+		log.Printf("Warning: could not get SQL DB for cleanup: %v", err)
+		return
 	}
 
-	var rootImportedLine Line
-	if err = json.Unmarshal([]byte(jsonData), &rootImportedLine); err != nil {
-		return fmt.Errorf("error unmarshalling JSON from clipboard: %w", err)
+	// Clean up this instance's Service Broker resources
+	stmts := []string{
+		// Drop the service first
+		fmt.Sprintf(`IF EXISTS (SELECT * FROM sys.services WHERE name = '%s')
+		 DROP SERVICE [%s];`, c.serviceName, c.serviceName),
+
+		// Drop the queue
+		fmt.Sprintf(`IF EXISTS (SELECT * FROM sys.service_queues WHERE name = '%s')
+		 DROP QUEUE [dbo].[%s];`, c.queueName, c.queueName),
 	}
 
-	emptyID := mssql.UniqueIdentifier{}
-	tx := DB.Begin()
-	if tx.Error != nil {
-		return fmt.Errorf("error starting DB transaction: %w", tx.Error)
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-			log.Printf("Import (clipboard) panic: %v", r)
-		} else if err != nil {
-			tx.Rollback()
-			log.Printf("Import (clipboard) failed: %v", err)
-		} else {
-			commitErr := tx.Commit().Error
-			if commitErr != nil {
-				log.Printf("Commit error: %v", commitErr)
-				err = commitErr
-			} else {
-				log.Println("Import from clipboard successful.")
-			}
+	for _, stmt := range stmts {
+		if _, err := sqlDB.Exec(stmt); err != nil {
+			log.Printf("Warning: Service Broker cleanup issue: %v", err)
 		}
-	}()
-
-	err = importEntityRecursive_UseOriginalData(tx, &rootImportedLine, "line", emptyID)
-	if err == nil {
-		_ = updateGlobalLastUpdateTimestampAndLogChange(tx, emptyID, "system", OpTypeSystemEvent, strPtr(userName))
 	}
-	return err
+
+	log.Printf("Service Broker cleanup completed for session: %s", c.queueName)
 }
-
-func importCopiedEntityRecursive(
-	tx *gorm.DB,
-	userName string,
-	originalEntityData interface{},
-	entityTypeStr string,
-	newParentID mssql.UniqueIdentifier,
-	idMap map[mssql.UniqueIdentifier]mssql.UniqueIdentifier,
-) (mssql.UniqueIdentifier, error) {
-
-	return [16]byte{}, errors.New("not implemented yet")
-}
-*/
-/*
-func (c *Core) ImportCopiedEntityHierarchyFromJSON(userName string, entityTypeStr string, parentIDStrIfApplicable string, jsonData string) (interface{}, error) {
-	if DB == nil {
-		return nil, errors.New("DB not initialized")
-	}
-	if userName == "" {
-		return nil, errors.New("userName is required for importing copied entity")
-	}
-	var rootEntityData interface{}
-	tempModelInstance, err := getModelInstance(entityTypeStr)
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal([]byte(jsonData), tempModelInstance); err != nil {
-		return nil, fmt.Errorf("error unmarshalling copied JSON data: %w", err)
-	}
-	rootEntityData = tempModelInstance
-	var parentIDmssql mssql.UniqueIdentifier
-	if parentIDStrIfApplicable != "" {
-		parentIDmssql, err = parseMSSQLUniqueIdentifierFromString(parentIDStrIfApplicable)
-		if err != nil {
-			return nil, fmt.Errorf("invalid ParentID for copied entity: %w", err)
-		}
-	}
-	var newTopEntity interface{}
-	idMap := make(map[mssql.UniqueIdentifier]mssql.UniqueIdentifier)
-	err = DB.Transaction(func(tx *gorm.DB) error {
-		newTopEntityMSSQLID, errTx := importCopiedEntityRecursive(tx, userName, rootEntityData, entityTypeStr, parentIDmssql, idMap)
-		if errTx != nil {
-			return errTx
-		}
-		reloadedTopEntity, _ := getModelInstance(entityTypeStr)
-		if errLoad := tx.Preload(clause.Associations).First(reloadedTopEntity, "id = ?", newTopEntityMSSQLID).Error; errLoad != nil {
-			return fmt.Errorf("error reloading newly created top entity: %w", errLoad)
-		}
-		newTopEntity = reloadedTopEntity
-		return tx.Model(&AppMetadata{}).Where("config_key = ?", GlobalMetadataKey).Update("last_update", time.Now()).Error
-	})
-	if err != nil {
-		return nil, err
-	}
-	return newTopEntity, nil
-}
-
-func importCopiedEntityRecursive(tx *gorm.DB, userName string, originalEntityData interface{}, entityTypeStr string, newParentActualDBID mssql.UniqueIdentifier, idMap map[mssql.UniqueIdentifier]mssql.UniqueIdentifier) (mssql.UniqueIdentifier, error) {
-	var oldIDFromJSON mssql.UniqueIdentifier
-	var newEntityToCreate interface{}
-	var childrenToProcess []interface{}
-	var childEntityTypeStr string
-	createBase := func() BaseModel { return BaseModel{CreatedBy: strPtr(userName), UpdatedBy: strPtr(userName)} }
-	var emptyMsSQLID mssql.UniqueIdentifier
-	switch entity := originalEntityData.(type) {
-	case *Line:
-		oldIDFromJSON = entity.ID
-		newLine := Line{BaseModel: createBase(), Name: entity.Name, Description: entity.Description}
-		newEntityToCreate = &newLine
-		childEntityTypeStr = "station"
-		for i := range entity.Stations {
-			childrenToProcess = append(childrenToProcess, &entity.Stations[i])
-		}
-	case *Station:
-		oldIDFromJSON = entity.ID
-		newStation := Station{BaseModel: createBase(), ParentID: newParentActualDBID, Name: entity.Name, Description: entity.Description}
-		newEntityToCreate = &newStation
-		childEntityTypeStr = "tool"
-		for i := range entity.Tools {
-			childrenToProcess = append(childrenToProcess, &entity.Tools[i])
-		}
-	case *Tool:
-		oldIDFromJSON = entity.ID
-		newTool := Tool{BaseModel: createBase(), ParentID: newParentActualDBID, Name: entity.Name, Description: entity.Description}
-		newEntityToCreate = &newTool
-		childEntityTypeStr = "operation"
-		for i := range entity.Operations {
-			childrenToProcess = append(childrenToProcess, &entity.Operations[i])
-		}
-	case *Operation:
-		oldIDFromJSON = entity.ID
-		newOperation := Operation{BaseModel: createBase(), ParentID: newParentActualDBID, Name: entity.Name, Description: entity.Description}
-		newEntityToCreate = &newOperation
-	default:
-		return emptyMsSQLID, fmt.Errorf("unknown type in importCopiedEntityRecursive: %T", originalEntityData)
-	}
-	if err := tx.Omit(clause.Associations).Create(newEntityToCreate).Error; err != nil {
-		return emptyMsSQLID, fmt.Errorf("error creating new copied entity %s: %w", entityTypeStr, err)
-	}
-	var newActualDBID mssql.UniqueIdentifier
-	reflectVal := reflect.ValueOf(newEntityToCreate).Elem()
-	newActualDBID = reflectVal.FieldByName("ID").Interface().(mssql.UniqueIdentifier)
-	if oldIDFromJSON != emptyMsSQLID {
-		idMap[oldIDFromJSON] = newActualDBID
-	}
-	for _, childData := range childrenToProcess {
-		if _, err := importCopiedEntityRecursive(tx, userName, childData, childEntityTypeStr, newActualDBID, idMap); err != nil {
-			return emptyMsSQLID, err
-		}
-	}
-	return newActualDBID, nil
-}
-*/
