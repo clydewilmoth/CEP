@@ -55,6 +55,7 @@ type Core struct {
 	ctx            context.Context
 	listenerCancel context.CancelFunc
 	DB             *gorm.DB // Jede Instanz hat ihre eigene Verbindung
+	queueName      string   // Unique queue name for this instance
 }
 
 func NewCore() *Core {
@@ -98,113 +99,76 @@ func (c *Core) HandleImport(user string) string {
 	}
 }
 
-func setupBroker(DB *gorm.DB, dbName string) error {
+func setupBroker(DB *gorm.DB, dbName string) (string, error) {
+	// For multi-user scenarios, we'll use polling instead of Service Broker
+	// Service Broker queues only allow one consumer at a time
+	// This function now just ensures the database is ready for polling
+	_ = dbName // Suppress unused parameter warning
 	sqlDB, err := DB.DB()
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	stmts := []string{
-		fmt.Sprintf(`ALTER DATABASE [%s] SET ENABLE_BROKER WITH ROLLBACK IMMEDIATE;`, dbName),
-
-		`IF NOT EXISTS (SELECT * FROM sys.service_message_types WHERE name = 'DataChanged')
-     CREATE MESSAGE TYPE [DataChanged] VALIDATION = NONE;`,
-
-		`IF NOT EXISTS (SELECT * FROM sys.service_contracts WHERE name = 'DataChangedContract')
-     CREATE CONTRACT [DataChangedContract] ([DataChanged] SENT BY INITIATOR);`,
-
-		`IF NOT EXISTS (SELECT * FROM sys.service_queues WHERE name = 'DataChangeQueue')
-     CREATE QUEUE [dbo].[DataChangeQueue];`,
-
-		`IF NOT EXISTS (SELECT * FROM sys.services WHERE name = 'DataChangeService')
-     CREATE SERVICE [DataChangeService]
-       ON QUEUE [dbo].[DataChangeQueue]
-       ([DataChangedContract]);`,
-
-		`IF OBJECT_ID('dbo.TRG_app_metadata_Notify', 'TR') IS NULL
-     EXEC('
-       CREATE TRIGGER dbo.TRG_app_metadata_Notify
-       ON dbo.app_metadata
-       AFTER INSERT, UPDATE, DELETE
-       AS
-       BEGIN
-         DECLARE @h UNIQUEIDENTIFIER;
-         BEGIN DIALOG CONVERSATION @h
-           FROM SERVICE [DataChangeService]
-           TO SERVICE ''DataChangeService''
-           ON CONTRACT [DataChangedContract]
-           WITH ENCRYPTION = OFF;
-
-         SEND ON CONVERSATION @h
-           MESSAGE TYPE [DataChanged]
-           (CONVERT(nvarchar(max), GETDATE(), 126));
-       END
-     ');`,
+	// Just ensure DB is accessible
+	if err := sqlDB.Ping(); err != nil {
+		return "", fmt.Errorf("DB not reachable: %w", err)
 	}
 
-	for _, stmt := range stmts {
-		if err := sqlDB.Ping(); err != nil {
-			return fmt.Errorf("DB not reachable: %w", err)
-		}
-		if _, err := sqlDB.Exec(stmt); err != nil {
-			return fmt.Errorf("setupBroker failed: %w\nSQL: %s", err, stmt)
-		}
-	}
-	return nil
+	// Return a dummy queue name since we're not using Service Broker anymore
+	return "polling_mode", nil
 }
 
-func listenForChanges(ctx context.Context, sqlDB *sql.DB) {
+func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB) {
+	_ = sqlDB // Suppress unused parameter warning (we use GORM instead)
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("PANIC in listenForChanges: %v", r)
 		}
 	}()
+
+	// Store the last known timestamp for this instance
+	var lastKnownTimestamp time.Time
+	var err error
+
+	// Get initial timestamp
+	currentGlobalTsStr, err := c.GetGlobalLastUpdateTimestamp()
+	if err == nil {
+		lastKnownTimestamp, _ = parseTimestampFlexible(currentGlobalTsStr)
+	} else {
+		lastKnownTimestamp = time.Now().Add(-1 * time.Hour) // Start from 1 hour ago if we can't get current
+	}
+
+	log.Printf("Starting polling-based change listener (session: %s)", c.queueName)
+
+	ticker := time.NewTicker(1 * time.Second) // Poll every second
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-ctx.Done():
 			log.Println("Listener stopped (context canceled)")
 			return
-		default:
-		}
-
-		row := sqlDB.QueryRowContext(ctx, `
-      WAITFOR (
-        RECEIVE TOP(1)
-          conversation_handle,
-          message_body
-        FROM dbo.DataChangeQueue
-      ), TIMEOUT 600000;
-    `)
-
-		var convHandleRaw []byte
-		var msgBody sql.NullString
-		if err := row.Scan(&convHandleRaw, &msgBody); err != nil {
-			if ctx.Err() != nil || strings.Contains(err.Error(), "database is closed") {
-				log.Println("Listener beendet wegen DB close oder context cancel.")
-				return
+		case <-ticker.C:
+			// Check for changes since last known timestamp
+			currentGlobalTsStr, err := c.GetGlobalLastUpdateTimestamp()
+			if err != nil {
+				// Don't emit connection lost for temporary errors
+				log.Printf("Error getting global timestamp: %v", err)
+				continue
 			}
-			log.Println("Listener error:", err)
-			ws.EventsEmit(ctx, "database:connection_lost", err.Error())
-			time.Sleep(5 * time.Second)
-			continue
-		}
 
-		convHandle := ""
-		if len(convHandleRaw) == 16 {
-			convHandle = uuid.UUID(convHandleRaw).String()
-		}
-
-		ws.EventsEmit(ctx, "database:changed", time.Now())
-
-		if convHandle != "" {
-			if _, err := sqlDB.Exec(`END CONVERSATION @h;`, sql.Named("h", convHandle)); err != nil {
-				if !strings.Contains(err.Error(), "is not found") {
-					log.Printf("End conversation error (convHandle=%q): %v", convHandle, err)
-				}
-				// Sonst ignoriere den Fehler still
+			currentGlobalTime, err := parseTimestampFlexible(currentGlobalTsStr)
+			if err != nil {
+				log.Printf("Error parsing timestamp: %v", err)
+				continue
 			}
-		} else {
-			log.Printf("End conversation skipped: convHandle is empty or invalid (raw: %v)", convHandleRaw)
+
+			// If there are changes, emit the event
+			if currentGlobalTime.After(lastKnownTimestamp) {
+				log.Printf("Changes detected: %s > %s", currentGlobalTime.Format(time.RFC3339), lastKnownTimestamp.Format(time.RFC3339))
+				ws.EventsEmit(ctx, "database:changed", currentGlobalTime)
+				lastKnownTimestamp = currentGlobalTime
+			}
 		}
 	}
 }
@@ -334,10 +298,11 @@ func (c *Core) InitDB() string {
 	}
 
 	dbName := u.Query().Get("database")
-
-	if err := setupBroker(c.DB, dbName); err != nil {
+	queueName, err := setupBroker(c.DB, dbName)
+	if err != nil {
 		return "InitError"
 	}
+	c.queueName = queueName // Store queue name for this instance
 	log.Println("Service Broker & Trigger bereit")
 
 	sqlDB, err := c.DB.DB()
@@ -348,14 +313,13 @@ func (c *Core) InitDB() string {
 	sqlDB.SetMaxOpenConns(10)
 	sqlDB.SetMaxIdleConns(5)
 	sqlDB.SetConnMaxLifetime(30 * time.Minute)
-
 	if c.ctx == nil {
 		log.Println("WARN: c.ctx ist nil, Listener wird nicht gestartet!")
 		return "InitSuccess"
 	}
 	listenerCtx, cancel := context.WithCancel(c.ctx)
 	c.listenerCancel = cancel
-	go listenForChanges(listenerCtx, sqlDB)
+	go c.listenForChanges(listenerCtx, sqlDB) // Pass Core instance to use queueName
 
 	log.Println("Successfully connected to and migrated MS SQL server DB.")
 	return "InitSuccess"
