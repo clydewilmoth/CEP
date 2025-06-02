@@ -1456,6 +1456,50 @@ func importCopiedEntityRecursive(
 	}
 }
 
+func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, entityIDStr string) error {
+	if c.DB == nil {
+		return errors.New("DB not initialized")
+	}
+	entityIDmssql, err := parseMSSQLUniqueIdentifierFromString(entityIDStr)
+	if err != nil {
+		return err
+	}
+	modelInstance, err := getModelInstance(entityTypeStr)
+	if err != nil {
+		return err
+	}
+	if err := c.DB.First(modelInstance, "id = ?", entityIDmssql).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("no entity %s with ID %s found to delete", entityTypeStr, entityIDStr)
+		}
+		return fmt.Errorf("error finding entity %s with ID %s for delete: %w", entityTypeStr, entityIDStr, err)
+	}
+	err = c.DB.Transaction(func(tx *gorm.DB) error {
+		result := tx.Delete(modelInstance)
+		if result.Error != nil {
+			return fmt.Errorf("error deleting %s with ID %s: %w", entityTypeStr, entityIDStr, result.Error)
+		}
+		if result.RowsAffected == 0 {
+			return fmt.Errorf("no entity %s with ID %s actually deleted", entityTypeStr, entityIDStr)
+		}
+		var loggedEntityID mssql.UniqueIdentifier
+		switch e := modelInstance.(type) {
+		case *Line:
+			loggedEntityID = e.ID
+		case *Station:
+			loggedEntityID = e.ID
+		case *Tool:
+			loggedEntityID = e.ID
+		case *Operation:
+			loggedEntityID = e.ID
+		default:
+			return errors.New("could not determine ID for logging delete operation")
+		}
+		return updateGlobalLastUpdateTimestampAndLogChange(tx, loggedEntityID, strings.ToLower(entityTypeStr), OpTypeDelete, strPtr(userName))
+	})
+	return err
+}
+
 /*
 func (c *Core) ImportEntityHierarchyFromClipboard_UseOriginalData(userName string) error {
 	if DB == nil {
