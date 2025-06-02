@@ -110,6 +110,10 @@ func setupBroker(DB *gorm.DB, dbName string) (string, string, error) {
 	sessionID := uuid.New().String()
 	queueName := fmt.Sprintf("DataChangeQueue_%s", strings.ReplaceAll(sessionID, "-", ""))
 	serviceName := fmt.Sprintf("DataChangeService_%s", strings.ReplaceAll(sessionID, "-", ""))
+
+	// First, clean up any orphaned Service Broker resources from previous runs
+	cleanupOrphanedResources(sqlDB)
+
 	stmts := []string{
 		// Enable Service Broker on the database (only if not already enabled)
 		fmt.Sprintf(`IF (SELECT is_broker_enabled FROM sys.databases WHERE name = '%s') = 0
@@ -230,18 +234,23 @@ func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB) {
 			if ctx.Err() != nil {
 				log.Println("Listener stopped due to context cancellation")
 				return
-			}
-
-			// Check for connection errors
+			} // Check for connection errors
 			if strings.Contains(err.Error(), "connection") ||
 				strings.Contains(err.Error(), "network") ||
 				strings.Contains(err.Error(), "timeout") ||
 				strings.Contains(err.Error(), "database is closed") ||
 				strings.Contains(err.Error(), "transport") {
 				log.Printf("Database connection lost: %v", err)
+
+				// Clean up Service Broker resources for this dead connection
+				// We do this here to prevent stale resources from interfering
+				c.cleanupBrokerWithDeadConnection()
+
 				ws.EventsEmit(ctx, "database:connection_lost", err.Error())
-				time.Sleep(5 * time.Second)
-				continue
+
+				// Exit the listener - let InitDB restart everything cleanly
+				log.Printf("Listener exiting due to connection loss (session: %s)", c.queueName)
+				return
 			}
 
 			// Handle timeout (no messages) - this is normal, continue listening
@@ -351,10 +360,17 @@ func (c *Core) InitDB() string {
 	if c.listenerCancel != nil {
 		c.listenerCancel()
 		c.listenerCancel = nil
+		// Give the listener time to exit cleanly
+		time.Sleep(100 * time.Millisecond)
 	}
 
 	// Clean up existing Service Broker resources before closing DB
 	c.cleanupBroker()
+
+	// Also try cleanup with a fresh connection in case the current one is dead
+	if c.queueName != "" || c.serviceName != "" {
+		c.cleanupBrokerWithDeadConnection()
+	}
 
 	// Close existing DB connection
 	if c.DB != nil {
@@ -1595,4 +1611,117 @@ func (c *Core) cleanupBroker() {
 	}
 
 	log.Printf("Service Broker cleanup completed for session: %s", c.queueName)
+}
+
+// cleanupBrokerWithDeadConnection attempts cleanup when the main connection is dead
+// This uses a new connection to avoid dependency on the failed connection
+func (c *Core) cleanupBrokerWithDeadConnection() {
+	if c.queueName == "" || c.serviceName == "" {
+		return
+	}
+
+	// Try to create a new connection for cleanup
+	dsn := os.Getenv("MSSQL_DSN")
+	if dsn == "" {
+		log.Printf("Warning: No DSN available for Service Broker cleanup")
+		return
+	}
+
+	// Create a temporary connection just for cleanup
+	tempDB, err := sql.Open("sqlserver", dsn)
+	if err != nil {
+		log.Printf("Warning: could not create temp connection for Service Broker cleanup: %v", err)
+		return
+	}
+	defer tempDB.Close()
+
+	// Set a short timeout for cleanup operations
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Clean up this instance's Service Broker resources
+	stmts := []string{
+		// Drop the service first
+		fmt.Sprintf(`IF EXISTS (SELECT * FROM sys.services WHERE name = '%s')
+		 DROP SERVICE [%s];`, c.serviceName, c.serviceName),
+
+		// Drop the queue
+		fmt.Sprintf(`IF EXISTS (SELECT * FROM sys.service_queues WHERE name = '%s')
+		 DROP QUEUE [dbo].[%s];`, c.queueName, c.queueName),
+	}
+
+	for _, stmt := range stmts {
+		if _, err := tempDB.ExecContext(ctx, stmt); err != nil {
+			log.Printf("Warning: Service Broker cleanup issue with dead connection: %v", err)
+		}
+	}
+
+	log.Printf("Service Broker cleanup with dead connection completed for session: %s", c.queueName)
+}
+
+// cleanupOrphanedResources removes old Service Broker resources that might be left from crashed instances
+func cleanupOrphanedResources(sqlDB *sql.DB) {
+	// Clean up orphaned services and queues older than 30 minutes (was 5 minutes, too aggressive)
+	// This helps prevent accumulation of resources from crashed instances
+	stmts := []string{
+		// Get and clean up old services - more conservative approach
+		`DECLARE @serviceName NVARCHAR(256);
+		 DECLARE service_cursor CURSOR FOR
+		   SELECT name FROM sys.services 
+		   WHERE name LIKE 'DataChangeService_%'
+		   AND create_date < DATEADD(MINUTE, -30, GETDATE());
+		 
+		 OPEN service_cursor;
+		 FETCH NEXT FROM service_cursor INTO @serviceName;
+		 
+		 WHILE @@FETCH_STATUS = 0
+		 BEGIN
+		   BEGIN TRY
+		     EXEC('DROP SERVICE [' + @serviceName + '];');
+		     PRINT 'Cleaned up old service: ' + @serviceName;
+		   END TRY
+		   BEGIN CATCH
+		     -- Ignore errors
+		   END CATCH
+		   
+		   FETCH NEXT FROM service_cursor INTO @serviceName;
+		 END;
+		 
+		 CLOSE service_cursor;
+		 DEALLOCATE service_cursor;`,
+
+		// Clean up orphaned queues - only those not associated with any service
+		`DECLARE @queueName NVARCHAR(256);
+		 DECLARE queue_cursor CURSOR FOR
+		   SELECT name FROM sys.service_queues 
+		   WHERE name LIKE 'DataChangeQueue_%'
+		   AND object_id NOT IN (SELECT service_queue_id FROM sys.services WHERE service_queue_id IS NOT NULL);
+		 
+		 OPEN queue_cursor;
+		 FETCH NEXT FROM queue_cursor INTO @queueName;
+		 
+		 WHILE @@FETCH_STATUS = 0
+		 BEGIN
+		   BEGIN TRY
+		     EXEC('DROP QUEUE [dbo].[' + @queueName + '];');
+		     PRINT 'Cleaned up orphaned queue: ' + @queueName;
+		   END TRY
+		   BEGIN CATCH
+		     -- Ignore errors
+		   END CATCH
+		   
+		   FETCH NEXT FROM queue_cursor INTO @queueName;
+		 END;
+		 
+		 CLOSE queue_cursor;
+		 DEALLOCATE queue_cursor;`,
+	}
+
+	for _, stmt := range stmts {
+		if _, err := sqlDB.Exec(stmt); err != nil {
+			log.Printf("Warning: Orphaned resource cleanup issue: %v", err)
+		}
+	}
+
+	log.Println("Orphaned Service Broker resources cleanup completed")
 }
