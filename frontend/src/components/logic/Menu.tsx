@@ -357,6 +357,11 @@ export function ThemeSwitch() {
 export function Menu() {
   const [open, setOpen] = useState(false);
 
+  const truncateName = (name: string | null): string => {
+    if (!name) return "";
+    return name.length > 15 ? name.substring(0, 15) + "..." : name;
+  };
+
   return (
     <Sidebar open={open} setOpen={setOpen}>
       <SidebarBody className="justify-between gap-10 overflow-hidden">
@@ -373,7 +378,7 @@ export function Menu() {
         </div>
         <SidebarMenu
           item={<UserDialog onClose={() => setOpen(false)} />}
-          text={localStorage.getItem("name") ?? ""}
+          text={truncateName(localStorage.getItem("name"))}
         />
       </SidebarBody>
     </Sidebar>
