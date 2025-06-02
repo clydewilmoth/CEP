@@ -84,14 +84,15 @@ export default function App() {
   return (
     <ThemeProvider attribute="class" enableSystem disableTransitionOnChange>
       <QueryClientProvider client={queryClient}>
+        {" "}
         <div
           className={cn(
-            "flex flex-col md:flex-row w-full flex-1 mx-auto border border-neutral-200 dark:border-neutral-700 overflow-hidden",
+            "flex flex-row w-full flex-1 mx-auto border border-neutral-200 dark:border-neutral-700 overflow-hidden",
             "h-screen"
           )}
         >
           <Menu />
-          <div className="bg-muted border rounded-tl-3xl w-full h-full">
+          <div className="bg-muted border rounded-tl-3xl w-full h-full flex-1 min-w-0 overflow-hidden">
             {isLoading && (
               <div className="py-8 px-4">
                 <Button variant="ghost" className="w-fit" disabled>
