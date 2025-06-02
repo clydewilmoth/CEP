@@ -932,7 +932,7 @@
             "Operation Description" : "Beschreibung",
             "IpAddressDevice" : "Geräte IP Adresse",
             "DecisionCriteria" : "Entscheidungskriterien",
-            "ToolWithSPS" : "Tool mit SPS",
+            "ToolWithSPS" : "Werkzeug mit SPS",
             "SPSPLCNameSPAService" : "SPS PLC Name SPS Service",
             "SPSDBNoSend" : "SPS DB No. versandt",
             "SPSDBNoReceive" : "SPS DB No. erhalten",
