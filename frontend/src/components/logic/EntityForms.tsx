@@ -40,6 +40,7 @@ import {
 import data from "@/assets/dependency.json";
 import { TagsInput } from "../ui/tags-input";
 import { useContext } from "@/store";
+import { Checkbox } from "../ui/checkbox";
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -1257,19 +1258,22 @@ export function ToolForm({ entityId }: { entityId: string }) {
             )}
           />
 
-          <div
-            className="flex flex-row items-center gap-2 rounded-md pl-4 border hover:cursor-pointer h-10"
-            onClick={async () => (
-              spsChecked && resetSps(), setSpsChecked((checked) => !checked)
-            )}
-          >
+          <div className="flex flex-row items-center gap-2 rounded-md pl-4 border h-10">
             <input
               type="checkbox"
               checked={!!spsChecked}
               readOnly
               className="hover:cursor-pointer"
+              onClick={async () => (
+                spsChecked && resetSps(), setSpsChecked((checked) => !checked)
+              )}
             />
-            <FormLabel className="hover:cursor-pointer">
+            <FormLabel
+              className="hover:cursor-pointer"
+              onClick={async () => (
+                spsChecked && resetSps(), setSpsChecked((checked) => !checked)
+              )}
+            >
               {t("ToolWithSPS")}
             </FormLabel>
           </div>
@@ -1980,23 +1984,17 @@ export function OperationForm({
             control={form.control}
             name="AlwaysPerform"
             render={({ field }) => (
-              <FormItem>
-                <div className="flex gap-3">
-                  <FormLabel>{t("AlwaysPerform")}</FormLabel>
-                  {operation && operation.AlwaysPerform?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+              <FormItem className="flex flex-row items-center gap-2 rounded-md pl-4 border h-10 space-y-0">
                 <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
+                  <Checkbox
+                    className="hover:cursor-pointer"
+                    checked={stringToBoolean(field.value)}
+                    onCheckedChange={(checked) => {
+                      field.onChange(booleanToString(checked as boolean));
                       const json = JSON.parse(
                         localStorage.getItem(entityId) ?? "{}"
                       );
-                      json.AlwaysPerform = e.target.value;
+                      json.AlwaysPerform = booleanToString(checked as boolean);
                       localStorage.setItem(entityId, JSON.stringify(json));
                       queryClient.invalidateQueries({
                         queryKey: ["operation", entityId],
@@ -2004,6 +2002,14 @@ export function OperationForm({
                     }}
                   />
                 </FormControl>
+                <div className="flex gap-3">
+                  <FormLabel className="hover:cursor-pointer">
+                    {t("AlwaysPerform")}
+                  </FormLabel>
+                  {operation && operation.AlwaysPerform?.draft && (
+                    <SquarePen size={15} />
+                  )}
+                </div>
               </FormItem>
             )}
           />
@@ -2515,4 +2521,12 @@ export function OperationForm({
       </Form>
     )
   );
+}
+
+function stringToBoolean(value: string | undefined | null): boolean {
+  return value?.toLowerCase() === "true";
+}
+
+function booleanToString(value: boolean): string {
+  return value ? "true" : "false";
 }
