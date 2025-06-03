@@ -3,6 +3,11 @@ import Lines from "./pages/Lines";
 import Stations from "./pages/Stations";
 import Tools from "./pages/Tools";
 import Operations from "./pages/Operations";
+import OldLines from "./pages/OldVersion/OldLines";
+import OldStations from "./pages/OldVersion/OldStations";
+import OldTools from "./pages/OldVersion/OldTools";
+import OldOperations from "./pages/OldVersion/OldOperations";
+import OldOperation from "./pages/OldVersion/OldOperation";
 import { GetPlatformSpecificUserName, InitDB } from "../wailsjs/go/main/Core";
 import { EventsOn, EventsOff } from "../wailsjs/runtime";
 import { useEffect, useState } from "react";
@@ -112,6 +117,24 @@ export default function App() {
                     "/line/:luuid/station/:suuid/tool/:tuuid/operation/:ouuid"
                   }
                   component={Operation}
+                />
+
+
+                <Route
+                  path={"/oldVersion/:vuuid"}
+                  component={OldLines}
+                />
+                <Route path={"/oldVersion/:vuuid/oldLines/line/:luuid"} component={OldStations} />
+                <Route path={"/oldVersion/:vuuid/oldLines/line/:luuid/station/:suuid"} component={OldTools} />
+                <Route
+                  path={"/oldVersion/:vuuid/oldLines/line/:luuid/station/:suuid/tool/:tuuid"}
+                  component={OldOperations}
+                />
+                <Route
+                  path={
+                    "/oldVersion/:vuuid/oldLines/line/:luuid/station/:suuid/tool/:tuuid/operation/:ouuid"
+                  }
+                  component={OldOperation}
                 />
               </div>
             ) : (

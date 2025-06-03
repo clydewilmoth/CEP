@@ -49,7 +49,7 @@ import { useTheme } from "next-themes";
 import { ScrollArea } from "../ui/scroll-area";
 import { Sidebar, SidebarBody, SidebarMenu } from "../ui/sidebar";
 import { t } from "i18next";
-import { openVersionSelect } from "@/components/logic/VersionScreen";
+import { SelectedVersion } from "@/components/logic/VersionScreen/VersionScreen";
 
 export function UserDialog({
   onClose,
@@ -419,7 +419,7 @@ export function VersionsDialog({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem><button onClick={() => openVersionSelect("1.0.0")}>1.0.0</button></DropdownMenuItem>
+            <DropdownMenuItem><button onClick={() => SelectedVersion("1.0.0")}>1.0.0</button></DropdownMenuItem>
             <DropdownMenuItem>1.1.0</DropdownMenuItem>
             <DropdownMenuItem>1.2.0</DropdownMenuItem>
           </DropdownMenuContent>
