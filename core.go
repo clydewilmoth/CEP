@@ -1287,7 +1287,7 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 		return fmt.Errorf("could not detect entity type from clipboard: %w", err)
 	}
 
-	if strings.ToLower(actualEntityType) != strings.ToLower(expectedEntityType) {
+	if !strings.EqualFold(actualEntityType, expectedEntityType) {
 		return fmt.Errorf("type mismatch: clipboard contains '%s' but expected '%s'", actualEntityType, expectedEntityType)
 	}
 
@@ -1437,7 +1437,7 @@ func importCopiedEntityRecursive(
 	newParentID mssql.UniqueIdentifier,
 	idMap map[mssql.UniqueIdentifier]mssql.UniqueIdentifier,
 ) (mssql.UniqueIdentifier, error) {
-
+	_ = entityTypeStr // entityTypeStr is not used in this function, but kept for consistency
 	newUUID := mssql.UniqueIdentifier{}
 	_ = newUUID.Scan(uuid.New().String())
 
