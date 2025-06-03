@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, ChevronUp, SquarePen } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, SquarePen } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -1259,11 +1259,8 @@ export function ToolForm({ entityId }: { entityId: string }) {
           />
 
           <div className="flex flex-row items-center gap-2 rounded-md pl-4 border h-10">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={!!spsChecked}
-              readOnly
-              className="hover:cursor-pointer"
               onClick={async () => (
                 spsChecked && resetSps(), setSpsChecked((checked) => !checked)
               )}
@@ -1987,7 +1984,6 @@ export function OperationForm({
               <FormItem className="flex flex-row items-center gap-2 rounded-md pl-4 border h-10 space-y-0">
                 <FormControl>
                   <Checkbox
-                    className="hover:cursor-pointer"
                     checked={stringToBoolean(field.value)}
                     onCheckedChange={(checked) => {
                       field.onChange(booleanToString(checked as boolean));
