@@ -71,7 +71,7 @@ export function EntityCollection({
   parentId: string;
   link: string;
 }) {
-  const { data: entities, status } = useQuery({
+  const { data: entities } = useQuery({
     queryKey: ["entities", entityType, parentId],
     queryFn: async () => await GetAllEntities(entityType, String(parentId)),
   });

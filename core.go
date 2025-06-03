@@ -479,11 +479,12 @@ func (c *Core) ConfigureAndSaveDSN(host, portStr, dbname, user, password, encryp
 	} else if encryptLower != "true" && encryptLower != "false" && encryptLower != "disable" {
 		return errors.New("invalid encrypt option, must be true, false, or disable")
 	}
-
 	trustLower := strings.ToLower(trustServerCertificate)
 	trustParam := ""
 	if trustLower == "true" {
 		trustParam = "&trustservercertificate=true"
+	} else {
+		trustParam = "&trustservercertificate=false"
 	}
 
 	dsn := fmt.Sprintf(
