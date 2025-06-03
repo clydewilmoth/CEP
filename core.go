@@ -1661,15 +1661,14 @@ func (c *Core) cleanupBrokerWithDeadConnection() {
 
 // cleanupOrphanedResources removes old Service Broker resources that might be left from crashed instances
 func cleanupOrphanedResources(sqlDB *sql.DB) {
-	// Clean up orphaned services and queues older than 30 minutes (was 5 minutes, too aggressive)
+	// Clean up orphaned services and queues - remove create_date filter as sys.services doesn't have this column
 	// This helps prevent accumulation of resources from crashed instances
 	stmts := []string{
-		// Get and clean up old services - more conservative approach
+		// Get and clean up orphaned services - remove create_date filter as sys.services doesn't have this column
 		`DECLARE @serviceName NVARCHAR(256);
 		 DECLARE service_cursor CURSOR FOR
 		   SELECT name FROM sys.services 
-		   WHERE name LIKE 'DataChangeService_%'
-		   AND create_date < DATEADD(MINUTE, -30, GETDATE());
+		   WHERE name LIKE 'DataChangeService_%';
 		 
 		 OPEN service_cursor;
 		 FETCH NEXT FROM service_cursor INTO @serviceName;
@@ -1678,7 +1677,7 @@ func cleanupOrphanedResources(sqlDB *sql.DB) {
 		 BEGIN
 		   BEGIN TRY
 		     EXEC('DROP SERVICE [' + @serviceName + '];');
-		     PRINT 'Cleaned up old service: ' + @serviceName;
+		     PRINT 'Cleaned up orphaned service: ' + @serviceName;
 		   END TRY
 		   BEGIN CATCH
 		     -- Ignore errors

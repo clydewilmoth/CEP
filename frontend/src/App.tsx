@@ -34,7 +34,6 @@ export default function App() {
   const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const { setTheme } = useTheme();
-
   useEffect(() => {
     localStorage.getItem("lang") == null
       ? i18n.changeLanguage("en")
@@ -45,11 +44,6 @@ export default function App() {
     (async () => {
       localStorage.getItem("name") == null &&
         localStorage.setItem("name", await GetPlatformSpecificUserName());
-    })();
-    (async () => {
-      const initMessage = await InitDB();
-      setInitialised(initMessage == "InitSuccess" ? true : false);
-      setIsLoading(false);
     })();
     EventsOn("database:changed", (ts: string) => {
       console.log("DB Change: ", ts);
@@ -68,12 +62,13 @@ export default function App() {
       const initMessage = await InitDB();
       setInitialised(initMessage == "InitSuccess" ? true : false);
       setIsLoading(false);
-      initMessage == "InitSuccess"
-        ? toast.success(t(initMessage))
-        : toast.error(t(initMessage));
+      if (tryInitialiseListener > 0) {
+        initMessage == "InitSuccess"
+          ? toast.success(t(initMessage))
+          : toast.error(t(initMessage));
+      }
     })();
   }, [tryInitialiseListener]);
-
   useEffect(() => {
     queryClient.invalidateQueries();
   }, [dbState]);
