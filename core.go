@@ -207,36 +207,23 @@ func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB) {
 
 	log.Printf("Starting Service Broker listener (session: %s)", c.queueName)
 
-	// Add a connection health check ticker
-	healthCheckTicker := time.NewTicker(15 * time.Second)
-	defer healthCheckTicker.Stop()
-
 	for {
 		select {
 		case <-ctx.Done():
 			log.Println("Listener stopped (context canceled)")
 			return
-		case <-healthCheckTicker.C:
-			// Proactive connection health check
-			if err := c.checkConnectionHealth(ctx, sqlDB); err != nil {
-				log.Printf("Connection health check failed: %v", err)
-				c.cleanupBrokerWithDeadConnection()
-				ws.EventsEmit(ctx, "database:connection_lost", err.Error())
-				log.Printf("Listener exiting due to failed health check (session: %s)", c.queueName)
-				return
-			}
 		default:
 		}
 
-		// Use WAITFOR RECEIVE to block until a message arrives (reduced timeout for faster detection)
+		// Use WAITFOR RECEIVE to block until a message arrives (no polling!)
 		query := fmt.Sprintf(`
 			WAITFOR (
 				RECEIVE TOP(1) message_body 
 				FROM [dbo].[%s]
-			), TIMEOUT 15000;
+			), TIMEOUT 30000;
 		`, c.queueName)
 
-		ctx_timeout, cancel := context.WithTimeout(ctx, 20*time.Second)
+		ctx_timeout, cancel := context.WithTimeout(ctx, 35*time.Second)
 		row := sqlDB.QueryRowContext(ctx_timeout, query)
 
 		var messageBody sql.NullString
@@ -479,16 +466,15 @@ func (c *Core) ConfigureAndSaveDSN(host, portStr, dbname, user, password, encryp
 	} else if encryptLower != "true" && encryptLower != "false" && encryptLower != "disable" {
 		return errors.New("invalid encrypt option, must be true, false, or disable")
 	}
+
 	trustLower := strings.ToLower(trustServerCertificate)
-	trustParam := ""
+	trustParam := "&trustservercertificate=false"
 	if trustLower == "true" {
 		trustParam = "&trustservercertificate=true"
-	} else {
-		trustParam = "&trustservercertificate=false"
 	}
 
 	dsn := fmt.Sprintf(
-		"sqlserver://%s:%s@%s:%s?database=%s&encrypt=%s%s&connection+timeout=10&dial+timeout=5",
+		"sqlserver://%s:%s@%s:%s?database=%s&encrypt=%s%s",
 		user, password, host, portStr, dbname, encryptLower, trustParam,
 	)
 
@@ -1738,27 +1724,4 @@ func cleanupOrphanedResources(sqlDB *sql.DB) {
 	}
 
 	log.Println("Orphaned Service Broker resources cleanup completed")
-}
-
-func (c *Core) checkConnectionHealth(ctx context.Context, sqlDB *sql.DB) error {
-	healthCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-	defer cancel()
-
-	// Simple ping to detect connection issues
-	if err := sqlDB.PingContext(healthCtx); err != nil {
-		return fmt.Errorf("connection ping failed: %w", err)
-	}
-
-	// Quick query to verify Service Broker queue accessibility
-	query := fmt.Sprintf("SELECT COUNT(*) FROM sys.service_queues WHERE name = '%s'", c.queueName)
-	var count int
-	if err := sqlDB.QueryRowContext(healthCtx, query).Scan(&count); err != nil {
-		return fmt.Errorf("service broker health check failed: %w", err)
-	}
-
-	if count == 0 {
-		return fmt.Errorf("service broker queue %s no longer exists", c.queueName)
-	}
-
-	return nil
 }
