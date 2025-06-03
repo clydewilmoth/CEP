@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "react-i18next";
-import { Check, ChevronDown, ChevronUp, SquarePen } from "lucide-react";
+import { ChevronDown, ChevronUp, SquarePen } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -445,13 +445,44 @@ export function StationForm({ entityId }: { entityId: string }) {
     const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
 
+    let resetChildTemplate = false;
     const stationDb = await GetEntityDetails("station", entityId);
     if (!station) return;
     Object.entries(station).forEach(([key, value]) => {
       if (value.draft && stationDb.key != value.data) {
+        if (key == "StationType") resetChildTemplate = true;
         changesRecord[key] = value.data;
       }
     });
+
+    if (resetChildTemplate) {
+      const tools = await GetAllEntities("tool", entityId);
+      if (tools)
+        tools.forEach(async ({ ID }) => {
+          const operations = await GetAllEntities("operation", ID);
+          operations.forEach(async ({ ID }) => {
+            UpdateEntityFieldsString(
+              String(localStorage.getItem("name")),
+              "operation",
+              ID,
+              lastKnownUpdate,
+              {
+                SerialOrParallel: "none",
+                SequenceGroup: "",
+                Sequence: "",
+              }
+            );
+            const json = JSON.parse(localStorage.getItem(ID) ?? "{}");
+
+            delete json.SerialOrParallel;
+            delete json.SequenceGroup;
+            delete json.Sequence;
+            if (JSON.stringify(json) != "{}") {
+              localStorage.setItem(ID, JSON.stringify(json));
+            }
+          });
+        });
+    }
 
     await UpdateEntityFieldsString(
       String(localStorage.getItem("name")),
@@ -873,7 +904,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
 
     if (resetChildTemplate) {
       const operations = await GetAllEntities("operation", entityId);
-      if (operations) {
+      if (operations)
         operations.forEach(async ({ ID }) => {
           UpdateEntityFieldsString(
             String(localStorage.getItem("name")),
@@ -899,7 +930,6 @@ export function ToolForm({ entityId }: { entityId: string }) {
             localStorage.setItem(ID, JSON.stringify(json));
           }
         });
-      }
     }
 
     await UpdateEntityFieldsString(
@@ -1875,7 +1905,7 @@ export function OperationForm({
                     json.SerialOrParallel = value;
                     localStorage.setItem(entityId, JSON.stringify(json));
                     queryClient.invalidateQueries({
-                      queryKey: ["station", entityId],
+                      queryKey: ["operation", entityId],
                     });
                   }}
                 >
