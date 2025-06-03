@@ -39,11 +39,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { 
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem, } from "../ui/dropdown-menu";
 
 import { useTheme } from "next-themes";
 import { ScrollArea } from "../ui/scroll-area";
 import { Sidebar, SidebarBody, SidebarMenu } from "../ui/sidebar";
 import { t } from "i18next";
+import { openVersionSelect } from "@/components/logic/VersionScreen";
 
 export function UserDialog({
   onClose,
@@ -381,6 +387,49 @@ export function ThemeSwitch() {
   );
 }
 
+export function VersionsDialog({
+  onClose,
+  onDialogStateChange,
+}: {
+  onClose?: () => void;
+  onDialogStateChange?: (open: boolean) => void;
+}) {
+
+  // Es muss noch ein select mechanismus für alle snapshots gemacht werden, 
+  // welcher ein neues fenster öffnet, in dem die snapshots angezeigt werden und vorher als parameter eine versionsID übergeben wird
+  return (
+    <Dialog
+      onOpenChange={(open) => {
+        onDialogStateChange && onDialogStateChange(open);
+        !open && onClose && onClose();
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button variant="ghost" className="w-10 h-10">
+          <Globe />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
+        <DialogTitle>{t("Versions Title")}</DialogTitle>
+        <DialogDescription>{t("Versions Description")}</DialogDescription>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-full text-left">
+              {t("Select Version")}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem><button onClick={() => openVersionSelect("1.0.0")}>1.0.0</button></DropdownMenuItem>
+            <DropdownMenuItem>1.1.0</DropdownMenuItem>
+            <DropdownMenuItem>1.2.0</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
 export function Menu() {
   const [open, setOpen] = useState(false);
   const [isAnyDialogOpen, setIsAnyDialogOpen] = useState(false);
@@ -421,6 +470,14 @@ export function Menu() {
           />
           <SidebarMenu item={<ThemeSwitch />} text={t("Theme")} />
         </div>
+        <SidebarMenu
+            item={
+              <VersionsDialog
+                
+              />
+            }
+            text={t("Versions")}
+          />
         <SidebarMenu
           item={
             <UserDialog
