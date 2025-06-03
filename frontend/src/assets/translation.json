@@ -954,7 +954,7 @@
             "LangDialog Description" : "Wähle deine Sprache. Änderungen werden automatisch übernommen. Schließe das Fenster zum beenden.",
             "Confirm" : "Bestätigen",
             "Search" : "Suche",
-            "Search for Name": "",
+            "Search for Name": "Nach Namen suchen",
             "NoFilter": "Kein Filter",
             "Pending": "Ausstehend",
             "InProgress": "In Bearbeitung",

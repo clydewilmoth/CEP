@@ -45,7 +45,13 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Sidebar, SidebarBody, SidebarMenu } from "../ui/sidebar";
 import { t } from "i18next";
 
-export function UserDialog({ onClose }: { onClose?: () => void }) {
+export function UserDialog({
+  onClose,
+  onDialogStateChange,
+}: {
+  onClose?: () => void;
+  onDialogStateChange?: (open: boolean) => void;
+}) {
   const { t } = useTranslation();
   const [name, setName] = useState<string | null>();
   useEffect(() => {
@@ -63,7 +69,8 @@ export function UserDialog({ onClose }: { onClose?: () => void }) {
         name == "" &&
           (setName(await GetPlatformSpecificUserName()),
           localStorage.setItem("name", await GetPlatformSpecificUserName()));
-        open && onClose && onClose();
+        onDialogStateChange && onDialogStateChange(open);
+        !open && onClose && onClose();
       }}
     >
       <DialogTrigger asChild>
@@ -87,12 +94,23 @@ export function UserDialog({ onClose }: { onClose?: () => void }) {
   );
 }
 
-export function LangDialog({ onClose }: { onClose?: () => void }) {
+export function LangDialog({
+  onClose,
+  onDialogStateChange,
+}: {
+  onClose?: () => void;
+  onDialogStateChange?: (open: boolean) => void;
+}) {
   const { t, i18n } = useTranslation();
   const [lang, setLang] = useState<string | null>(localStorage.getItem("lang"));
 
   return (
-    <Dialog onOpenChange={(open) => open && onClose && onClose()}>
+    <Dialog
+      onOpenChange={(open) => {
+        onDialogStateChange && onDialogStateChange(open);
+        !open && onClose && onClose();
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="ghost" className="w-10 h-10">
           <Globe />
@@ -120,7 +138,13 @@ export function LangDialog({ onClose }: { onClose?: () => void }) {
   );
 }
 
-export function DSNDialog({ onClose }: { onClose?: () => void }) {
+export function DSNDialog({
+  onClose,
+  onDialogStateChange,
+}: {
+  onClose?: () => void;
+  onDialogStateChange?: (open: boolean) => void;
+}) {
   const formSchema = z.object({
     Host: z.string().min(1, {
       message: "Required!",
@@ -193,11 +217,14 @@ export function DSNDialog({ onClose }: { onClose?: () => void }) {
         });
     })();
   }, [open]);
-
   return (
     <Dialog
       open={open}
-      onOpenChange={(open) => (setOpen(open), open && onClose && onClose())}
+      onOpenChange={(open) => {
+        setOpen(open);
+        onDialogStateChange && onDialogStateChange(open);
+        !open && onClose && onClose();
+      }}
     >
       <DialogTrigger asChild>
         <Button variant="ghost" className="w-10 h-10">
@@ -356,6 +383,14 @@ export function ThemeSwitch() {
 
 export function Menu() {
   const [open, setOpen] = useState(false);
+  const [isAnyDialogOpen, setIsAnyDialogOpen] = useState(false);
+
+  const handleDialogStateChange = (dialogOpen: boolean) => {
+    setIsAnyDialogOpen(dialogOpen);
+    if (dialogOpen) {
+      setOpen(false); // Close sidebar when dialog opens
+    }
+  };
 
   const truncateName = (name: string | null): string => {
     if (!name) return "";
@@ -363,21 +398,36 @@ export function Menu() {
   };
 
   return (
-    <Sidebar open={open} setOpen={setOpen}>
+    <Sidebar open={open && !isAnyDialogOpen} setOpen={setOpen}>
       <SidebarBody className="justify-between gap-10 overflow-hidden">
         <div className="flex flex-col">
           <SidebarMenu
-            item={<DSNDialog onClose={() => setOpen(false)} />}
+            item={
+              <DSNDialog
+                onClose={() => setOpen(false)}
+                onDialogStateChange={handleDialogStateChange}
+              />
+            }
             text={t("Database")}
           />
           <SidebarMenu
-            item={<LangDialog onClose={() => setOpen(false)} />}
+            item={
+              <LangDialog
+                onClose={() => setOpen(false)}
+                onDialogStateChange={handleDialogStateChange}
+              />
+            }
             text={t("Language")}
           />
           <SidebarMenu item={<ThemeSwitch />} text={t("Theme")} />
         </div>
         <SidebarMenu
-          item={<UserDialog onClose={() => setOpen(false)} />}
+          item={
+            <UserDialog
+              onClose={() => setOpen(false)}
+              onDialogStateChange={handleDialogStateChange}
+            />
+          }
           text={truncateName(localStorage.getItem("name"))}
         />
       </SidebarBody>
