@@ -44,6 +44,8 @@ import { useTheme } from "next-themes";
 import { ScrollArea } from "../ui/scroll-area";
 import { Sidebar, SidebarBody, SidebarMenu } from "../ui/sidebar";
 import { t } from "i18next";
+import { Checkbox } from "../ui/checkbox";
+import { booleanToString, stringToBoolean } from "./EntityForms";
 
 export function UserDialog({
   onClose,
@@ -161,8 +163,8 @@ export function DSNDialog({
     Password: z.string().min(1, {
       message: "Required!",
     }),
-    Encrypted: z.boolean(),
-    TrustServerCertificate: z.boolean(),
+    Encrypted: z.string(),
+    TrustServerCertificate: z.string(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -173,8 +175,8 @@ export function DSNDialog({
       Database: "db",
       User: "sa",
       Password: "",
-      Encrypted: true,
-      TrustServerCertificate: true,
+      Encrypted: "true",
+      TrustServerCertificate: "true",
     },
   });
 
@@ -185,8 +187,8 @@ export function DSNDialog({
       values.Database,
       values.User,
       values.Password,
-      values.Encrypted.toString(),
-      values.TrustServerCertificate.toString()
+      values.Encrypted,
+      values.TrustServerCertificate
     );
     toast.success(`${t("DSNDialog Toast")}`);
     tryInitialise();
@@ -212,8 +214,8 @@ export function DSNDialog({
           Database: env.Database || "db",
           User: env.User || "sa",
           Password: env.Password || "",
-          Encrypted: env.Encrypt === "true",
-          TrustServerCertificate: env.TrustServerCertificate === "true",
+          Encrypted: env.Encrypt || "true",
+          TrustServerCertificate: env.TrustServerCertificate || "true",
         });
     })();
   }, [open]);
@@ -316,11 +318,13 @@ export function DSNDialog({
                     render={({ field }) => (
                       <FormItem className="flex gap-2 justify-center space-y-0">
                         <FormControl>
-                          <input
-                            type="checkbox"
-                            checked={field.value}
-                            onChange={field.onChange}
-                            className="hover:cursor-pointer"
+                          <Checkbox
+                            checked={stringToBoolean(field.value)}
+                            onCheckedChange={(checked) =>
+                              field.onChange(
+                                booleanToString(checked as boolean)
+                              )
+                            }
                           />
                         </FormControl>
                         <FormLabel className="hover:cursor-pointer">
@@ -335,11 +339,13 @@ export function DSNDialog({
                     render={({ field }) => (
                       <FormItem className="flex gap-2 justify-center space-y-0">
                         <FormControl>
-                          <input
-                            type="checkbox"
-                            checked={field.value}
-                            onChange={field.onChange}
-                            className="hover:cursor-pointer"
+                          <Checkbox
+                            checked={stringToBoolean(field.value)}
+                            onCheckedChange={(checked) =>
+                              field.onChange(
+                                booleanToString(checked as boolean)
+                              )
+                            }
                           />
                         </FormControl>
                         <FormLabel className="hover:cursor-pointer">

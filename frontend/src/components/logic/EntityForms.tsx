@@ -2519,10 +2519,10 @@ export function OperationForm({
   );
 }
 
-function stringToBoolean(value: string | undefined | null): boolean {
+export function stringToBoolean(value: string | undefined | null): boolean {
   return value?.toLowerCase() === "true";
 }
 
-function booleanToString(value: boolean): string {
+export function booleanToString(value: boolean): string {
   return value ? "true" : "false";
 }
