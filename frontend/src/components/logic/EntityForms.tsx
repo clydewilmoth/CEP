@@ -370,8 +370,6 @@ export function StationForm({ entityId }: { entityId: string }) {
         StatusColor: json.StatusColor ?? station.StatusColor ?? "empty",
         Description: json.Description ?? station.Description ?? "",
         StationType: json.StationType ?? station.StationType ?? "",
-        SerialOrParallel:
-          json.SerialOrParallel ?? station.SerialOrParallel ?? "",
       });
       setFormReady(true);
       queryClient.invalidateQueries({
@@ -386,7 +384,6 @@ export function StationForm({ entityId }: { entityId: string }) {
     StatusColor: z.string().optional(),
     Description: z.string().optional(),
     StationType: z.string().optional(),
-    SerialOrParallel: z.string().optional(),
   });
 
   function clearDrafts() {
@@ -666,100 +663,13 @@ export function StationForm({ entityId }: { entityId: string }) {
                   <SelectContent>
                     <SelectItem value="none">-</SelectItem>
                     {data.StationTypes.map((stationtype) => {
-                      let skip = true;
-                      stationtype.serialOrParallel.every((sop) => {
-                        if (
-                          !form.getValues().SerialOrParallel ||
-                          form.getValues().SerialOrParallel == "none"
-                        ) {
-                          skip = false;
-                          return false;
-                        } else if (form.getValues().SerialOrParallel == sop) {
-                          skip = false;
-                          return false;
-                        }
-                        return true;
-                      });
-                      if (
-                        !form.getValues().SerialOrParallel ||
-                        (form.getValues().SerialOrParallel == "none" &&
-                          stationtype.id == "0")
-                      )
-                        skip = false;
                       return (
-                        !skip && (
-                          <SelectItem
-                            key={"ST_" + stationtype.id}
-                            value={stationtype.id}
-                          >
-                            {t("ST_" + String(stationtype.id) + "_Name")}
-                          </SelectItem>
-                        )
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="SerialOrParallel"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex gap-3">
-                  <FormLabel>{t("Serial / Parallel")}</FormLabel>
-                  {station && station.SerialOrParallel?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
-                <Select
-                  value={field.value ?? ""}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    const json = JSON.parse(
-                      localStorage.getItem(entityId) ?? "{}"
-                    );
-                    json.SerialOrParallel = value;
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    queryClient.invalidateQueries({
-                      queryKey: ["station", entityId],
-                    });
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("SOP Placeholder")} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {data.SerialOrParallel.map((serialorparallel) => {
-                      let skip = true;
-                      serialorparallel.stationTypes.every((st) => {
-                        if (
-                          !form.getValues().StationType ||
-                          form.getValues().StationType == "none"
-                        ) {
-                          skip = false;
-                          return false;
-                        } else if (form.getValues().StationType == st) {
-                          skip = false;
-                          return false;
-                        }
-                        return true;
-                      });
-
-                      return (
-                        !skip && (
-                          <SelectItem
-                            key={"SOP_" + serialorparallel.id}
-                            value={serialorparallel.id}
-                          >
-                            {t("SOP_" + String(serialorparallel.id) + "_name")}
-                          </SelectItem>
-                        )
+                        <SelectItem
+                          key={"ST_" + stationtype.id}
+                          value={stationtype.id}
+                        >
+                          {t("ST_" + String(stationtype.id) + "_Name")}
+                        </SelectItem>
                       );
                     })}
                   </SelectContent>
@@ -1593,7 +1503,13 @@ export function ToolForm({ entityId }: { entityId: string }) {
   );
 }
 
-export function OperationForm({ entityId }: { entityId: string }) {
+export function OperationForm({
+  entityId,
+  suuid,
+}: {
+  entityId: string;
+  suuid: string;
+}) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
     {}
   );
@@ -1606,6 +1522,7 @@ export function OperationForm({ entityId }: { entityId: string }) {
   useEffect(() => {
     (async () => {
       const operation = await GetEntityDetails("operation", entityId);
+      const station = await GetEntityDetails("station", suuid);
       const parentId = operation.ParentID;
       setParentTool(await GetEntityDetails("tool", parentId));
 
@@ -1626,6 +1543,9 @@ export function OperationForm({ entityId }: { entityId: string }) {
         Comment: json.Comment ?? operation.Comment ?? "",
         StatusColor: json.StatusColor ?? operation.StatusColor ?? "empty",
         Description: json.Description ?? operation.Description ?? "",
+        StationType: station.StationType ?? "",
+        SerialOrParallel:
+          json.SerialOrParallel ?? operation.SerialOrParallel ?? "",
         SequenceGroup: json.SequenceGroup ?? operation.SequenceGroup ?? "",
         Sequence: json.Sequence ?? operation.Sequence ?? "",
         AlwaysPerform: json.AlwaysPerform ?? operation.AlwaysPerform ?? "",
@@ -1653,6 +1573,8 @@ export function OperationForm({ entityId }: { entityId: string }) {
     Comment: z.string().optional(),
     StatusColor: z.string().optional(),
     Description: z.string().optional(),
+    StationType: z.string().optional(),
+    SerialOrParallel: z.string().optional(),
     SequenceGroup: z.string().optional(),
     Sequence: z.string().optional(),
     AlwaysPerform: z.string().optional(),
@@ -1921,12 +1843,24 @@ export function OperationForm({ entityId }: { entityId: string }) {
 
           <FormField
             control={form.control}
-            name="Template"
+            name="StationType"
+            render={({ field }) => (
+              <FormItem className="hidden">
+                <FormControl>
+                  <Input {...field} disabled />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="SerialOrParallel"
             render={({ field }) => (
               <FormItem>
                 <div className="flex gap-3">
-                  <FormLabel>{t("Template")}</FormLabel>
-                  {operation && operation.Template?.draft && (
+                  <FormLabel>{t("Serial / Parallel")}</FormLabel>
+                  {operation && operation.SerialOrParallel?.draft && (
                     <SquarePen size={15} />
                   )}
                 </div>
@@ -1937,33 +1871,24 @@ export function OperationForm({ entityId }: { entityId: string }) {
                     const json = JSON.parse(
                       localStorage.getItem(entityId) ?? "{}"
                     );
-                    json.Template = value;
-                    if (value == "none") {
-                      json.DecisionClass = value;
-                      json.VerificationClass = value;
-                      json.GenerationClass = value;
-                      json.SavingClass = value;
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      setObserver((prev) => prev + 1);
-                    }
+                    json.SerialOrParallel = value;
                     localStorage.setItem(entityId, JSON.stringify(json));
                     queryClient.invalidateQueries({
-                      queryKey: ["operation", entityId],
+                      queryKey: ["station", entityId],
                     });
                   }}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t("Template Placeholder")} />
+                      <SelectValue placeholder={t("SOP Placeholder")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="none">-</SelectItem>
-                    {data.Templates.map((template) => {
+                    {data.SerialOrParallel.map((serialorparallel) => {
                       let skip = true;
-                      template.toolClassesIds.every((tc) => {
-                        if (!parentTool?.ToolClass) return false;
-                        else if (parentTool?.ToolClass == tc) {
+                      serialorparallel.stationTypes.every((st) => {
+                        if (form.getValues().StationType == st) {
                           skip = false;
                           return false;
                         }
@@ -1973,10 +1898,10 @@ export function OperationForm({ entityId }: { entityId: string }) {
                       return (
                         !skip && (
                           <SelectItem
-                            key={"T_" + template.id}
-                            value={template.id}
+                            key={"SOP_" + serialorparallel.id}
+                            value={serialorparallel.id}
                           >
-                            {t("T_" + String(template.id) + "_Description")}
+                            {t("SOP_" + String(serialorparallel.id) + "_name")}
                           </SelectItem>
                         )
                       );
@@ -2125,6 +2050,74 @@ export function OperationForm({ entityId }: { entityId: string }) {
                         >
                           {t("QR_" + String(qgaterelevant.id) + "_name")}
                         </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="Template"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex gap-3">
+                  <FormLabel>{t("Template")}</FormLabel>
+                  {operation && operation.Template?.draft && (
+                    <SquarePen size={15} />
+                  )}
+                </div>
+                <Select
+                  value={field.value ?? ""}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.Template = value;
+                    if (value == "none") {
+                      json.DecisionClass = value;
+                      json.VerificationClass = value;
+                      json.GenerationClass = value;
+                      json.SavingClass = value;
+                      localStorage.setItem(entityId, JSON.stringify(json));
+                      setObserver((prev) => prev + 1);
+                    }
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["operation", entityId],
+                    });
+                  }}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("Template Placeholder")} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">-</SelectItem>
+                    {data.Templates.map((template) => {
+                      let skip = true;
+                      template.toolClassesIds.every((tc) => {
+                        if (!parentTool?.ToolClass) return false;
+                        else if (parentTool?.ToolClass == tc) {
+                          skip = false;
+                          return false;
+                        }
+                        return true;
+                      });
+
+                      return (
+                        !skip && (
+                          <SelectItem
+                            key={"T_" + template.id}
+                            value={template.id}
+                          >
+                            {t("T_" + String(template.id) + "_Description")}
+                          </SelectItem>
+                        )
                       );
                     })}
                   </SelectContent>
