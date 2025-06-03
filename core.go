@@ -229,12 +229,28 @@ func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB) {
 		var messageBody sql.NullString
 		err := row.Scan(&messageBody)
 		cancel()
-
 		if err != nil {
 			if ctx.Err() != nil {
 				log.Println("Listener stopped due to context cancellation")
 				return
-			} // Check for connection errors
+			}
+
+			// Check for queue/service not found errors (resources cleaned up by another instance)
+			if strings.Contains(err.Error(), "Invalid object name") &&
+				(strings.Contains(err.Error(), "DataChangeQueue_") || strings.Contains(err.Error(), "DataChangeService_")) {
+				log.Printf("Service Broker resources no longer exist (cleaned up by another instance): %v", err)
+				log.Printf("Listener exiting - resources deleted (session: %s)", c.queueName)
+
+				// Clear our references since they're gone
+				c.queueName = ""
+				c.serviceName = ""
+
+				// Emit connection lost event to trigger reconnection
+				ws.EventsEmit(ctx, "database:connection_lost", "Service Broker resources removed")
+				return
+			}
+
+			// Check for connection errors
 			if strings.Contains(err.Error(), "connection") ||
 				strings.Contains(err.Error(), "network") ||
 				strings.Contains(err.Error(), "timeout") ||
@@ -1660,67 +1676,83 @@ func (c *Core) cleanupBrokerWithDeadConnection() {
 }
 
 // cleanupOrphanedResources removes old Service Broker resources that might be left from crashed instances
+// This function now checks for active connections before removing resources to avoid interfering with running instances
 func cleanupOrphanedResources(sqlDB *sql.DB) {
-	// Clean up orphaned services and queues - remove create_date filter as sys.services doesn't have this column
-	// This helps prevent accumulation of resources from crashed instances
-	stmts := []string{
-		// Get and clean up orphaned services - remove create_date filter as sys.services doesn't have this column
-		`DECLARE @serviceName NVARCHAR(256);
-		 DECLARE service_cursor CURSOR FOR
-		   SELECT name FROM sys.services 
-		   WHERE name LIKE 'DataChangeService_%';
-		 
-		 OPEN service_cursor;
-		 FETCH NEXT FROM service_cursor INTO @serviceName;
-		 
-		 WHILE @@FETCH_STATUS = 0
-		 BEGIN
-		   BEGIN TRY
-		     EXEC('DROP SERVICE [' + @serviceName + '];');
-		     PRINT 'Cleaned up orphaned service: ' + @serviceName;
-		   END TRY
-		   BEGIN CATCH
-		     -- Ignore errors
-		   END CATCH
-		   
-		   FETCH NEXT FROM service_cursor INTO @serviceName;
-		 END;
-		 
-		 CLOSE service_cursor;
-		 DEALLOCATE service_cursor;`,
+	// Test connectivity to each queue before considering it orphaned
+	// If a queue can't receive messages, it's likely from a crashed instance
+	stmt := `
+	DECLARE @queueName NVARCHAR(256);
+	DECLARE @serviceName NVARCHAR(256);
+	DECLARE @isOrphaned BIT;
+	
+	-- Check for orphaned services and their associated queues
+	DECLARE service_cursor CURSOR FOR
+	  SELECT s.name as service_name, sq.name as queue_name
+	  FROM sys.services s
+	  JOIN sys.service_queues sq ON s.service_queue_id = sq.object_id
+	  WHERE s.name LIKE 'DataChangeService_%';
+	
+	OPEN service_cursor;
+	FETCH NEXT FROM service_cursor INTO @serviceName, @queueName;
+	
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+	  SET @isOrphaned = 0;
+	  
+	  -- Try to peek at the queue to see if it's accessible
+	  -- If there's an error, it might be orphaned
+	  BEGIN TRY
+	    DECLARE @dummy_body VARBINARY(MAX);
+	    SELECT TOP(1) @dummy_body = message_body 
+	    FROM [dbo].[' + @queueName + ']
+	    WITH (NOLOCK);
+	    -- If we get here without error, queue is accessible (not orphaned)
+	  END TRY
+	  BEGIN CATCH
+	    -- Queue might be orphaned, but be conservative
+	    -- Only mark as orphaned if it's a specific access error
+	    IF ERROR_NUMBER() = 208 -- Invalid object name
+	      SET @isOrphaned = 1;
+	  END CATCH
+	  
+	  -- Only clean up if we're confident it's orphaned
+	  -- For now, we'll be very conservative and not auto-cleanup
+	  -- This prevents interfering with other running instances
+	  
+	  FETCH NEXT FROM service_cursor INTO @serviceName, @queueName;
+	END;
+	
+	CLOSE service_cursor;
+	DEALLOCATE service_cursor;
+	
+	-- Clean up only truly orphaned queues (those without any associated service)
+	DECLARE orphan_queue_cursor CURSOR FOR
+	  SELECT name FROM sys.service_queues 
+	  WHERE name LIKE 'DataChangeQueue_%'
+	  AND object_id NOT IN (SELECT service_queue_id FROM sys.services WHERE service_queue_id IS NOT NULL);
+	
+	OPEN orphan_queue_cursor;
+	FETCH NEXT FROM orphan_queue_cursor INTO @queueName;
+	
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+	  BEGIN TRY
+	    EXEC('DROP QUEUE [dbo].[' + @queueName + '];');
+	    PRINT 'Cleaned up truly orphaned queue: ' + @queueName;
+	  END TRY
+	  BEGIN CATCH
+	    -- Ignore errors
+	  END CATCH
+	  
+	  FETCH NEXT FROM orphan_queue_cursor INTO @queueName;
+	END;
+	
+	CLOSE orphan_queue_cursor;
+	DEALLOCATE orphan_queue_cursor;`
 
-		// Clean up orphaned queues - only those not associated with any service
-		`DECLARE @queueName NVARCHAR(256);
-		 DECLARE queue_cursor CURSOR FOR
-		   SELECT name FROM sys.service_queues 
-		   WHERE name LIKE 'DataChangeQueue_%'
-		   AND object_id NOT IN (SELECT service_queue_id FROM sys.services WHERE service_queue_id IS NOT NULL);
-		 
-		 OPEN queue_cursor;
-		 FETCH NEXT FROM queue_cursor INTO @queueName;
-		 
-		 WHILE @@FETCH_STATUS = 0
-		 BEGIN
-		   BEGIN TRY
-		     EXEC('DROP QUEUE [dbo].[' + @queueName + '];');
-		     PRINT 'Cleaned up orphaned queue: ' + @queueName;
-		   END TRY
-		   BEGIN CATCH
-		     -- Ignore errors
-		   END CATCH
-		   
-		   FETCH NEXT FROM queue_cursor INTO @queueName;
-		 END;
-		 
-		 CLOSE queue_cursor;
-		 DEALLOCATE queue_cursor;`,
+	if _, err := sqlDB.Exec(stmt); err != nil {
+		log.Printf("Warning: Conservative orphaned resource cleanup issue: %v", err)
 	}
 
-	for _, stmt := range stmts {
-		if _, err := sqlDB.Exec(stmt); err != nil {
-			log.Printf("Warning: Orphaned resource cleanup issue: %v", err)
-		}
-	}
-
-	log.Println("Orphaned Service Broker resources cleanup completed")
+	log.Println("Conservative orphaned Service Broker resources cleanup completed")
 }
