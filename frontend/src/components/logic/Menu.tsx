@@ -9,15 +9,11 @@ import {
 } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  CheckEnvInExeDir,
-  GetPlatformSpecificUserName,
-  ParseDSNFromEnv,
-} from "../../../wailsjs/go/main/Core";
+import { GetPlatformSpecificUserName } from "../../../wailsjs/go/main/Core";
 import { Input } from "../ui/input";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import {
@@ -27,7 +23,6 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import { ConfigureAndSaveDSN } from "../../../wailsjs/go/main/Core";
 
 import { useContext } from "@/store";
 import { toast } from "sonner";
@@ -46,12 +41,11 @@ import { Sidebar, SidebarBody, SidebarMenu } from "../ui/sidebar";
 import { t } from "i18next";
 import { Checkbox } from "../ui/checkbox";
 import { booleanToString, stringToBoolean } from "./EntityForms";
+import { setDatabaseConnection } from "@/App";
 
 export function UserDialog({
-  onClose,
   onDialogStateChange,
 }: {
-  onClose?: () => void;
   onDialogStateChange?: (open: boolean) => void;
 }) {
   const { t } = useTranslation();
@@ -72,7 +66,6 @@ export function UserDialog({
           (setName(await GetPlatformSpecificUserName()),
           localStorage.setItem("name", await GetPlatformSpecificUserName()));
         onDialogStateChange && onDialogStateChange(open);
-        !open && onClose && onClose();
       }}
     >
       <DialogTrigger asChild>
@@ -97,10 +90,8 @@ export function UserDialog({
 }
 
 export function LangDialog({
-  onClose,
   onDialogStateChange,
 }: {
-  onClose?: () => void;
   onDialogStateChange?: (open: boolean) => void;
 }) {
   const { t, i18n } = useTranslation();
@@ -110,7 +101,6 @@ export function LangDialog({
     <Dialog
       onOpenChange={(open) => {
         onDialogStateChange && onDialogStateChange(open);
-        !open && onClose && onClose();
       }}
     >
       <DialogTrigger asChild>
@@ -122,13 +112,13 @@ export function LangDialog({
         <DialogTitle>{t("LangDialog Title")}</DialogTitle>
         <DialogDescription>{t("LangDialog Description")}</DialogDescription>
         <Select
+          value={String(lang)}
           onValueChange={(e) => (
             setLang(e), i18n.changeLanguage(e), localStorage.setItem("lang", e)
           )}
-          defaultValue={String(lang)}
         >
           <SelectTrigger>
-            <SelectValue placeholder={t("LangDialog Placeholder")} />
+            <SelectValue defaultValue={localStorage.getItem("lang") ?? "en"} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="en">English</SelectItem>
@@ -141,10 +131,8 @@ export function LangDialog({
 }
 
 export function DSNDialog({
-  onClose,
   onDialogStateChange,
 }: {
-  onClose?: () => void;
   onDialogStateChange?: (open: boolean) => void;
 }) {
   const formSchema = z.object({
@@ -181,7 +169,7 @@ export function DSNDialog({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    ConfigureAndSaveDSN(
+    setDatabaseConnection(
       values.Host,
       String(values.Port),
       values.Database,
@@ -192,6 +180,7 @@ export function DSNDialog({
     );
     toast.success(`${t("DSNDialog Toast")}`);
     tryInitialise();
+    onDialogStateChange && onDialogStateChange(false);
     setOpen(false);
   }
 
@@ -201,21 +190,23 @@ export function DSNDialog({
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    (async () => setOpen(!(await CheckEnvInExeDir())))();
+    !localStorage.getItem("dsn") &&
+      (setOpen(true), onDialogStateChange && onDialogStateChange(true));
   }, []);
 
   useEffect(() => {
     (async () => {
-      const env = await ParseDSNFromEnv();
-      env &&
+      console.log(localStorage.getItem("database"));
+      const db = JSON.parse(localStorage.getItem("database") ?? "{}");
+      db != "{}" &&
         form.reset({
-          Host: env.Host || "localhost",
-          Port: Number(env.Port) || 1433,
-          Database: env.Database || "db",
-          User: env.User || "sa",
-          Password: env.Password || "",
-          Encrypted: env.Encrypt || "true",
-          TrustServerCertificate: env.TrustServerCertificate || "true",
+          Host: db.host || "localhost",
+          Port: Number(db.port) || 1433,
+          Database: db.database || "db",
+          User: db.user || "sa",
+          Password: db.password || "",
+          Encrypted: db.encrypted || "true",
+          TrustServerCertificate: db.trustserver || "true",
         });
     })();
   }, [open]);
@@ -223,9 +214,8 @@ export function DSNDialog({
     <Dialog
       open={open}
       onOpenChange={(open) => {
-        setOpen(open);
         onDialogStateChange && onDialogStateChange(open);
-        !open && onClose && onClose();
+        setOpen(open);
       }}
     >
       <DialogTrigger asChild>
@@ -394,7 +384,7 @@ export function Menu() {
   const handleDialogStateChange = (dialogOpen: boolean) => {
     setIsAnyDialogOpen(dialogOpen);
     if (dialogOpen) {
-      setOpen(false); // Close sidebar when dialog opens
+      setOpen(false);
     }
   };
 
@@ -408,32 +398,17 @@ export function Menu() {
       <SidebarBody className="justify-between gap-10 overflow-hidden">
         <div className="flex flex-col">
           <SidebarMenu
-            item={
-              <DSNDialog
-                onClose={() => setOpen(false)}
-                onDialogStateChange={handleDialogStateChange}
-              />
-            }
+            item={<DSNDialog onDialogStateChange={handleDialogStateChange} />}
             text={t("Database")}
           />
           <SidebarMenu
-            item={
-              <LangDialog
-                onClose={() => setOpen(false)}
-                onDialogStateChange={handleDialogStateChange}
-              />
-            }
+            item={<LangDialog onDialogStateChange={handleDialogStateChange} />}
             text={t("Language")}
           />
           <SidebarMenu item={<ThemeSwitch />} text={t("Theme")} />
         </div>
         <SidebarMenu
-          item={
-            <UserDialog
-              onClose={() => setOpen(false)}
-              onDialogStateChange={handleDialogStateChange}
-            />
-          }
+          item={<UserDialog onDialogStateChange={handleDialogStateChange} />}
           text={truncateName(localStorage.getItem("name"))}
         />
       </SidebarBody>

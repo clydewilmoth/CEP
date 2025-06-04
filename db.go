@@ -83,64 +83,6 @@ type Operation struct {
 	ParentID           mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
 }
 
-type Version struct {
-	VersionID   mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;primary_key"`
-	CreatedAt   time.Time              `gorm:"type:datetime2;index"`
-	CreatedBy   *string                `gorm:"size:255;default:null"`
-	Description *string                `gorm:"default:null"`
-}
-
-type LineHistory struct {
-	HistoryPK   mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;primary_key"`
-	VersionID   mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	ID          mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	CreatedAt   time.Time              `gorm:"type:datetime2"`
-	UpdatedAt   time.Time              `gorm:"type:datetime2"`
-	CreatedBy   *string                `gorm:"size:255"`
-	UpdatedBy   *string                `gorm:"size:255"`
-	Name        *string                `gorm:"size:255"`
-	Description *string
-}
-
-type StationHistory struct {
-	HistoryPK   mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;primary_key"`
-	VersionID   mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	ID          mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	ParentID    mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	CreatedAt   time.Time              `gorm:"type:datetime2"`
-	UpdatedAt   time.Time              `gorm:"type:datetime2"`
-	CreatedBy   *string                `gorm:"size:255"`
-	UpdatedBy   *string                `gorm:"size:255"`
-	Name        *string                `gorm:"size:255"`
-	Description *string
-}
-
-type ToolHistory struct {
-	HistoryPK   mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;primary_key"`
-	VersionID   mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	ID          mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	ParentID    mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	CreatedAt   time.Time              `gorm:"type:datetime2"`
-	UpdatedAt   time.Time              `gorm:"type:datetime2"`
-	CreatedBy   *string                `gorm:"size:255"`
-	UpdatedBy   *string                `gorm:"size:255"`
-	Name        *string                `gorm:"size:255"`
-	Description *string
-}
-
-type OperationHistory struct {
-	HistoryPK   mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;primary_key"`
-	VersionID   mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	ID          mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	ParentID    mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	CreatedAt   time.Time              `gorm:"type:datetime2"`
-	UpdatedAt   time.Time              `gorm:"type:datetime2"`
-	CreatedBy   *string                `gorm:"size:255"`
-	UpdatedBy   *string                `gorm:"size:255"`
-	Name        *string                `gorm:"size:255"`
-	Description *string
-}
-
 type AppMetadata struct {
 	ConfigKey  string    `gorm:"primaryKey;size:50"`
 	LastUpdate time.Time `gorm:"type:datetime2"`

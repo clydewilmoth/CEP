@@ -1,20 +1,17 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
-	"net"
 	"net/url"
 	"os"
 	"os/user"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -198,7 +195,7 @@ func setupBroker(DB *gorm.DB, dbName string) (string, string, error) {
 	return queueName, serviceName, nil
 }
 
-func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB) {
+func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB, dsn string) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("PANIC in listenForChanges: %v", r)
@@ -260,7 +257,7 @@ func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB) {
 
 				// Clean up Service Broker resources for this dead connection
 				// We do this here to prevent stale resources from interfering
-				c.cleanupBrokerWithDeadConnection()
+				c.cleanupBrokerWithDeadConnection(dsn)
 
 				ws.EventsEmit(ctx, "database:connection_lost", err.Error())
 
@@ -305,44 +302,6 @@ func (c *Core) CheckEnvInExeDir() bool {
 	return err == nil
 }
 
-type DSNParams struct {
-	User                   string
-	Password               string
-	Host                   string
-	Port                   string
-	Database               string
-	Encrypt                string
-	TrustServerCertificate string
-}
-
-func (c *Core) ParseDSNFromEnv() (*DSNParams, error) {
-	dsn := os.Getenv("MSSQL_DSN")
-	if dsn == "" {
-		return nil, errors.New("MSSQL_DSN not set in environment")
-	}
-	u, err := url.Parse(dsn)
-	if err != nil {
-		return nil, err
-	}
-	user := ""
-	pass := ""
-	if u.User != nil {
-		user = u.User.Username()
-		pass, _ = u.User.Password()
-	}
-	host, port, _ := net.SplitHostPort(u.Host)
-	q := u.Query()
-	return &DSNParams{
-		User:                   user,
-		Password:               pass,
-		Host:                   host,
-		Port:                   port,
-		Database:               q.Get("database"),
-		Encrypt:                q.Get("encrypt"),
-		TrustServerCertificate: q.Get("trustservercertificate"),
-	}, nil
-}
-
 func loadConfiguration() {
 	exePath, err := os.Executable()
 	if err == nil {
@@ -371,7 +330,7 @@ func loadConfiguration() {
 		log.Println("Successfully loaded .env file from current working directory.")
 	}
 }
-func (c *Core) InitDB() string {
+func (c *Core) InitDB(dsn string) string {
 	// Stop any existing listener
 	if c.listenerCancel != nil {
 		c.listenerCancel()
@@ -385,7 +344,7 @@ func (c *Core) InitDB() string {
 
 	// Also try cleanup with a fresh connection in case the current one is dead
 	if c.queueName != "" || c.serviceName != "" {
-		c.cleanupBrokerWithDeadConnection()
+		c.cleanupBrokerWithDeadConnection(dsn)
 	}
 
 	// Close existing DB connection
@@ -401,7 +360,6 @@ func (c *Core) InitDB() string {
 	c.queueName = ""
 	c.serviceName = ""
 	loadConfiguration()
-	dsn := os.Getenv("MSSQL_DSN")
 	if dsn == "" {
 		return "InitError"
 	}
@@ -420,7 +378,7 @@ func (c *Core) InitDB() string {
 	if err != nil {
 		return "InitError"
 	}
-	err = c.DB.AutoMigrate(&Line{}, &Station{}, &Tool{}, &Operation{}, &Version{}, &LineHistory{}, &StationHistory{}, &ToolHistory{}, &OperationHistory{}, &AppMetadata{}, &EntityChangeLog{})
+	err = c.DB.AutoMigrate(&Line{}, &Station{}, &Tool{}, &Operation{}, &AppMetadata{}, &EntityChangeLog{})
 	if err != nil {
 		return "InitError"
 	}
@@ -452,7 +410,7 @@ func (c *Core) InitDB() string {
 	}
 	listenerCtx, cancel := context.WithCancel(c.ctx)
 	c.listenerCancel = cancel
-	go c.listenForChanges(listenerCtx, sqlDB) // Pass Core instance to use queueName
+	go c.listenForChanges(listenerCtx, sqlDB, dsn) // Pass Core instance to use queueName
 
 	log.Println("Successfully connected to and migrated MS SQL server DB.")
 	return "InitSuccess"
@@ -469,52 +427,7 @@ func ensureAppMetadataExists(db *gorm.DB) {
 		log.Printf("Warning: error checking app metadata: %v", err)
 	}
 }
-func (c *Core) ConfigureAndSaveDSN(host, portStr, dbname, user, password, encrypt, trustServerCertificate string) error {
-	if host == "" || portStr == "" || dbname == "" || user == "" {
-		return errors.New("host, port, database name, and user are required fields")
-	}
-	if _, err := strconv.Atoi(portStr); err != nil {
-		return fmt.Errorf("invalid port number: %s", portStr)
-	}
-	encryptLower := strings.ToLower(encrypt)
-	if encryptLower == "" {
-		encryptLower = "disable"
-	} else if encryptLower != "true" && encryptLower != "false" && encryptLower != "disable" {
-		return errors.New("invalid encrypt option, must be true, false, or disable")
-	}
 
-	trustLower := strings.ToLower(trustServerCertificate)
-	trustParam := "&trustservercertificate=false"
-	if trustLower == "true" {
-		trustParam = "&trustservercertificate=true"
-	}
-
-	dsn := fmt.Sprintf(
-		"sqlserver://%s:%s@%s:%s?database=%s&encrypt=%s%s",
-		user, password, host, portStr, dbname, encryptLower, trustParam,
-	)
-
-	exePath, err := os.Executable()
-	if err != nil {
-		return fmt.Errorf("could not get executable path to save .env file: %w", err)
-	}
-	envFilePath := filepath.Join(filepath.Dir(exePath), ".env")
-	file, err := os.OpenFile(envFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return fmt.Errorf("failed to open/create .env file at %s: %w", envFilePath, err)
-	}
-	defer file.Close()
-	writer := bufio.NewWriter(file)
-	_, err = writer.WriteString(fmt.Sprintf("MSSQL_DSN=%s\n", dsn))
-	if err != nil {
-		return fmt.Errorf("failed to write MSSQL_DSN to .env file: %w", err)
-	}
-	if err = writer.Flush(); err != nil {
-		return fmt.Errorf("failed to flush .env file writer: %w", err)
-	}
-	log.Printf(".env file successfully created/updated at: %s", envFilePath)
-	return nil
-}
 func (c *Core) GetPlatformSpecificUserName() string {
 	currentUser, err := user.Current()
 	if err != nil {
@@ -651,14 +564,6 @@ func getModelInstance(entityTypeStr string) (interface{}, error) {
 		return &Tool{}, nil
 	case "operation":
 		return &Operation{}, nil
-	case "linehistory":
-		return &LineHistory{}, nil
-	case "stationhistory":
-		return &StationHistory{}, nil
-	case "toolhistory":
-		return &ToolHistory{}, nil
-	case "operationhistory":
-		return &OperationHistory{}, nil
 	case "appmetadata":
 		return &AppMetadata{}, nil
 	default:
@@ -877,31 +782,7 @@ func (c *Core) GetEntityDetails(entityTypeStr string, entityIDStr string) (inter
 	}
 	return modelInstance, nil
 }
-func (c *Core) GetVersionedEntityDetails(versionIDStr string, entityTypeStr string, entityOriginalIDStr string) (interface{}, error) {
-	if c.DB == nil {
-		return nil, errors.New("DB not initialized")
-	}
-	versionIDmssql, err := parseMSSQLUniqueIdentifierFromString(versionIDStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid versionID: %w", err)
-	}
-	entityOriginalIDmssql, err := parseMSSQLUniqueIdentifierFromString(entityOriginalIDStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid entityOriginalID: %w", err)
-	}
-	historyModelName := strings.ToLower(entityTypeStr) + "history"
-	historyInstance, err := getModelInstance(historyModelName)
-	if err != nil {
-		return nil, fmt.Errorf("could not get history model instance for %s: %w", entityTypeStr, err)
-	}
-	if err := c.DB.Where("version_id = ? AND id = ?", versionIDmssql, entityOriginalIDmssql).Take(historyInstance).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("%s with original ID %s in version %s not found", entityTypeStr, entityOriginalIDStr, versionIDStr)
-		}
-		return nil, fmt.Errorf("error fetching versioned %s (ID: %s, Version: %s): %w", entityTypeStr, entityOriginalIDStr, versionIDStr, err)
-	}
-	return historyInstance, nil
-}
+
 func (c *Core) GetAllEntities(entityTypeStr string, parentIDStr_optional string) ([]interface{}, error) {
 	if c.DB == nil {
 		return nil, errors.New("DB not initialized")
@@ -961,70 +842,7 @@ func (c *Core) GetAllEntities(entityTypeStr string, parentIDStr_optional string)
 	}
 	return results, nil
 }
-func (c *Core) GetAllVersionedEntities(versionIDStr string, entityTypeStr string, parentIDStr_optional string) ([]interface{}, error) {
-	if c.DB == nil {
-		return nil, errors.New("DB not initialized")
-	}
-	versionIDmssql, err := parseMSSQLUniqueIdentifierFromString(versionIDStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid versionID: %w", err)
-	}
-	historyModelName := strings.ToLower(entityTypeStr) + "history"
-	historyInstance, err := getModelInstance(historyModelName)
-	if err != nil {
-		return nil, err
-	}
-	var results []interface{}
-	query := c.DB.Model(historyInstance).Where("version_id = ?", versionIDmssql).Order("created_at asc")
-	if parentIDStr_optional != "" {
-		parentIDmssql, err := parseMSSQLUniqueIdentifierFromString(parentIDStr_optional)
-		if err != nil {
-			return nil, fmt.Errorf("invalid parentID for GetAllVersionedEntities: %w", err)
-		}
-		query = query.Where("parent_id = ?", parentIDmssql)
-	} else {
-		if strings.ToLower(entityTypeStr) != "line" {
-			return nil, errors.New("ParentID is required for non-line entities in GetAllVersionedEntities unless fetching all lines of a version")
-		}
-	}
-	switch strings.ToLower(entityTypeStr) {
-	case "line":
-		var items []LineHistory
-		if err := query.Find(&items).Error; err != nil {
-			return nil, err
-		}
-		for i := range items {
-			results = append(results, &items[i])
-		}
-	case "station":
-		var items []StationHistory
-		if err := query.Find(&items).Error; err != nil {
-			return nil, err
-		}
-		for i := range items {
-			results = append(results, &items[i])
-		}
-	case "tool":
-		var items []ToolHistory
-		if err := query.Find(&items).Error; err != nil {
-			return nil, err
-		}
-		for i := range items {
-			results = append(results, &items[i])
-		}
-	case "operation":
-		var items []OperationHistory
-		if err := query.Find(&items).Error; err != nil {
-			return nil, err
-		}
-		for i := range items {
-			results = append(results, &items[i])
-		}
-	default:
-		return nil, fmt.Errorf("GetAllVersionedEntities not implemented for type: %s", entityTypeStr)
-	}
-	return results, nil
-}
+
 func (c *Core) GetEntityHierarchyString(entityTypeStr string, entityIDStr string) (*HierarchyResponse, error) {
 	if c.DB == nil {
 		return nil, errors.New("DB not initialized")
@@ -1094,30 +912,6 @@ func (c *Core) ExportEntityHierarchyToJSON(entityTypeStr string, entityIDStr str
 	return nil
 }
 
-/*
-	func (c *Core) ExportVersionedEntityHierarchyToJSON(versionIDStr string, rootEntityTypeStr string, rootEntityOriginalIDStr string, filePath string) error {
-		if DB == nil {
-			return errors.New("DB not initialized")
-		}
-		if filePath == "" {
-			return errors.New("export filePath is empty")
-		}
-		hierarchyData, err := c.GetVersionedEntityHierarchy(versionIDStr, rootEntityTypeStr, rootEntityOriginalIDStr)
-		if err != nil {
-			return fmt.Errorf("error loading versioned entity hierarchy for export: %w", err)
-		}
-		jsonData, err := json.MarshalIndent(hierarchyData, "", "  ")
-		if err != nil {
-			return fmt.Errorf("error converting versioned data to JSON: %w", err)
-		}
-		err = os.WriteFile(filePath, jsonData, 0644)
-		if err != nil {
-			return fmt.Errorf("error writing versioned JSON file to '%s': %w", filePath, err)
-		}
-		log.Printf("Versioned hierarchy (Version: %s) successfully exported to '%s'.", versionIDStr, filePath)
-		return nil
-	}
-*/
 func (c *Core) ImportEntityHierarchyFromJSON_UseOriginalData(importingUserName string, filePath string) (err error) {
 	if c.DB == nil {
 		return errors.New("DB not initialized")
@@ -1631,13 +1425,12 @@ func (c *Core) cleanupBroker() {
 
 // cleanupBrokerWithDeadConnection attempts cleanup when the main connection is dead
 // This uses a new connection to avoid dependency on the failed connection
-func (c *Core) cleanupBrokerWithDeadConnection() {
+func (c *Core) cleanupBrokerWithDeadConnection(dsn string) {
 	if c.queueName == "" || c.serviceName == "" {
 		return
 	}
 
 	// Try to create a new connection for cleanup
-	dsn := os.Getenv("MSSQL_DSN")
 	if dsn == "" {
 		log.Printf("Warning: No DSN available for Service Broker cleanup")
 		return

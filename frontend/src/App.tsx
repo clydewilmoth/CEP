@@ -36,7 +36,7 @@ export default function App() {
   const { setTheme } = useTheme();
   useEffect(() => {
     localStorage.getItem("lang") == null
-      ? i18n.changeLanguage("en")
+      ? (localStorage.setItem("lang", "en"), i18n.changeLanguage("en"))
       : i18n.changeLanguage(String(localStorage.getItem("lang")));
     localStorage.getItem("theme") == null
       ? setTheme("system")
@@ -59,14 +59,12 @@ export default function App() {
   useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const initMessage = await InitDB();
+      const initMessage = await InitDB(localStorage.getItem("dsn") ?? "");
       setInitialised(initMessage == "InitSuccess" ? true : false);
       setIsLoading(false);
-      if (tryInitialiseListener > 0) {
-        initMessage == "InitSuccess"
-          ? toast.success(t(initMessage))
-          : toast.error(t(initMessage));
-      }
+      initMessage == "InitSuccess"
+        ? toast.success(t(initMessage))
+        : toast.error(t(initMessage));
     })();
   }, [tryInitialiseListener]);
   useEffect(() => {
@@ -129,5 +127,30 @@ export default function App() {
         </div>
       </QueryClientProvider>
     </ThemeProvider>
+  );
+}
+
+export function setDatabaseConnection(
+  host: string,
+  port: string,
+  database: string,
+  user: string,
+  password: string,
+  encrypted: string,
+  trustserver: string
+): void {
+  const json = {
+    user: user,
+    password: password,
+    host: host,
+    port: port,
+    database: database,
+    encrypted: encrypted,
+    trustserver: trustserver,
+  };
+  localStorage.setItem("database", JSON.stringify(json));
+  localStorage.setItem(
+    "dsn",
+    `sqlserver://${user}:${password}@${host}:${port}?database=${database}&encrypt=${encrypted}&trustservercertificate=${trustserver}`
   );
 }
