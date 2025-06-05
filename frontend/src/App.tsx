@@ -34,6 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./components/ui/alert-dialog";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
 
 const queryClient = new QueryClient();
 
@@ -52,7 +53,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const { setTheme } = useTheme();
 
-  const [draftConflictsKey, revalidateDraftConflictsKey] = useState(0);
+  const [draftConflictMountKey, setDraftConflictMountKey] = useState(0);
   const lastUpdateRef = useRef(lastUpdate);
 
   useEffect(() => {
@@ -73,7 +74,7 @@ export default function App() {
     EventsOn("database:changed", async (ts: string) => {
       console.log("Last Update: ", lastUpdateRef.current);
       console.log("DB Change: ", ts);
-      revalidateDraftConflictsKey((prev) => prev + 1);
+      setDraftConflictMountKey((prev) => prev + 1);
       dbChange();
     });
     EventsOn("database:connection_lost", (err: string) => {
@@ -126,7 +127,7 @@ export default function App() {
             )}
             {!isLoading && initialised ? (
               <div className="w-full h-full">
-                <DraftConflicts key={draftConflictsKey} />
+                <DraftConflictDialog key={draftConflictMountKey} />
                 <Route path={"/"} component={Lines} />
                 <Route path={"/line/:luuid"} component={Stations} />
                 <Route path={"/line/:luuid/station/:suuid"} component={Tools} />
@@ -164,7 +165,7 @@ export default function App() {
   );
 }
 
-function DraftConflicts() {
+function DraftConflictDialog() {
   const { t } = useTranslation();
   const [draftConflicts, setDraftConflicts] = useState<Record<string, string>>(
     {}
@@ -207,8 +208,8 @@ function DraftConflicts() {
                 ([field, value]) => {
                   if (localEntity[field]) {
                     conflicts[
-                      `${conflictCounter}: ${t(entityType)} ${Name}`
-                    ] = `${t(field)} -> ${value}`;
+                      `${conflictCounter}<><><>${t(entityType)} ${Name}`
+                    ] = `${t(field)}<><><>${value}`;
 
                     conflictCounter++;
                   }
@@ -218,32 +219,62 @@ function DraftConflicts() {
           }
         }
         setDraftConflicts(conflicts);
-        setOpen(conflictCounter > 1);
+        setOpen(Object.keys(conflicts).length > 0);
       }
     })();
   }, []);
+
+  let prevKey = "";
 
   return (
     <>
       {Object.keys(draftConflicts).length !== 0 && (
         <AlertDialog open={open} onOpenChange={setOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t("DraftConflicts")}</AlertDialogTitle>
-              {Object.entries(draftConflicts).map(([key, value]) => {
-                return (
-                  <AlertDialogDescription key={key}>
-                    {`${key}: ${value}`}
-                  </AlertDialogDescription>
-                );
-              })}
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction>{t("Confirm")}</AlertDialogAction>
-            </AlertDialogFooter>
+          <AlertDialogContent className="p-0 w-1/2">
+            <ScrollArea className="max-h-[90vh]">
+              <div className="p-6">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="font-bold">
+                    {t("DraftConflicts Title")}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t("DraftConflicts Description")}
+                  </AlertDialogDescription>{" "}
+                  {Object.entries(draftConflicts).map(([key, value]) => {
+                    const keyWithoutCounter = key.split("<><><>")[1];
+                    const showKey = keyWithoutCounter != prevKey;
+
+                    if (showKey) {
+                      prevKey = keyWithoutCounter;
+                    }
+                    return (
+                      <>
+                        {showKey && (
+                          <span
+                            key={keyWithoutCounter}
+                            className="font-bold"
+                          >{`${keyWithoutCounter}: `}</span>
+                        )}
+                        <span
+                          key={keyWithoutCounter + value}
+                          className="text-sm"
+                        >
+                          {`${t(value.split("<><><>")[0])} -> ${t(
+                            value.split("<><><>")[1]
+                          )}`}
+                        </span>
+                      </>
+                    );
+                  })}
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogAction>{t("Understood")}</AlertDialogAction>
+                </AlertDialogFooter>
+              </div>
+            </ScrollArea>
           </AlertDialogContent>
         </AlertDialog>
       )}
     </>
-  ); // zeige Draft Conflicts an
+  );
 }
