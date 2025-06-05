@@ -240,7 +240,9 @@ export function LineForm({ entityId }: { entityId: string }) {
                 <TooltipProvider>
                   <Tooltip>
                     <div className="flex gap-3">
-                      <FormLabel>{t("Comment")}</FormLabel>
+                      <FormLabel className="flex h-[15px]">
+                        {t("Comment")}
+                      </FormLabel>
                       <TooltipTrigger asChild>
                         <SquarePen size={15} />
                       </TooltipTrigger>
@@ -249,7 +251,7 @@ export function LineForm({ entityId }: { entityId: string }) {
                   </Tooltip>
                 </TooltipProvider>
               ) : (
-                <FormLabel>{t("Comment")}</FormLabel>
+                <FormLabel className="flex h-[15px]">{t("Comment")}</FormLabel>
               )}
 
               <FormField
@@ -290,7 +292,9 @@ export function LineForm({ entityId }: { entityId: string }) {
                   <TooltipProvider>
                     <Tooltip>
                       <div className="flex gap-3">
-                        <FormLabel>{t("Name")}</FormLabel>
+                        <FormLabel className="flex h-[15px]">
+                          {t("Name")}
+                        </FormLabel>
                         <TooltipTrigger asChild>
                           <SquarePen size={15} />
                         </TooltipTrigger>
@@ -299,7 +303,7 @@ export function LineForm({ entityId }: { entityId: string }) {
                     </Tooltip>
                   </TooltipProvider>
                 ) : (
-                  <FormLabel>{t("Name")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">{t("Name")}</FormLabel>
                 )}
                 <FormControl>
                   <Input
@@ -331,7 +335,9 @@ export function LineForm({ entityId }: { entityId: string }) {
                   <TooltipProvider>
                     <Tooltip>
                       <div className="flex gap-3">
-                        <FormLabel>{t("AssemblyArea")}</FormLabel>
+                        <FormLabel className="flex h-[15px]">
+                          {t("AssemblyArea")}
+                        </FormLabel>
                         <TooltipTrigger asChild>
                           <SquarePen size={15} />
                         </TooltipTrigger>
@@ -340,7 +346,9 @@ export function LineForm({ entityId }: { entityId: string }) {
                     </Tooltip>
                   </TooltipProvider>
                 ) : (
-                  <FormLabel>{t("AssemblyArea")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("AssemblyArea")}
+                  </FormLabel>
                 )}
                 <FormControl>
                   <Input
@@ -629,7 +637,9 @@ export function StationForm({ entityId }: { entityId: string }) {
                 <TooltipProvider>
                   <Tooltip>
                     <div className="flex gap-3">
-                      <FormLabel>{t("Comment")}</FormLabel>
+                      <FormLabel className="flex h-[15px]">
+                        {t("Comment")}
+                      </FormLabel>
                       <TooltipTrigger asChild>
                         <SquarePen size={15} />
                       </TooltipTrigger>
@@ -638,7 +648,7 @@ export function StationForm({ entityId }: { entityId: string }) {
                   </Tooltip>
                 </TooltipProvider>
               ) : (
-                <FormLabel>{t("Comment")}</FormLabel>
+                <FormLabel className="flex h-[15px]">{t("Comment")}</FormLabel>
               )}
 
               <FormField
@@ -679,7 +689,9 @@ export function StationForm({ entityId }: { entityId: string }) {
                   <TooltipProvider>
                     <Tooltip>
                       <div className="flex gap-3">
-                        <FormLabel>{t("Name")}</FormLabel>
+                        <FormLabel className="flex h-[15px]">
+                          {t("Name")}
+                        </FormLabel>
                         <TooltipTrigger asChild>
                           <SquarePen size={15} />
                         </TooltipTrigger>
@@ -688,7 +700,7 @@ export function StationForm({ entityId }: { entityId: string }) {
                     </Tooltip>
                   </TooltipProvider>
                 ) : (
-                  <FormLabel>{t("Name")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">{t("Name")}</FormLabel>
                 )}
                 <FormControl>
                   <Input
@@ -720,7 +732,9 @@ export function StationForm({ entityId }: { entityId: string }) {
                   <TooltipProvider>
                     <Tooltip>
                       <div className="flex gap-3">
-                        <FormLabel>{t("Station Description")}</FormLabel>
+                        <FormLabel className="flex h-[15px]">
+                          {t("Station Description")}
+                        </FormLabel>
                         <TooltipTrigger asChild>
                           <SquarePen size={15} />
                         </TooltipTrigger>
@@ -731,7 +745,9 @@ export function StationForm({ entityId }: { entityId: string }) {
                     </Tooltip>
                   </TooltipProvider>
                 ) : (
-                  <FormLabel>{t("Station Description")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("Station Description")}
+                  </FormLabel>
                 )}
                 <FormControl>
                   <Input
@@ -762,7 +778,9 @@ export function StationForm({ entityId }: { entityId: string }) {
                   <TooltipProvider>
                     <Tooltip>
                       <div className="flex gap-3">
-                        <FormLabel>{t("Station Type")}</FormLabel>
+                        <FormLabel className="flex h-[15px]">
+                          {t("Station Type")}
+                        </FormLabel>
                         <TooltipTrigger asChild>
                           <SquarePen size={15} />
                         </TooltipTrigger>
@@ -773,7 +791,9 @@ export function StationForm({ entityId }: { entityId: string }) {
                     </Tooltip>
                   </TooltipProvider>
                 ) : (
-                  <FormLabel>{t("Station Type")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("Station Type")}
+                  </FormLabel>
                 )}
                 <Select
                   value={field.value ?? ""}
@@ -1135,7 +1155,9 @@ export function ToolForm({ entityId }: { entityId: string }) {
                 <TooltipProvider>
                   <Tooltip>
                     <div className="flex gap-3">
-                      <FormLabel>{t("Comment")}</FormLabel>
+                      <FormLabel className="flex h-[15px]">
+                        {t("Comment")}
+                      </FormLabel>
                       <TooltipTrigger asChild>
                         <SquarePen size={15} />
                       </TooltipTrigger>
@@ -1144,7 +1166,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                   </Tooltip>
                 </TooltipProvider>
               ) : (
-                <FormLabel>{t("Comment")}</FormLabel>
+                <FormLabel className="flex h-[15px]">{t("Comment")}</FormLabel>
               )}
 
               <FormField
@@ -1164,7 +1186,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                           json.Comment = e.target.value;
                           localStorage.setItem(entityId, JSON.stringify(json));
                           queryClient.invalidateQueries({
-                            queryKey: ["operation", entityId],
+                            queryKey: ["tool", entityId],
                           });
                         }}
                         className="h-32 resize-none"
@@ -1181,10 +1203,23 @@ export function ToolForm({ entityId }: { entityId: string }) {
             name="Name"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
-                  <FormLabel>{t("Name")}</FormLabel>
-                  {tool && tool.Name?.draft && <SquarePen size={15} />}
-                </div>
+                {tool && tool.Name?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("Name")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent>{t(toolDb.Name)}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  <FormLabel className="flex h-[15px]">{t("Name")}</FormLabel>
+                )}
                 <FormControl>
                   <Input
                     {...field}
@@ -1212,8 +1247,25 @@ export function ToolForm({ entityId }: { entityId: string }) {
             render={({ field }) => (
               <FormItem>
                 <div className="flex gap-3">
-                  <FormLabel>{t("Operation Description")}</FormLabel>
-                  {tool && tool.Description?.draft && <SquarePen size={15} />}
+                  {tool && tool.Description?.draft ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <div className="flex gap-3">
+                          <FormLabel className="flex h-[15px]">
+                            {t("Operation Description")}
+                          </FormLabel>
+                          <TooltipTrigger asChild>
+                            <SquarePen size={15} />
+                          </TooltipTrigger>
+                        </div>
+                        <TooltipContent>{t(toolDb.Description)}</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <FormLabel className="flex h-[15px]">
+                      {t("Operation Description")}
+                    </FormLabel>
+                  )}
                 </div>
                 <FormControl>
                   <Input
@@ -1241,10 +1293,27 @@ export function ToolForm({ entityId }: { entityId: string }) {
             name="ToolClass"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
-                  <FormLabel>{t("Tool Class")}</FormLabel>
-                  {tool && tool.ToolClass?.draft && <SquarePen size={15} />}
-                </div>
+                {tool && tool.ToolClass?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("Tool Class")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent>
+                        {t("TC_" + String(toolDb.ToolClass) + "_ToolClassName")}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  <FormLabel className="flex h-[15px]">
+                    {t("Tool Class")}
+                  </FormLabel>
+                )}
                 <Select
                   value={field.value ?? ""}
                   onValueChange={(value) => {
@@ -1304,10 +1373,33 @@ export function ToolForm({ entityId }: { entityId: string }) {
             name="ToolType"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
-                  <FormLabel>{t("Tool Type")}</FormLabel>
-                  {tool && tool.ToolType?.draft && <SquarePen size={15} />}
-                </div>
+                {tool && tool.ToolType?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("Tool Type")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent>
+                        {t(
+                          "TT_" +
+                            String(toolDb.ToolType) +
+                            "_" +
+                            String(toolDb.ToolClass) +
+                            "_Description"
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  <FormLabel className="flex h-[15px]">
+                    {t("Tool Type")}
+                  </FormLabel>
+                )}
                 <Select
                   value={field.value ?? ""}
                   onValueChange={(value) => {
@@ -1387,12 +1479,27 @@ export function ToolForm({ entityId }: { entityId: string }) {
             name="IpAddressDevice"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
-                  <FormLabel>{t("IpAddressDevice")}</FormLabel>
-                  {tool && tool.IpAddressDevice?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                {tool && tool.IpAddressDevice?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("IpAddressDevice")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent>
+                        {t(toolDb.IpAddressDevice)}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  <FormLabel className="flex h-[15px]">
+                    {t("IpAddressDevice")}
+                  </FormLabel>
+                )}
                 <FormControl>
                   <Input
                     {...field}
@@ -1437,12 +1544,27 @@ export function ToolForm({ entityId }: { entityId: string }) {
                 name="SPSPLCNameSPAService"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-3">
-                      <FormLabel>{t("SPSPLCNameSPAService")}</FormLabel>
-                      {tool && tool.SPSPLCNameSPAService?.draft && (
-                        <SquarePen size={15} />
-                      )}
-                    </div>
+                    {tool && tool.SPSPLCNameSPAService?.draft ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <div className="flex gap-3">
+                            <FormLabel className="flex h-[15px]">
+                              {t("SPSPLCNameSPAService")}
+                            </FormLabel>
+                            <TooltipTrigger asChild>
+                              <SquarePen size={15} />
+                            </TooltipTrigger>
+                          </div>
+                          <TooltipContent>
+                            {t(toolDb.SPSPLCNameSPAService)}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <FormLabel className="flex h-[15px]">
+                        {t("SPSPLCNameSPAService")}
+                      </FormLabel>
+                    )}
                     <FormControl>
                       <Input
                         {...field}
@@ -1469,12 +1591,27 @@ export function ToolForm({ entityId }: { entityId: string }) {
                 name="SPSDBNoSend"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-3">
-                      <FormLabel>{t("SPSDBNoSend")}</FormLabel>
-                      {tool && tool.SPSDBNoSend?.draft && (
-                        <SquarePen size={15} />
-                      )}
-                    </div>
+                    {tool && tool.SPSDBNoSend?.draft ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <div className="flex gap-3">
+                            <FormLabel className="flex h-[15px]">
+                              {t("SPSDBNoSend")}
+                            </FormLabel>
+                            <TooltipTrigger asChild>
+                              <SquarePen size={15} />
+                            </TooltipTrigger>
+                          </div>
+                          <TooltipContent>
+                            {t(toolDb.SPSDBNoSend)}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <FormLabel className="flex h-[15px]">
+                        {t("SPSDBNoSend")}
+                      </FormLabel>
+                    )}
                     <FormControl>
                       <Input
                         {...field}
@@ -1501,12 +1638,27 @@ export function ToolForm({ entityId }: { entityId: string }) {
                 name="SPSDBNoReceive"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-3">
-                      <FormLabel>{t("SPSDBNoReceive")}</FormLabel>
-                      {tool && tool.SPSDBNoReceive?.draft && (
-                        <SquarePen size={15} />
-                      )}
-                    </div>
+                    {tool && tool.SPSDBNoReceive?.draft ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <div className="flex gap-3">
+                            <FormLabel className="flex h-[15px]">
+                              {t("SPSDBNoReceive")}
+                            </FormLabel>
+                            <TooltipTrigger asChild>
+                              <SquarePen size={15} />
+                            </TooltipTrigger>
+                          </div>
+                          <TooltipContent>
+                            {t(toolDb.SPSDBNoReceive)}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <FormLabel className="flex h-[15px]">
+                        {t("SPSDBNoReceive")}
+                      </FormLabel>
+                    )}
                     <FormControl>
                       <Input
                         {...field}
@@ -1533,12 +1685,27 @@ export function ToolForm({ entityId }: { entityId: string }) {
                 name="SPSPreCheck"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-3">
-                      <FormLabel>{t("SPSPreCheck")}</FormLabel>
-                      {tool && tool.SPSPreCheck?.draft && (
-                        <SquarePen size={15} />
-                      )}
-                    </div>
+                    {tool && tool.SPSPreCheck?.draft ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <div className="flex gap-3">
+                            <FormLabel className="flex h-[15px]">
+                              {t("SPSPreCheck")}
+                            </FormLabel>
+                            <TooltipTrigger asChild>
+                              <SquarePen size={15} />
+                            </TooltipTrigger>
+                          </div>
+                          <TooltipContent>
+                            {t(toolDb.SPSPreCheck)}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <FormLabel className="flex h-[15px]">
+                        {t("SPSPreCheck")}
+                      </FormLabel>
+                    )}
                     <FormControl>
                       <Input
                         {...field}
@@ -1565,12 +1732,27 @@ export function ToolForm({ entityId }: { entityId: string }) {
                 name="SPSAddressInSendDB"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-3">
-                      <FormLabel>{t("SPSAddressInSendDB")}</FormLabel>
-                      {tool && tool.SPSAddressInSendDB?.draft && (
-                        <SquarePen size={15} />
-                      )}
-                    </div>
+                    {tool && tool.SPSAddressInSendDB?.draft ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <div className="flex gap-3">
+                            <FormLabel className="flex h-[15px]">
+                              {t("SPSAddressInSendDB")}
+                            </FormLabel>
+                            <TooltipTrigger asChild>
+                              <SquarePen size={15} />
+                            </TooltipTrigger>
+                          </div>
+                          <TooltipContent>
+                            {t(toolDb.SPSAddressInSendDB)}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <FormLabel className="flex h-[15px]">
+                        {t("SPSAddressInSendDB")}
+                      </FormLabel>
+                    )}
                     <FormControl>
                       <Input
                         {...field}
@@ -1597,12 +1779,27 @@ export function ToolForm({ entityId }: { entityId: string }) {
                 name="SPSAddressInReceiveDB"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-3">
-                      <FormLabel>{t("SPSAddressInReceiveDB")}</FormLabel>
-                      {tool && tool.SPSAddressInReceiveDB?.draft && (
-                        <SquarePen size={15} />
-                      )}
-                    </div>
+                    {tool && tool.SPSAddressInReceiveDB?.draft ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <div className="flex gap-3">
+                            <FormLabel className="flex h-[15px]">
+                              {t("SPSAddressInReceiveDB")}
+                            </FormLabel>
+                            <TooltipTrigger asChild>
+                              <SquarePen size={15} />
+                            </TooltipTrigger>
+                          </div>
+                          <TooltipContent>
+                            {t(toolDb.SPSAddressInReceiveDB)}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <FormLabel className="flex h-[15px]">
+                        {t("SPSAddressInReceiveDB")}
+                      </FormLabel>
+                    )}
                     <FormControl>
                       <Input
                         {...field}
@@ -1915,7 +2112,9 @@ export function OperationForm({
                 <TooltipProvider>
                   <Tooltip>
                     <div className="flex gap-3">
-                      <FormLabel>{t("Comment")}</FormLabel>
+                      <FormLabel className="flex h-[15px]">
+                        {t("Comment")}
+                      </FormLabel>
                       <TooltipTrigger asChild>
                         <SquarePen size={15} />
                       </TooltipTrigger>
@@ -1924,7 +2123,7 @@ export function OperationForm({
                   </Tooltip>
                 </TooltipProvider>
               ) : (
-                <FormLabel>{t("Comment")}</FormLabel>
+                <FormLabel className="flex h-[15px]">{t("Comment")}</FormLabel>
               )}
 
               <FormField
@@ -1962,7 +2161,7 @@ export function OperationForm({
             render={({ field }) => (
               <FormItem>
                 <div className="flex gap-3">
-                  <FormLabel>{t("Name")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">{t("Name")}</FormLabel>
                   {operation && operation.Name?.draft && (
                     <SquarePen size={15} />
                   )}
@@ -1994,7 +2193,9 @@ export function OperationForm({
             render={({ field }) => (
               <FormItem>
                 <div className="flex gap-3">
-                  <FormLabel>{t("Operation Description")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("Operation Description")}
+                  </FormLabel>
                   {operation && operation.Description?.draft && (
                     <SquarePen size={15} />
                   )}
@@ -2038,7 +2239,9 @@ export function OperationForm({
             render={({ field }) => (
               <FormItem>
                 <div className="flex gap-3">
-                  <FormLabel>{t("Serial / Parallel")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("Serial / Parallel")}
+                  </FormLabel>
                   {operation && operation.SerialOrParallel?.draft && (
                     <SquarePen size={15} />
                   )}
@@ -2097,7 +2300,9 @@ export function OperationForm({
             render={({ field }) => (
               <FormItem>
                 <div className="flex gap-3">
-                  <FormLabel>{t("SequenceGroup")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("SequenceGroup")}
+                  </FormLabel>
                   {operation && operation.SequenceGroup?.draft && (
                     <SquarePen size={15} />
                   )}
@@ -2129,7 +2334,9 @@ export function OperationForm({
             render={({ field }) => (
               <FormItem>
                 <div className="flex gap-3">
-                  <FormLabel>{t("Sequence")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("Sequence")}
+                  </FormLabel>
                   {operation && operation.Sequence?.draft && (
                     <SquarePen size={15} />
                   )}
@@ -2194,7 +2401,9 @@ export function OperationForm({
             render={({ field }) => (
               <FormItem>
                 <div className="flex gap-3">
-                  <FormLabel>{t("QGateRelevant")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("QGateRelevant")}
+                  </FormLabel>
                   {operation && operation.QGateRelevant?.draft && (
                     <SquarePen size={15} />
                   )}
@@ -2244,7 +2453,9 @@ export function OperationForm({
             render={({ field }) => (
               <FormItem>
                 <div className="flex gap-3">
-                  <FormLabel>{t("Template")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("Template")}
+                  </FormLabel>
                   {operation && operation.Template?.draft && (
                     <SquarePen size={15} />
                   )}
@@ -2312,7 +2523,9 @@ export function OperationForm({
             render={({ field }) => (
               <FormItem>
                 <div className="flex gap-3">
-                  <FormLabel>{t("OperationClassDecision")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("OperationClassDecision")}
+                  </FormLabel>
                   {operation && operation.DecisionClass?.draft && (
                     <SquarePen size={15} />
                   )}
@@ -2393,7 +2606,9 @@ export function OperationForm({
             render={({ field }) => (
               <FormItem>
                 <div className="flex gap-3">
-                  <FormLabel>{t("OperationClassVerification")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("OperationClassVerification")}
+                  </FormLabel>
                   {operation && operation.VerificationClass?.draft && (
                     <SquarePen size={15} />
                   )}
@@ -2479,7 +2694,9 @@ export function OperationForm({
             render={({ field }) => (
               <FormItem>
                 <div className="flex gap-3">
-                  <FormLabel>{t("OperationClassGeneration")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("OperationClassGeneration")}
+                  </FormLabel>
                   {operation && operation.GenerationClass?.draft && (
                     <SquarePen size={15} />
                   )}
@@ -2560,7 +2777,9 @@ export function OperationForm({
             render={({ field }) => (
               <FormItem>
                 <div className="flex gap-3">
-                  <FormLabel>{t("OperationClassSaving")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("OperationClassSaving")}
+                  </FormLabel>
                   {operation && operation.SavingClass?.draft && (
                     <SquarePen size={15} />
                   )}
@@ -2636,7 +2855,9 @@ export function OperationForm({
             render={({ field }) => (
               <FormItem className="col-span-2">
                 <div className="flex gap-3">
-                  <FormLabel>{t("DecisionCriteria")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("DecisionCriteria")}
+                  </FormLabel>
                   {operation && operation.DecisionCriteria?.draft && (
                     <SquarePen size={15} />
                   )}
