@@ -48,7 +48,7 @@ export function LineForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
-  const { dbState } = useContext();
+  const { dbState, lastUpdate } = useContext();
 
   useEffect(() => {
     (async () => {
@@ -130,7 +130,6 @@ export function LineForm({ entityId }: { entityId: string }) {
   async function onSubmit() {
     if (!checkDraftsAvailable()) return toast.error(t("NoDraft"));
 
-    const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
 
     const lineDb = await GetEntityDetails("line", entityId);
@@ -145,7 +144,7 @@ export function LineForm({ entityId }: { entityId: string }) {
       String(localStorage.getItem("name")),
       "line",
       entityId,
-      lastKnownUpdate,
+      lastUpdate ?? "",
       changesRecord
     );
 
@@ -358,7 +357,7 @@ export function StationForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
-  const { dbState } = useContext();
+  const { dbState, lastUpdate } = useContext();
 
   useEffect(() => {
     (async () => {
@@ -442,7 +441,6 @@ export function StationForm({ entityId }: { entityId: string }) {
   async function onSubmit() {
     if (!checkDraftsAvailable()) return toast.error(t("NoDraft"));
 
-    const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
 
     let resetChildTemplate = false;
@@ -465,7 +463,7 @@ export function StationForm({ entityId }: { entityId: string }) {
               String(localStorage.getItem("name")),
               "operation",
               ID,
-              lastKnownUpdate,
+              lastUpdate ?? "",
               {
                 SerialOrParallel: "none",
                 SequenceGroup: "",
@@ -488,7 +486,7 @@ export function StationForm({ entityId }: { entityId: string }) {
       String(localStorage.getItem("name")),
       "station",
       entityId,
-      lastKnownUpdate,
+      lastUpdate ?? "",
       changesRecord
     );
 
@@ -751,7 +749,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
-  const { dbState } = useContext();
+  const { dbState, lastUpdate } = useContext();
 
   useEffect(() => {
     (async () => {
@@ -889,7 +887,6 @@ export function ToolForm({ entityId }: { entityId: string }) {
   async function onSubmit() {
     if (!checkDraftsAvailable()) return toast.error(t("NoDraft"));
 
-    const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
 
     let resetChildTemplate = false;
@@ -910,7 +907,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
             String(localStorage.getItem("name")),
             "operation",
             ID,
-            lastKnownUpdate,
+            lastUpdate ?? "",
             {
               Template: "none",
               DecisionClass: "none",
@@ -936,7 +933,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
       String(localStorage.getItem("name")),
       "tool",
       entityId,
-      lastKnownUpdate,
+      lastUpdate ?? "",
       changesRecord
     );
 
@@ -1546,7 +1543,7 @@ export function OperationForm({
   );
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
-  const { dbState } = useContext();
+  const { dbState, lastUpdate } = useContext();
 
   const [parentTool, setParentTool] = useState<any>();
 
@@ -1672,7 +1669,6 @@ export function OperationForm({
   async function onSubmit() {
     if (!checkDraftsAvailable()) return toast.error(t("NoDraft"));
 
-    const lastKnownUpdate = await GetGlobalLastUpdateTimestamp();
     let changesRecord: Record<string, string> = {};
 
     const operationDb = await GetEntityDetails("operation", entityId);
@@ -1691,7 +1687,7 @@ export function OperationForm({
       String(localStorage.getItem("name")),
       "operation",
       entityId,
-      lastKnownUpdate,
+      lastUpdate ?? "",
       changesRecord
     );
 

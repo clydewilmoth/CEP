@@ -3,7 +3,11 @@ import Lines from "./pages/Lines";
 import Stations from "./pages/Stations";
 import Tools from "./pages/Tools";
 import Operations from "./pages/Operations";
-import { GetPlatformSpecificUserName, InitDB } from "../wailsjs/go/main/Core";
+import {
+  GetGlobalLastUpdateTimestamp,
+  GetPlatformSpecificUserName,
+  InitDB,
+} from "../wailsjs/go/main/Core";
 import { EventsOn, EventsOff } from "../wailsjs/runtime";
 import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -19,6 +23,7 @@ import { Menu } from "./components/logic/Menu";
 import { cn } from "./lib/utils";
 import Operation from "./pages/Operation";
 import { useContext } from "./store";
+import { set } from "react-hook-form";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +35,8 @@ export default function App() {
     dbChange,
     tryInitialiseListener,
     tryInitialise,
+    lastUpdate,
+    setLastUpdate,
   } = useContext();
   const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
@@ -44,9 +51,11 @@ export default function App() {
     (async () => {
       !localStorage.getItem("name") &&
         localStorage.setItem("name", await GetPlatformSpecificUserName());
+      setLastUpdate(await GetGlobalLastUpdateTimestamp());
     })();
-    EventsOn("database:changed", (ts: string) => {
+    EventsOn("database:changed", async (ts: string) => {
       console.log("DB Change: ", ts);
+      setLastUpdate(await GetGlobalLastUpdateTimestamp());
       dbChange();
     });
     EventsOn("database:connection_lost", (err: string) => {
