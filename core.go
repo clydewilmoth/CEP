@@ -314,7 +314,7 @@ func (c *Core) InitDB(dsn string) string {
 	if err != nil {
 		return "InitError"
 	}
-	err = c.DB.AutoMigrate(&Line{}, &Station{}, &Tool{}, &Operation{}, &AppMetadata{}, &EntityChangeLog{})
+	err = c.DB.AutoMigrate(&Line{}, &Station{}, &Tool{}, &Operation{}, &SequenceGroup{}, &AppMetadata{}, &EntityChangeLog{})
 	if err != nil {
 		return "InitError"
 	}
@@ -590,6 +590,8 @@ func getModelInstance(entityTypeStr string) (interface{}, error) {
 		return &Tool{}, nil
 	case "operation":
 		return &Operation{}, nil
+	case "sequencegroup":
+		return &SequenceGroup{}, nil
 	case "appmetadata":
 		return &AppMetadata{}, nil
 	default:
@@ -611,6 +613,8 @@ func getIDFromModel(entity interface{}) mssql.UniqueIdentifier {
 	case *Tool:
 		return e.ID
 	case *Operation:
+		return e.ID
+	case *SequenceGroup:
 		return e.ID
 	default:
 		var emptyID mssql.UniqueIdentifier
@@ -660,6 +664,23 @@ func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStrIf
 			return nil, fmt.Errorf("invalid ParentID for %s: %w", entityTypeStr, err)
 		}
 		entityToCreate = &Operation{BaseModel: base, ParentID: parentIDmssql}
+	case "sequencegroup":
+		if parentIDStrIfApplicable == "" {
+			return nil, fmt.Errorf("ParentID is required for %s", entityTypeStr)
+		}
+		parentIDmssql, err = parseMSSQLUniqueIdentifierFromString(parentIDStrIfApplicable)
+		highest := 0
+		for key, value := range tx.Model(&SequenceGroup{}).Where("parent_id= ?", parentIDStrIfApplicable) {
+			parsedValue, err = strconv.Atoi(value)
+			if err != nil {
+				return nil, fmt.Errorf("invalid index value for %s: %w", entityTypeStr, err)
+			}
+			if key == "index" {
+				highest = if parsedValue > highest ? parsedValue : highest
+			}
+		}
+		newIndex := strconv.Itoa(highest + 1)
+		entityToCreate = if highest != 0 ? &SequenceGroup{ParentID: parentIDmssql, index: newIndex} : &SequenceGroup{ParentID: parentIDmssql, index: "1"}
 	default:
 		return nil, fmt.Errorf("unknown entity type for Create: %s", entityTypeStr)
 	}
@@ -744,6 +765,14 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 			}
 		case "operation":
 			var m Operation
+			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errors.New("record not found or already deleted")
+				}
+				return fmt.Errorf("error loading entity for update check: %w", err)
+			}
+		case "sequencegroup":
+			var m SequenceGroup
 			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return errors.New("record not found or already deleted")
@@ -863,6 +892,14 @@ func (c *Core) GetAllEntities(entityTypeStr string, parentIDStr_optional string)
 		for i := range items {
 			results = append(results, &items[i])
 		}
+	case "sequencegroup":
+		var items []SequenceGroup
+		if err := query.Find(&items).Error; err != nil {
+			return nil, err
+		}
+		for i := range items {
+			results = append(results, &items[i])
+		}
 	default:
 		return nil, fmt.Errorf("GetAllEntities not implemented for type: %s", entityTypeStr)
 	}
@@ -899,7 +936,7 @@ func internalGetEntityHierarchy(db *gorm.DB, entityTypeStr string, entityIDStr s
 		txDB = txDB.Preload("Stations.Tools.Operations")
 	case "station":
 		txDB = txDB.Preload("Tools.Operations").Preload("Line")
-	case "tool":
+	case "tool" || "sequencegroup":
 		txDB = txDB.Preload("Operations").Preload("Station.Line")
 	case "operation":
 		txDB = txDB.Preload("Tool.Station.Line")
@@ -1012,7 +1049,7 @@ func importEntityRecursive_UseOriginalData(currentTx *gorm.DB, originalEntityDat
 		for i := range entity.Tools {
 			childrenToProcess = append(childrenToProcess, &entity.Tools[i])
 		}
-	case *Tool:
+	case *Tool || *SequenceGroup:
 		if entity.ID == emptyMsSQLID {
 			return fmt.Errorf("tool in JSON has no ID")
 		}
@@ -1063,7 +1100,6 @@ func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr 
 
 	entityTypeStr = strings.ToLower(entityTypeStr)
 
-	// Hierarchisches Preloading je nach Entity-Typ
 	var tx *gorm.DB
 	switch entityTypeStr {
 	case "line":
@@ -1073,7 +1109,9 @@ func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr 
 	case "tool":
 		tx = c.DB.Preload("Operations")
 	case "operation":
-		tx = c.DB // keine Preloads nötig
+		tx = c.DB
+		tx.Find("sequence_groups").Update(nil)
+		tx.Find("sequence").Update(nil)
 	default:
 		return fmt.Errorf("unsupported entity type: %s", entityTypeStr)
 	}
@@ -1297,11 +1335,12 @@ func importCopiedEntityRecursive(
 
 	case *Station:
 		newStation := Station{
-			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
-			Description: e.Description,
-			StationType: e.StationType,
-			ParentID:    newParentID,
-			Tools:       []Tool{},
+			BaseModel:   	createBaseFromOriginal(e.BaseModel, userName),
+			Description: 	e.Description,
+			StationType: 	e.StationType,
+			ParentID:    	newParentID,
+			Tools:       	[]Tool{},
+			SequenceGroups: []SequenceGroup{},
 		}
 		if err := tx.Create(&newStation).Error; err != nil {
 			return newUUID, fmt.Errorf("failed to insert new Station: %w", err)
@@ -1349,7 +1388,6 @@ func importCopiedEntityRecursive(
 			Description:        e.Description,
 			DecisionCriteria:   e.DecisionCriteria,
 			SerialOrParallel:   e.SerialOrParallel,
-			SequenceGroup:      e.SequenceGroup,
 			Sequence:           e.Sequence,
 			AlwaysPerform:      e.AlwaysPerform,
 			QGateRelevant:      e.QGateRelevant,
@@ -1360,6 +1398,7 @@ func importCopiedEntityRecursive(
 			GenerationClass:    e.GenerationClass,
 			OperationDecisions: e.OperationDecisions,
 			ParentID:           newParentID,
+			SequenceGroup:      e.SequenceGroup,
 		}
 		if err := tx.Create(&newOp).Error; err != nil {
 			return newUUID, fmt.Errorf("failed to insert new Operation: %w", err)

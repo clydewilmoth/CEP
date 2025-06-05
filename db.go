@@ -43,10 +43,11 @@ type Line struct {
 
 type Station struct {
 	BaseModel
-	Description *string                `gorm:"default:null"`
-	StationType *string                `gorm:"default:null"`
-	ParentID    mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	Tools       []Tool                 `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Description 	*string                `gorm:"default:null"`
+	StationType 	*string                `gorm:"default:null"`
+	ParentID    	mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+	Tools       	[]Tool                 `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	SequenceGroups  []SequenceGroup        `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 type Tool struct {
@@ -70,7 +71,6 @@ type Operation struct {
 	Description        *string                `gorm:"default:null"`
 	DecisionCriteria   *string                `gorm:"default:null"`
 	SerialOrParallel   *string                `gorm:"default:null"`
-	SequenceGroup      *string                `gorm:"default:null"`
 	Sequence           *string                `gorm:"default:null"`
 	AlwaysPerform      *string                `gorm:"default:null"`
 	QGateRelevant      *string                `gorm:"default:null"`
@@ -81,6 +81,15 @@ type Operation struct {
 	GenerationClass    *string                `gorm:"default:null"`
 	OperationDecisions *string                `gorm:"default:null"`
 	ParentID           mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+	SequenceGroup	   mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+}
+
+type SequenceGroup struct {
+	ID		  		mssql.UniqueIdentifier 		`gorm:"type:uniqueidentifier;primary_key;"`
+	ParentID        mssql.UniqueIdentifier 		`gorm:"type:uniqueidentifier;index"`
+	Name			*string                		`gorm:"size:255;default:null"`
+	index	        *string                		`gorm:"size:255;default:null"`
+	Operations      []Operation           		`gorm:"foreignKey:SequenceGroup;"`
 }
 
 type AppMetadata struct {
