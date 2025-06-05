@@ -3,9 +3,15 @@ import Lines from "./pages/Lines";
 import Stations from "./pages/Stations";
 import Tools from "./pages/Tools";
 import Operations from "./pages/Operations";
-import { GetPlatformSpecificUserName, InitDB } from "../wailsjs/go/main/Core";
+import {
+  GetChangesSince,
+  GetEntityDetails,
+  GetGlobalLastUpdateTimestamp,
+  GetPlatformSpecificUserName,
+  InitDB,
+} from "../wailsjs/go/main/Core";
 import { EventsOn, EventsOff } from "../wailsjs/runtime";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -30,29 +36,36 @@ export default function App() {
     dbChange,
     tryInitialiseListener,
     tryInitialise,
+    lastUpdate,
+    setLastUpdate,
   } = useContext();
   const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const { setTheme } = useTheme();
 
+  const lastUpdateRef = useRef(lastUpdate);
+
   useEffect(() => {
-    localStorage.getItem("lang") == null
-      ? i18n.changeLanguage("en")
+    lastUpdateRef.current = lastUpdate;
+  }, [lastUpdate]);
+
+  useEffect(() => {
+    !localStorage.getItem("lang")
+      ? (localStorage.setItem("lang", "en"), i18n.changeLanguage("en"))
       : i18n.changeLanguage(String(localStorage.getItem("lang")));
-    localStorage.getItem("theme") == null
+    !localStorage.getItem("theme")
       ? setTheme("system")
       : setTheme(String(localStorage.getItem("theme")));
     (async () => {
-      localStorage.getItem("name") == null &&
+      !localStorage.getItem("name") &&
         localStorage.setItem("name", await GetPlatformSpecificUserName());
     })();
-    (async () => {
-      const initMessage = await InitDB();
-      setInitialised(initMessage == "InitSuccess" ? true : false);
-      setIsLoading(false);
-    })();
-    EventsOn("database:changed", (ts: string) => {
+    EventsOn("database:changed", async (ts: string) => {
+      console.log("Last Update: ", lastUpdateRef.current);
       console.log("DB Change: ", ts);
+      const changes = await GetChangesSince(lastUpdateRef.current ?? "");
+      console.log(changes);
+      setLastUpdate(changes.newGlobalLastUpdatedAt);
       dbChange();
     });
     EventsOn("database:connection_lost", (err: string) => {
@@ -65,15 +78,15 @@ export default function App() {
   useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const initMessage = await InitDB();
+      const initMessage = await InitDB(localStorage.getItem("dsn") ?? "");
       setInitialised(initMessage == "InitSuccess" ? true : false);
       setIsLoading(false);
+      setLastUpdate(await GetGlobalLastUpdateTimestamp());
       initMessage == "InitSuccess"
         ? toast.success(t(initMessage))
         : toast.error(t(initMessage));
     })();
   }, [tryInitialiseListener]);
-
   useEffect(() => {
     queryClient.invalidateQueries();
   }, [dbState]);
@@ -135,4 +148,31 @@ export default function App() {
       </QueryClientProvider>
     </ThemeProvider>
   );
+}
+
+async function draftConflicts(ts: string) {
+  const { deletedEntities, updatedEntities } = await GetChangesSince(ts);
+  let draftConflicts: Record<string, string> = {};
+  Object.entries(deletedEntities).forEach(([entityType, ids]) => {
+    ids.forEach(async (id) => {
+      localStorage.getItem(`${entityType}_${id}`) &&
+        localStorage.removeItem(`${entityType}_${id}`);
+    });
+  });
+
+  Object.entries(updatedEntities).forEach(([entityType, entities]) => {
+    entities.forEach(async (entity) => {
+      if (localStorage.getItem(`${entityType}_${entity.id}`)) {
+        const name = await GetEntityDetails(entityType, entity.id);
+        const localEntity = JSON.parse(
+          localStorage.getItem(`${entityType}_${entity.id}`) ?? "{}"
+        );
+        Object.entries(entity.changedFields).forEach(([field]) => {
+          if (localEntity[field]) draftConflicts[name] = field;
+        });
+      }
+    });
+  });
+
+  Object.keys(draftConflicts).length != 0; // zeige Draft Conflicts an
 }

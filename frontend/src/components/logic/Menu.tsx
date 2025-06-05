@@ -9,11 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  CheckEnvInExeDir,
-  GetPlatformSpecificUserName,
-  ParseDSNFromEnv,
-} from "../../../wailsjs/go/main/Core";
+import { GetPlatformSpecificUserName } from "../../../wailsjs/go/main/Core";
 import { Input } from "../ui/input";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,7 +23,6 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import { ConfigureAndSaveDSN } from "../../../wailsjs/go/main/Core";
 
 import { useContext } from "@/store";
 import { toast } from "sonner";
@@ -44,8 +39,14 @@ import { useTheme } from "next-themes";
 import { ScrollArea } from "../ui/scroll-area";
 import { Sidebar, SidebarBody, SidebarMenu } from "../ui/sidebar";
 import { t } from "i18next";
+import { Checkbox } from "../ui/checkbox";
+import { booleanToString, stringToBoolean } from "./EntityForms";
 
-export function UserDialog({ onClose }: { onClose?: () => void }) {
+export function UserDialog({
+  onDialogStateChange,
+}: {
+  onDialogStateChange?: (open: boolean) => void;
+}) {
   const { t } = useTranslation();
   const [name, setName] = useState<string | null>();
   useEffect(() => {
@@ -63,7 +64,7 @@ export function UserDialog({ onClose }: { onClose?: () => void }) {
         name == "" &&
           (setName(await GetPlatformSpecificUserName()),
           localStorage.setItem("name", await GetPlatformSpecificUserName()));
-        open && onClose && onClose();
+        onDialogStateChange && onDialogStateChange(open);
       }}
     >
       <DialogTrigger asChild>
@@ -87,12 +88,19 @@ export function UserDialog({ onClose }: { onClose?: () => void }) {
   );
 }
 
-export function LangDialog({ onClose }: { onClose?: () => void }) {
+export function LangDialog({
+  onDialogStateChange,
+}: {
+  onDialogStateChange?: (open: boolean) => void;
+}) {
   const { t, i18n } = useTranslation();
-  const [lang, setLang] = useState<string | null>(localStorage.getItem("lang"));
 
   return (
-    <Dialog onOpenChange={(open) => open && onClose && onClose()}>
+    <Dialog
+      onOpenChange={(open) => {
+        onDialogStateChange && onDialogStateChange(open);
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="ghost" className="w-10 h-10">
           <Globe />
@@ -102,10 +110,10 @@ export function LangDialog({ onClose }: { onClose?: () => void }) {
         <DialogTitle>{t("LangDialog Title")}</DialogTitle>
         <DialogDescription>{t("LangDialog Description")}</DialogDescription>
         <Select
+          value={localStorage.getItem("lang") ?? "en"}
           onValueChange={(e) => (
-            setLang(e), i18n.changeLanguage(e), localStorage.setItem("lang", e)
+            i18n.changeLanguage(e), localStorage.setItem("lang", e)
           )}
-          defaultValue={String(lang)}
         >
           <SelectTrigger>
             <SelectValue placeholder={t("LangDialog Placeholder")} />
@@ -120,7 +128,36 @@ export function LangDialog({ onClose }: { onClose?: () => void }) {
   );
 }
 
-export function DSNDialog({ onClose }: { onClose?: () => void }) {
+export function setDatabaseConnection(
+  host: string,
+  port: string,
+  database: string,
+  user: string,
+  password: string,
+  encrypted: string,
+  trustserver: string
+): void {
+  const json = {
+    user: user,
+    password: password,
+    host: host,
+    port: port,
+    database: database,
+    encrypted: encrypted,
+    trustserver: trustserver,
+  };
+  localStorage.setItem("database", JSON.stringify(json));
+  localStorage.setItem(
+    "dsn",
+    `sqlserver://${user}:${password}@${host}:${port}?database=${database}&encrypt=${encrypted}&trustservercertificate=${trustserver}`
+  );
+}
+
+export function DSNDialog({
+  onDialogStateChange,
+}: {
+  onDialogStateChange?: (open: boolean) => void;
+}) {
   const formSchema = z.object({
     Host: z.string().min(1, {
       message: "Required!",
@@ -137,8 +174,8 @@ export function DSNDialog({ onClose }: { onClose?: () => void }) {
     Password: z.string().min(1, {
       message: "Required!",
     }),
-    Encrypted: z.boolean(),
-    TrustServerCertificate: z.boolean(),
+    Encrypted: z.string(),
+    TrustServerCertificate: z.string(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -149,23 +186,24 @@ export function DSNDialog({ onClose }: { onClose?: () => void }) {
       Database: "db",
       User: "sa",
       Password: "",
-      Encrypted: true,
-      TrustServerCertificate: true,
+      Encrypted: "true",
+      TrustServerCertificate: "true",
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    ConfigureAndSaveDSN(
+    setDatabaseConnection(
       values.Host,
       String(values.Port),
       values.Database,
       values.User,
       values.Password,
-      values.Encrypted.toString(),
-      values.TrustServerCertificate.toString()
+      values.Encrypted,
+      values.TrustServerCertificate
     );
     toast.success(`${t("DSNDialog Toast")}`);
     tryInitialise();
+    onDialogStateChange && onDialogStateChange(false);
     setOpen(false);
   }
 
@@ -175,29 +213,32 @@ export function DSNDialog({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    (async () => setOpen(!(await CheckEnvInExeDir())))();
+    !localStorage.getItem("dsn") &&
+      (setOpen(true), onDialogStateChange && onDialogStateChange(true));
   }, []);
 
   useEffect(() => {
     (async () => {
-      const env = await ParseDSNFromEnv();
-      env &&
+      const db = JSON.parse(localStorage.getItem("database") ?? "{}");
+      db != "{}" &&
         form.reset({
-          Host: env.Host || "localhost",
-          Port: Number(env.Port) || 1433,
-          Database: env.Database || "db",
-          User: env.User || "sa",
-          Password: env.Password || "",
-          Encrypted: env.Encrypt === "true",
-          TrustServerCertificate: env.TrustServerCertificate === "true",
+          Host: db.host || "localhost",
+          Port: Number(db.port) || 1433,
+          Database: db.database || "db",
+          User: db.user || "sa",
+          Password: db.password || "",
+          Encrypted: db.encrypted || "true",
+          TrustServerCertificate: db.trustserver || "true",
         });
     })();
   }, [open]);
-
   return (
     <Dialog
       open={open}
-      onOpenChange={(open) => (setOpen(open), open && onClose && onClose())}
+      onOpenChange={(open) => {
+        onDialogStateChange && onDialogStateChange(open);
+        setOpen(open);
+      }}
     >
       <DialogTrigger asChild>
         <Button variant="ghost" className="w-10 h-10">
@@ -289,11 +330,13 @@ export function DSNDialog({ onClose }: { onClose?: () => void }) {
                     render={({ field }) => (
                       <FormItem className="flex gap-2 justify-center space-y-0">
                         <FormControl>
-                          <input
-                            type="checkbox"
-                            checked={field.value}
-                            onChange={field.onChange}
-                            className="hover:cursor-pointer"
+                          <Checkbox
+                            checked={stringToBoolean(field.value)}
+                            onCheckedChange={(checked) =>
+                              field.onChange(
+                                booleanToString(checked as boolean)
+                              )
+                            }
                           />
                         </FormControl>
                         <FormLabel className="hover:cursor-pointer">
@@ -308,11 +351,13 @@ export function DSNDialog({ onClose }: { onClose?: () => void }) {
                     render={({ field }) => (
                       <FormItem className="flex gap-2 justify-center space-y-0">
                         <FormControl>
-                          <input
-                            type="checkbox"
-                            checked={field.value}
-                            onChange={field.onChange}
-                            className="hover:cursor-pointer"
+                          <Checkbox
+                            checked={stringToBoolean(field.value)}
+                            onCheckedChange={(checked) =>
+                              field.onChange(
+                                booleanToString(checked as boolean)
+                              )
+                            }
                           />
                         </FormControl>
                         <FormLabel className="hover:cursor-pointer">
@@ -356,6 +401,14 @@ export function ThemeSwitch() {
 
 export function Menu() {
   const [open, setOpen] = useState(false);
+  const [isAnyDialogOpen, setIsAnyDialogOpen] = useState(false);
+
+  const handleDialogStateChange = (dialogOpen: boolean) => {
+    setIsAnyDialogOpen(dialogOpen);
+    if (dialogOpen) {
+      setOpen(false);
+    }
+  };
 
   const truncateName = (name: string | null): string => {
     if (!name) return "";
@@ -363,21 +416,21 @@ export function Menu() {
   };
 
   return (
-    <Sidebar open={open} setOpen={setOpen}>
+    <Sidebar open={open && !isAnyDialogOpen} setOpen={setOpen}>
       <SidebarBody className="justify-between gap-10 overflow-hidden">
         <div className="flex flex-col">
           <SidebarMenu
-            item={<DSNDialog onClose={() => setOpen(false)} />}
+            item={<DSNDialog onDialogStateChange={handleDialogStateChange} />}
             text={t("Database")}
           />
           <SidebarMenu
-            item={<LangDialog onClose={() => setOpen(false)} />}
+            item={<LangDialog onDialogStateChange={handleDialogStateChange} />}
             text={t("Language")}
           />
           <SidebarMenu item={<ThemeSwitch />} text={t("Theme")} />
         </div>
         <SidebarMenu
-          item={<UserDialog onClose={() => setOpen(false)} />}
+          item={<UserDialog onDialogStateChange={handleDialogStateChange} />}
           text={truncateName(localStorage.getItem("name"))}
         />
       </SidebarBody>
