@@ -102,6 +102,11 @@ export function LineForm({ entityId }: { entityId: string }) {
     enabled: formReady,
   });
 
+  const { data: lineDb } = useQuery({
+    queryKey: ["lineDb", entityId],
+    queryFn: async () => await GetEntityDetails("line", entityId),
+  });
+
   const { mutate: discardDrafts } = useMutation({
     mutationFn: async () => {
       await clearDrafts();
@@ -171,7 +176,16 @@ export function LineForm({ entityId }: { entityId: string }) {
               {commentOpen ? <ChevronUp /> : <ChevronDown />}
             </Button>
             <div className="flex gap-3 items-center">
-              {line && line.StatusColor?.draft && <SquarePen size={15} />}
+              {line && line.StatusColor?.draft && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SquarePen size={15} />
+                    </TooltipTrigger>
+                    <TooltipContent>{t(lineDb.StatusColor)}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               <FormField
                 control={form.control}
                 name="StatusColor"
@@ -222,10 +236,21 @@ export function LineForm({ entityId }: { entityId: string }) {
           </div>
           {commentOpen && (
             <div className="flex flex-col gap-3">
-              <div className="flex gap-3 ">
+              {line && line.Comment?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel>{t("Comment")}</FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent>{t(lineDb.Comment)}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
                 <FormLabel>{t("Comment")}</FormLabel>
-                {line && line.Comment?.draft && <SquarePen size={15} />}
-              </div>
+              )}
 
               <FormField
                 control={form.control}
@@ -261,10 +286,21 @@ export function LineForm({ entityId }: { entityId: string }) {
             name="Name"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {line && line.Name?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel>{t("Name")}</FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent>{t(lineDb.Name)}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel>{t("Name")}</FormLabel>
-                  {line && line.Name?.draft && <SquarePen size={15} />}
-                </div>
+                )}
                 <FormControl>
                   <Input
                     {...field}
@@ -291,10 +327,21 @@ export function LineForm({ entityId }: { entityId: string }) {
             name="AssemblyArea"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {line && line.AssemblyArea?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel>{t("AssemblyArea")}</FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent>{t(lineDb.AssemblyArea)}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel>{t("AssemblyArea")}</FormLabel>
-                  {line && line.AssemblyArea?.draft && <SquarePen size={15} />}
-                </div>
+                )}
                 <FormControl>
                   <Input
                     {...field}
@@ -413,6 +460,11 @@ export function StationForm({ entityId }: { entityId: string }) {
     enabled: formReady,
   });
 
+  const { data: stationDb } = useQuery({
+    queryKey: ["stationDb", entityId],
+    queryFn: async () => await GetEntityDetails("station", entityId),
+  });
+
   const { mutate: discardDrafts } = useMutation({
     mutationFn: async () => {
       await clearDrafts();
@@ -513,7 +565,16 @@ export function StationForm({ entityId }: { entityId: string }) {
               {commentOpen ? <ChevronUp /> : <ChevronDown />}
             </Button>
             <div className="flex gap-3 items-center">
-              {station && station.StatusColor?.draft && <SquarePen size={15} />}
+              {station && station.StatusColor?.draft && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SquarePen size={15} />
+                    </TooltipTrigger>
+                    <TooltipContent>{t(stationDb.StatusColor)}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               <FormField
                 control={form.control}
                 name="StatusColor"
@@ -564,10 +625,21 @@ export function StationForm({ entityId }: { entityId: string }) {
           </div>
           {commentOpen && (
             <div className="flex flex-col gap-3">
-              <div className="flex gap-3 ">
+              {station && station.Comment?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel>{t("Comment")}</FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent>{t(stationDb.Comment)}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
                 <FormLabel>{t("Comment")}</FormLabel>
-                {station && station.Comment?.draft && <SquarePen size={15} />}
-              </div>
+              )}
 
               <FormField
                 control={form.control}
@@ -859,6 +931,11 @@ export function ToolForm({ entityId }: { entityId: string }) {
     enabled: formReady,
   });
 
+  const { data: toolDb } = useQuery({
+    queryKey: ["toolDb", entityId],
+    queryFn: async () => await GetEntityDetails("tool", entityId),
+  });
+
   const { mutate: discardDrafts } = useMutation({
     mutationFn: async () => {
       clearDrafts();
@@ -961,7 +1038,16 @@ export function ToolForm({ entityId }: { entityId: string }) {
               {commentOpen ? <ChevronUp /> : <ChevronDown />}
             </Button>
             <div className="flex gap-3 items-center">
-              {tool && tool.StatusColor?.draft && <SquarePen size={15} />}
+              {tool && tool.StatusColor?.draft && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SquarePen size={15} />
+                    </TooltipTrigger>
+                    <TooltipContent>{t(toolDb.StatusColor)}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               <FormField
                 control={form.control}
                 name="StatusColor"
@@ -1012,10 +1098,21 @@ export function ToolForm({ entityId }: { entityId: string }) {
           </div>
           {commentOpen && (
             <div className="flex flex-col gap-3">
-              <div className="flex gap-3 ">
+              {tool && tool.Comment?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel>{t("Comment")}</FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent>{t(toolDb.Comment)}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
                 <FormLabel>{t("Comment")}</FormLabel>
-                {tool && tool.Comment?.draft && <SquarePen size={15} />}
-              </div>
+              )}
 
               <FormField
                 control={form.control}
@@ -1641,6 +1738,11 @@ export function OperationForm({
     enabled: formReady,
   });
 
+  const { data: operationDb } = useQuery({
+    queryKey: ["operationDb", entityId],
+    queryFn: async () => await GetEntityDetails("operation", entityId),
+  });
+
   const { mutate: discardDrafts } = useMutation({
     mutationFn: async () => {
       clearDrafts();
@@ -1715,7 +1817,16 @@ export function OperationForm({
             </Button>
             <div className="flex gap-3 items-center">
               {operation && operation.StatusColor?.draft && (
-                <SquarePen size={15} />
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SquarePen size={15} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {t(operationDb.StatusColor)}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
               <FormField
                 control={form.control}
@@ -1767,12 +1878,21 @@ export function OperationForm({
           </div>
           {commentOpen && (
             <div className="flex flex-col gap-3">
-              <div className="flex gap-3 ">
+              {operation && operation.Comment?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel>{t("Comment")}</FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent>{t(operationDb.Comment)}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
                 <FormLabel>{t("Comment")}</FormLabel>
-                {operation && operation.Comment?.draft && (
-                  <SquarePen size={15} />
-                )}
-              </div>
+              )}
 
               <FormField
                 control={form.control}
