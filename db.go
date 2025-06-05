@@ -43,11 +43,10 @@ type Line struct {
 
 type Station struct {
 	BaseModel
-	Description      *string                `gorm:"default:null"`
-	StationType      *string                `gorm:"default:null"`
-	SerialOrParallel *string                `gorm:"default:null"`
-	ParentID         mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	Tools            []Tool                 `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Description *string                `gorm:"default:null"`
+	StationType *string                `gorm:"default:null"`
+	ParentID    mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+	Tools       []Tool                 `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 type Tool struct {
@@ -74,7 +73,6 @@ type Operation struct {
 	Sequence           *string                `gorm:"default:null"`
 	AlwaysPerform      *string                `gorm:"default:null"`
 	QGateRelevant      *string                `gorm:"default:null"`
-	SerialOrParallel   *string                `gorm:"default:null"`
 	Template           *string                `gorm:"default:null"`
 	SerialOrParallel   *string                `gorm:"default:null"`
 	DecisionClass      *string                `gorm:"default:null"`

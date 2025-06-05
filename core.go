@@ -1475,12 +1475,11 @@ func importCopiedEntityRecursive(
 
 	case *Station:
 		newStation := Station{
-			BaseModel:        createBaseFromOriginal(e.BaseModel, userName),
-			Description:      e.Description,
-			StationType:      e.StationType,
-			SerialOrParallel: e.SerialOrParallel,
-			ParentID:         newParentID,
-			Tools:            []Tool{},
+			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
+			Description: e.Description,
+			StationType: e.StationType,
+			ParentID:    newParentID,
+			Tools:       []Tool{},
 		}
 		if err := tx.Create(&newStation).Error; err != nil {
 			return newUUID, fmt.Errorf("failed to insert new Station: %w", err)

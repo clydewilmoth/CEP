@@ -1905,75 +1905,72 @@ export function OperationForm({ entityId }: { entityId: string }) {
             )}
           />
                     
-          <FormField
-            control={form.control}
-            name="SerialOrParallel"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex gap-3">
-                  <FormLabel>{t("Serial / Parallel")}</FormLabel>
-                 {operation && operation.SerialOrParallel?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
-                <Select               
-                  value={field.value ?? ""}
-                  onValueChange={(value) => {
-                   field.onChange(value);
-                   console.log(value);
-                  const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
-                  console.log(json);
-                  if (value === "" || value === "none") {
-                        delete json.SerialOrParallel;
-                  } else {
-                        json.SerialOrParallel = value;
-                  }
-                  console.log(json.SerialOrParallel);
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    queryClient.invalidateQueries({
-                      queryKey: ["operation", entityId],
-                    });
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("SOP Placeholder")} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                   <SelectItem value="none">-</SelectItem>
-                    {data.SerialOrParallel.map((serialorparallel) => {
-                      let skip = true;
-                      serialorparallel.stationTypes.every((st) => {
-                        if (
-                          !parentStation.StationType ||
-                          parentStation.StationType == "none"
-                        ) {
-                          skip = false;
-                          return false;
-                        } else if (parentStation.StationType == st) {
-                          skip = false;
-                          return false;
-                        }
-                        return true;
-                      });
+         <FormField
+  control={form.control}
+  name="SerialOrParallel"
+  render={({ field }) => (
+    <FormItem>
+      <div className="flex gap-3">
+        <FormLabel>{t("Serial / Parallel")}</FormLabel>
+        {operation && operation.SerialOrParallel?.draft && (
+          <SquarePen size={15} />
+        )}
+      </div>
+      <Select
+        value={field.value ?? ""}
+        onValueChange={(value) => {
+          field.onChange(value);
+          const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+          if (value === "" || value === "none") {
+            delete json.SerialOrParallel;
+          } else {
+            json.SerialOrParallel = value;
+          }
+          localStorage.setItem(entityId, JSON.stringify(json));
+          queryClient.invalidateQueries({
+            queryKey: ["operation", entityId],
+          });
+        }}
+      >
+        <FormControl>
+          <SelectTrigger>
+            <SelectValue placeholder={t("SOP Placeholder")} />
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent>
+          <SelectItem value="none">-</SelectItem>
+          {data.SerialOrParallel.map((serialorparallel) => {
+            let skip = true;
+            serialorparallel.stationTypes.every((st) => {
+              if (
+                !parentStation?.StationType ||
+                parentStation.StationType == "none"
+              ) {
+                skip = false;
+                return false;
+              } else if (parentStation.StationType == st) {
+                skip = false;
+                return false;
+              }
+              return true;
+            });
 
-                      return (
-                        !skip && (
-                          <SelectItem
-                            key={"SOP_" + serialorparallel.id}
-                            value={serialorparallel.id}
-                          >
-                            {t("SOP_" + String(serialorparallel.id) + "_name")}
-                          </SelectItem>
-                        )
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
+            return (
+              !skip && (
+                <SelectItem
+                  key={"SOP_" + serialorparallel.id}
+                  value={serialorparallel.id}
+                >
+                  {t("SOP_" + String(serialorparallel.id) + "_name")}
+                </SelectItem>
+              )
+            );
+          })}
+        </SelectContent>
+      </Select>
+    </FormItem>
+  )}
+/>
 
           <FormField
             control={form.control}
