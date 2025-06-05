@@ -249,11 +249,11 @@ function DraftConflictDialog() {
                   <>
                     {showKey && (
                       <div
-                        key={keyWithoutCounter}
+                        key={key}
                         className="font-bold"
                       >{`${keyWithoutCounter}: `}</div>
                     )}
-                    <div key={keyWithoutCounter + value} className="text-sm">
+                    <div key={key + value} className="text-sm">
                       {`${t(value.split("<><><>")[0])}: ${t(
                         value.split("<><><>")[1]
                       )}`}
