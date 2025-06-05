@@ -270,20 +270,15 @@ function CreateEntityCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-            <>
-              {/*<ContextMenuSeparator />*/}
-              {entityType == "line" && (
-                <>
-                  <ImportJSON onClick={() => setKey((k) => k + 1)} />
-                  <DropdownMenuSeparator className="bg-accent" />
-                </>
-              )}
-              <PasteEntityHierarchyFromClipboard
-                entityType={entityType}
-                parentId={parentId}
-                onClick={() => setKey((k) => k + 1)}
-              />
-            </>
+            <PasteEntityHierarchyFromClipboard
+              entityType={entityType}
+              parentId={parentId}
+              onClick={() => setKey((k) => k + 1)}
+            />
+            <DropdownMenuSeparator className="bg-accent" />
+            {entityType == "line" && (
+              <ImportJSON onClick={() => setKey((k) => k + 1)} />
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

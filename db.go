@@ -89,11 +89,11 @@ type AppMetadata struct {
 }
 
 type EntityChangeLog struct {
-	LogID           mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;primary_key;default:newsequentialid()"` // MS SQL Default
+	LogID           mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;primary_key;default:newsequentialid()"`
 	EntityID        mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
 	EntityType      string                 `gorm:"size:50;index"`
 	OperationType   string                 `gorm:"size:20"`
-	ChangeTime      time.Time              `gorm:"type:datetime2;index"` // GORM oder DB setzt dies. `default:GETDATE()` wäre auch eine Option
+	ChangeTime      time.Time              `gorm:"type:datetime2;index"`
 	ChangedByUserID *string                `gorm:"size:255;default:null"`
 }
 

@@ -35,14 +35,14 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const { setTheme } = useTheme();
   useEffect(() => {
-    localStorage.getItem("lang") == null
+    !localStorage.getItem("lang")
       ? (localStorage.setItem("lang", "en"), i18n.changeLanguage("en"))
       : i18n.changeLanguage(String(localStorage.getItem("lang")));
-    localStorage.getItem("theme") == null
+    !localStorage.getItem("theme")
       ? setTheme("system")
       : setTheme(String(localStorage.getItem("theme")));
     (async () => {
-      localStorage.getItem("name") == null &&
+      !localStorage.getItem("name") &&
         localStorage.setItem("name", await GetPlatformSpecificUserName());
     })();
     EventsOn("database:changed", (ts: string) => {
@@ -127,30 +127,5 @@ export default function App() {
         </div>
       </QueryClientProvider>
     </ThemeProvider>
-  );
-}
-
-export function setDatabaseConnection(
-  host: string,
-  port: string,
-  database: string,
-  user: string,
-  password: string,
-  encrypted: string,
-  trustserver: string
-): void {
-  const json = {
-    user: user,
-    password: password,
-    host: host,
-    port: port,
-    database: database,
-    encrypted: encrypted,
-    trustserver: trustserver,
-  };
-  localStorage.setItem("database", JSON.stringify(json));
-  localStorage.setItem(
-    "dsn",
-    `sqlserver://${user}:${password}@${host}:${port}?database=${database}&encrypt=${encrypted}&trustservercertificate=${trustserver}`
   );
 }

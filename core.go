@@ -24,19 +24,15 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// Robust timestamp parsing helper for concurrency and DB compatibility
 func parseTimestampFlexible(ts string) (time.Time, error) {
-	// Try RFC3339Nano
 	t, err := time.Parse(time.RFC3339Nano, ts)
 	if err == nil {
 		return t, nil
 	}
-	// Try RFC3339
 	t, err = time.Parse(time.RFC3339, ts)
 	if err == nil {
 		return t, nil
 	}
-	// Try SQL Server datetime2 (no T, no timezone)
 	const mssqlFormat = "2006-01-02 15:04:05.9999999"
 	t, err = time.Parse(mssqlFormat, ts)
 	if err == nil {
@@ -49,9 +45,9 @@ func parseTimestampFlexible(ts string) (time.Time, error) {
 type Core struct {
 	ctx            context.Context
 	listenerCancel context.CancelFunc
-	DB             *gorm.DB // Jede Instanz hat ihre eigene Verbindung
-	queueName      string   // Unique queue name for this instance
-	serviceName    string   // Unique service name for this instance
+	DB             *gorm.DB
+	queueName      string
+	serviceName    string
 }
 
 func NewCore() *Core {
@@ -95,16 +91,13 @@ func (c *Core) HandleImport(user string) string {
 	}
 }
 
-// enableServiceBroker ensures Service Broker is enabled on the database before any other Service Broker operations
 func enableServiceBroker(sqlDB *sql.DB, dbName string) error {
-	// This MUST be the first Service Broker operation - enable Service Broker on the database if not already enabled
 	enableStmt := fmt.Sprintf(`IF (SELECT is_broker_enabled FROM sys.databases WHERE name = '%s') = 0
 		 BEGIN
 		   ALTER DATABASE [%s] SET ENABLE_BROKER;
 		 END;`, dbName, dbName)
 
 	if _, err := sqlDB.Exec(enableStmt); err != nil {
-		// Don't fail for broker already enabled
 		if !strings.Contains(err.Error(), "already enabled") {
 			return fmt.Errorf("failed to enable Service Broker: %w", err)
 		}
@@ -120,37 +113,29 @@ func setupBroker(DB *gorm.DB, dbName string) (string, string, error) {
 		return "", "", err
 	}
 
-	// FIRST: Enable Service Broker before any other Service Broker operations
 	if err := enableServiceBroker(sqlDB, dbName); err != nil {
 		return "", "", err
 	}
 
-	// Generate unique session ID for tracking
 	sessionID := uuid.New().String()
 	queueName := fmt.Sprintf("DataChangeQueue_%s", strings.ReplaceAll(sessionID, "-", ""))
 	serviceName := fmt.Sprintf("DataChangeService_%s", strings.ReplaceAll(sessionID, "-", ""))
 
-	// Clean up any orphaned Service Broker resources from previous runs
 	cleanupOrphanedResources(sqlDB)
 	stmts := []string{
-		// Create message type if not exists
 		`IF NOT EXISTS (SELECT * FROM sys.service_message_types WHERE name = 'DataChanged')
 		 CREATE MESSAGE TYPE [DataChanged] VALIDATION = NONE;`,
 
-		// Create contract if not exists
 		`IF NOT EXISTS (SELECT * FROM sys.service_contracts WHERE name = 'DataChangedContract')
 		 CREATE CONTRACT [DataChangedContract] ([DataChanged] SENT BY INITIATOR);`,
 
-		// Create unique queue for this session
 		fmt.Sprintf(`IF NOT EXISTS (SELECT * FROM sys.service_queues WHERE name = '%s')
 		 CREATE QUEUE [dbo].[%s];`, queueName, queueName),
 
-		// Create unique service for this session
 		fmt.Sprintf(`IF NOT EXISTS (SELECT * FROM sys.services WHERE name = '%s')
 		 CREATE SERVICE [%s] ON QUEUE [dbo].[%s] ([DataChangedContract]);`,
 			serviceName, serviceName, queueName),
 
-		// Create the trigger only if it doesn't exist (don't drop and recreate)
 		`IF OBJECT_ID('dbo.TRG_app_metadata_Notify_All', 'TR') IS NULL
 		 BEGIN
 		   EXEC('CREATE TRIGGER dbo.TRG_app_metadata_Notify_All
@@ -200,7 +185,6 @@ func setupBroker(DB *gorm.DB, dbName string) (string, string, error) {
 
 	for _, stmt := range stmts {
 		if _, err := sqlDB.Exec(stmt); err != nil {
-			// Don't fail for broker already enabled
 			if !strings.Contains(err.Error(), "already enabled") {
 				log.Printf("Warning: Service Broker setup issue: %v", err)
 			}
@@ -227,7 +211,6 @@ func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB, dsn string) 
 		default:
 		}
 
-		// Use WAITFOR RECEIVE to block until a message arrives (no polling!)
 		query := fmt.Sprintf(`
 			WAITFOR (
 				RECEIVE TOP(1) message_body 
@@ -247,22 +230,18 @@ func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB, dsn string) 
 				return
 			}
 
-			// Check for queue/service not found errors (resources cleaned up by another instance)
 			if strings.Contains(err.Error(), "Invalid object name") &&
 				(strings.Contains(err.Error(), "DataChangeQueue_") || strings.Contains(err.Error(), "DataChangeService_")) {
 				log.Printf("Service Broker resources no longer exist (cleaned up by another instance): %v", err)
 				log.Printf("Listener exiting - resources deleted (session: %s)", c.queueName)
 
-				// Clear our references since they're gone
 				c.queueName = ""
 				c.serviceName = ""
 
-				// Emit connection lost event to trigger reconnection
 				ws.EventsEmit(ctx, "database:connection_lost", "Service Broker resources removed")
 				return
 			}
 
-			// Check for connection errors
 			if strings.Contains(err.Error(), "connection") ||
 				strings.Contains(err.Error(), "network") ||
 				strings.Contains(err.Error(), "timeout") ||
@@ -270,22 +249,17 @@ func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB, dsn string) 
 				strings.Contains(err.Error(), "transport") {
 				log.Printf("Database connection lost: %v", err)
 
-				// Clean up Service Broker resources for this dead connection
-				// We do this here to prevent stale resources from interfering
 				c.cleanupBrokerWithDeadConnection(dsn)
 
 				ws.EventsEmit(ctx, "database:connection_lost", err.Error())
 
-				// Exit the listener - let InitDB restart everything cleanly
 				log.Printf("Listener exiting due to connection loss (session: %s)", c.queueName)
 				return
 			}
 
-			// Handle timeout (no messages) - this is normal, continue listening
 			if strings.Contains(err.Error(), "no rows") ||
 				strings.Contains(err.Error(), "WAITFOR") ||
 				strings.Contains(err.Error(), "timeout") {
-				// No messages received within timeout period - continue listening
 				continue
 			}
 
@@ -294,7 +268,6 @@ func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB, dsn string) 
 			continue
 		}
 
-		// If we reach here, a message was received (database changed!)
 		if messageBody.Valid {
 			log.Printf("Database change notification received: %s", messageBody.String)
 			ws.EventsEmit(ctx, "database:changed", time.Now())
@@ -308,23 +281,18 @@ const OpTypeDelete = "DELETE"
 const OpTypeSystemEvent = "SYSTEM_EVENT"
 
 func (c *Core) InitDB(dsn string) string {
-	// Stop any existing listener
 	if c.listenerCancel != nil {
 		c.listenerCancel()
 		c.listenerCancel = nil
-		// Give the listener time to exit cleanly
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	// Clean up existing Service Broker resources before closing DB
 	c.cleanupBroker()
 
-	// Also try cleanup with a fresh connection in case the current one is dead
 	if c.queueName != "" || c.serviceName != "" {
 		c.cleanupBrokerWithDeadConnection(dsn)
 	}
 
-	// Close existing DB connection
 	if c.DB != nil {
 		sqlDB, err := c.DB.DB()
 		if err == nil {
@@ -333,7 +301,6 @@ func (c *Core) InitDB(dsn string) string {
 		c.DB = nil
 	}
 
-	// Clear queue and service names
 	c.queueName = ""
 	c.serviceName = ""
 	if dsn == "" {
@@ -360,8 +327,8 @@ func (c *Core) InitDB(dsn string) string {
 	if err != nil {
 		return "InitError"
 	}
-	c.queueName = queueName     // Store queue name for this instance
-	c.serviceName = serviceName // Store service name for this instance
+	c.queueName = queueName
+	c.serviceName = serviceName
 	log.Println("Service Broker setup complete")
 
 	sqlDB, err := c.DB.DB()
@@ -378,7 +345,7 @@ func (c *Core) InitDB(dsn string) string {
 	}
 	listenerCtx, cancel := context.WithCancel(c.ctx)
 	c.listenerCancel = cancel
-	go c.listenForChanges(listenerCtx, sqlDB, dsn) // Pass Core instance to use queueName
+	go c.listenForChanges(listenerCtx, sqlDB, dsn)
 
 	log.Println("Successfully connected to and migrated MS SQL server DB.")
 	return "InitSuccess"
@@ -1215,7 +1182,7 @@ func importCopiedEntityRecursive(
 	newParentID mssql.UniqueIdentifier,
 	idMap map[mssql.UniqueIdentifier]mssql.UniqueIdentifier,
 ) (mssql.UniqueIdentifier, error) {
-	_ = entityTypeStr // entityTypeStr is not used in this function, but kept for consistency
+	_ = entityTypeStr
 	newUUID := mssql.UniqueIdentifier{}
 	_ = newUUID.Scan(uuid.New().String())
 
@@ -1359,7 +1326,6 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 	return err
 }
 
-// cleanupBroker removes the queue and service for this instance
 func (c *Core) cleanupBroker() {
 	if c.DB == nil || c.queueName == "" || c.serviceName == "" {
 		return
@@ -1371,13 +1337,10 @@ func (c *Core) cleanupBroker() {
 		return
 	}
 
-	// Clean up this instance's Service Broker resources
 	stmts := []string{
-		// Drop the service first
 		fmt.Sprintf(`IF EXISTS (SELECT * FROM sys.services WHERE name = '%s')
 		 DROP SERVICE [%s];`, c.serviceName, c.serviceName),
 
-		// Drop the queue
 		fmt.Sprintf(`IF EXISTS (SELECT * FROM sys.service_queues WHERE name = '%s')
 		 DROP QUEUE [dbo].[%s];`, c.queueName, c.queueName),
 	}
@@ -1391,20 +1354,16 @@ func (c *Core) cleanupBroker() {
 	log.Printf("Service Broker cleanup completed for session: %s", c.queueName)
 }
 
-// cleanupBrokerWithDeadConnection attempts cleanup when the main connection is dead
-// This uses a new connection to avoid dependency on the failed connection
 func (c *Core) cleanupBrokerWithDeadConnection(dsn string) {
 	if c.queueName == "" || c.serviceName == "" {
 		return
 	}
 
-	// Try to create a new connection for cleanup
 	if dsn == "" {
 		log.Printf("Warning: No DSN available for Service Broker cleanup")
 		return
 	}
 
-	// Create a temporary connection just for cleanup
 	tempDB, err := sql.Open("sqlserver", dsn)
 	if err != nil {
 		log.Printf("Warning: could not create temp connection for Service Broker cleanup: %v", err)
@@ -1412,17 +1371,13 @@ func (c *Core) cleanupBrokerWithDeadConnection(dsn string) {
 	}
 	defer tempDB.Close()
 
-	// Set a short timeout for cleanup operations
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Clean up this instance's Service Broker resources
 	stmts := []string{
-		// Drop the service first
 		fmt.Sprintf(`IF EXISTS (SELECT * FROM sys.services WHERE name = '%s')
 		 DROP SERVICE [%s];`, c.serviceName, c.serviceName),
 
-		// Drop the queue
 		fmt.Sprintf(`IF EXISTS (SELECT * FROM sys.service_queues WHERE name = '%s')
 		 DROP QUEUE [dbo].[%s];`, c.queueName, c.queueName),
 	}
@@ -1436,11 +1391,7 @@ func (c *Core) cleanupBrokerWithDeadConnection(dsn string) {
 	log.Printf("Service Broker cleanup with dead connection completed for session: %s", c.queueName)
 }
 
-// cleanupOrphanedResources removes old Service Broker resources that might be left from crashed instances
-// This function now checks for active connections before removing resources to avoid interfering with running instances
 func cleanupOrphanedResources(sqlDB *sql.DB) {
-	// Test connectivity to each queue before considering it orphaned
-	// If a queue can't receive messages, it's likely from a crashed instance
 	stmt := `
 	DECLARE @queueName NVARCHAR(256);
 	DECLARE @serviceName NVARCHAR(256);

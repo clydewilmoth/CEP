@@ -13,7 +13,7 @@ import { GetPlatformSpecificUserName } from "../../../wailsjs/go/main/Core";
 import { Input } from "../ui/input";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import {
@@ -41,7 +41,6 @@ import { Sidebar, SidebarBody, SidebarMenu } from "../ui/sidebar";
 import { t } from "i18next";
 import { Checkbox } from "../ui/checkbox";
 import { booleanToString, stringToBoolean } from "./EntityForms";
-import { setDatabaseConnection } from "@/App";
 
 export function UserDialog({
   onDialogStateChange,
@@ -95,7 +94,6 @@ export function LangDialog({
   onDialogStateChange?: (open: boolean) => void;
 }) {
   const { t, i18n } = useTranslation();
-  const [lang, setLang] = useState<string | null>(localStorage.getItem("lang"));
 
   return (
     <Dialog
@@ -112,13 +110,13 @@ export function LangDialog({
         <DialogTitle>{t("LangDialog Title")}</DialogTitle>
         <DialogDescription>{t("LangDialog Description")}</DialogDescription>
         <Select
-          value={String(lang)}
+          value={localStorage.getItem("lang") ?? "en"}
           onValueChange={(e) => (
-            setLang(e), i18n.changeLanguage(e), localStorage.setItem("lang", e)
+            i18n.changeLanguage(e), localStorage.setItem("lang", e)
           )}
         >
           <SelectTrigger>
-            <SelectValue defaultValue={localStorage.getItem("lang") ?? "en"} />
+            <SelectValue placeholder={t("LangDialog Placeholder")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="en">English</SelectItem>
@@ -127,6 +125,31 @@ export function LangDialog({
         </Select>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export function setDatabaseConnection(
+  host: string,
+  port: string,
+  database: string,
+  user: string,
+  password: string,
+  encrypted: string,
+  trustserver: string
+): void {
+  const json = {
+    user: user,
+    password: password,
+    host: host,
+    port: port,
+    database: database,
+    encrypted: encrypted,
+    trustserver: trustserver,
+  };
+  localStorage.setItem("database", JSON.stringify(json));
+  localStorage.setItem(
+    "dsn",
+    `sqlserver://${user}:${password}@${host}:${port}?database=${database}&encrypt=${encrypted}&trustservercertificate=${trustserver}`
   );
 }
 
