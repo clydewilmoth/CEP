@@ -10,7 +10,7 @@ import {
   InitDB,
 } from "../wailsjs/go/main/Core";
 import { EventsOn, EventsOff } from "../wailsjs/runtime";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -41,6 +41,13 @@ export default function App() {
   const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const { setTheme } = useTheme();
+
+  const lastUpdateRef = useRef(lastUpdate);
+
+  useEffect(() => {
+    lastUpdateRef.current = lastUpdate;
+  }, [lastUpdate]);
+
   useEffect(() => {
     !localStorage.getItem("lang")
       ? (localStorage.setItem("lang", "en"), i18n.changeLanguage("en"))
@@ -51,13 +58,13 @@ export default function App() {
     (async () => {
       !localStorage.getItem("name") &&
         localStorage.setItem("name", await GetPlatformSpecificUserName());
-      setLastUpdate(await GetGlobalLastUpdateTimestamp());
     })();
     EventsOn("database:changed", async (ts: string) => {
+      console.log("Last Update: ", lastUpdateRef.current);
       console.log("DB Change: ", ts);
-      setLastUpdate(ts);
-      console.log("Last Update: ", lastUpdate);
-      console.log(await GetChangesSince(lastUpdate ?? ""));
+      const changes = await GetChangesSince(lastUpdateRef.current ?? "");
+      console.log(changes);
+      setLastUpdate(changes.newGlobalLastUpdatedAt);
       dbChange();
     });
     EventsOn("database:connection_lost", (err: string) => {
@@ -73,6 +80,7 @@ export default function App() {
       const initMessage = await InitDB(localStorage.getItem("dsn") ?? "");
       setInitialised(initMessage == "InitSuccess" ? true : false);
       setIsLoading(false);
+      setLastUpdate(await GetGlobalLastUpdateTimestamp());
       initMessage == "InitSuccess"
         ? toast.success(t(initMessage))
         : toast.error(t(initMessage));

@@ -17,5 +17,5 @@ export const useContext = create<{
   dbState: 0,
   dbChange: () => set((state) => ({ dbState: state.dbState + 1 })),
   lastUpdate: null,
-  setLastUpdate: (lastUpdate) => set({ lastUpdate }),
+  setLastUpdate: (lastUpdate) => set({ lastUpdate })
 }));

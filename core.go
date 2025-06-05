@@ -439,9 +439,67 @@ func (c *Core) GetGlobalLastUpdateTimestamp() (string, error) {
 }
 
 type ChangeResponse struct {
-	NewGlobalLastUpdatedAt string              `json:"newGlobalLastUpdatedAt"`
-	UpdatedEntities        map[string][]string `json:"updatedEntities"`
-	DeletedEntities        map[string][]string `json:"deletedEntities"`
+	NewGlobalLastUpdatedAt string                              `json:"newGlobalLastUpdatedAt"`
+	UpdatedEntities        map[string][]map[string]interface{} `json:"updatedEntities"`
+	DeletedEntities        map[string][]string                 `json:"deletedEntities"`
+}
+
+// Helper: rekursiv alle Kind-IDs für eine gelöschte Entity sammeln, gruppiert nach EntityType
+func (c *Core) collectAllChildIDs(entityType string, entityID mssql.UniqueIdentifier) (map[string][]string, error) {
+	result := make(map[string][]string)
+	idStr := entityID.String()
+
+	// Füge die aktuelle Entity hinzu
+	result[entityType] = append(result[entityType], idStr)
+
+	switch entityType {
+	case "line":
+		var stations []Station
+		if err := c.DB.Where("parent_id = ?", entityID).Find(&stations).Error; err != nil {
+			return result, err
+		}
+		for _, s := range stations {
+			childResults, err := c.collectAllChildIDs("station", s.ID)
+			if err != nil {
+				return result, err
+			}
+			// Merge child results
+			for childType, childIDs := range childResults {
+				result[childType] = append(result[childType], childIDs...)
+			}
+		}
+	case "station":
+		var tools []Tool
+		if err := c.DB.Where("parent_id = ?", entityID).Find(&tools).Error; err != nil {
+			return result, err
+		}
+		for _, t := range tools {
+			childResults, err := c.collectAllChildIDs("tool", t.ID)
+			if err != nil {
+				return result, err
+			}
+			// Merge child results
+			for childType, childIDs := range childResults {
+				result[childType] = append(result[childType], childIDs...)
+			}
+		}
+	case "tool":
+		var ops []Operation
+		if err := c.DB.Where("parent_id = ?", entityID).Find(&ops).Error; err != nil {
+			return result, err
+		}
+		for _, o := range ops {
+			childResults, err := c.collectAllChildIDs("operation", o.ID)
+			if err != nil {
+				return result, err
+			}
+			// Merge child results
+			for childType, childIDs := range childResults {
+				result[childType] = append(result[childType], childIDs...)
+			}
+		}
+	}
+	return result, nil
 }
 
 func (c *Core) GetChangesSince(clientLastKnownTimestampStr string) (*ChangeResponse, error) {
@@ -457,26 +515,41 @@ func (c *Core) GetChangesSince(clientLastKnownTimestampStr string) (*ChangeRespo
 		return nil, fmt.Errorf("failed to get current global update timestamp: %w", err)
 	}
 	currentGlobalTime, _ := parseTimestampFlexible(currentGlobalTsStr)
-	response := &ChangeResponse{NewGlobalLastUpdatedAt: currentGlobalTsStr, UpdatedEntities: make(map[string][]string), DeletedEntities: make(map[string][]string)}
+	response := &ChangeResponse{NewGlobalLastUpdatedAt: currentGlobalTsStr, UpdatedEntities: make(map[string][]map[string]interface{}), DeletedEntities: make(map[string][]string)}
 	if currentGlobalTime.After(clientLastKnownTime) {
 		var logs []EntityChangeLog
 		if err := c.DB.Where("change_time > ?", clientLastKnownTime).Order("change_time asc").Find(&logs).Error; err != nil {
 			return nil, fmt.Errorf("failed to fetch change logs: %w", err)
 		}
 		processedUpdatedIDs := make(map[string]bool)
+		processedDeletedIDs := make(map[string]bool)
 		for _, lg := range logs {
 			idStr := lg.EntityID.String()
+			key := lg.EntityType + "_" + idStr
 			if lg.OperationType == OpTypeSystemEvent {
 				if _, ok := response.UpdatedEntities["system_event"]; !ok {
-					response.UpdatedEntities["system_event"] = []string{}
+					response.UpdatedEntities["system_event"] = []map[string]interface{}{}
 				}
-				response.UpdatedEntities["system_event"] = append(response.UpdatedEntities["system_event"], fmt.Sprintf("%s:%s", lg.EntityType, idStr))
-			} else if lg.OperationType == OpTypeDelete {
+				response.UpdatedEntities["system_event"] = append(response.UpdatedEntities["system_event"], map[string]interface{}{"id": idStr, "entityType": lg.EntityType})
+			} else if lg.OperationType == OpTypeDelete && !processedDeletedIDs[key] {
+				// Simply add the deleted entity to the response
+				if _, ok := response.DeletedEntities[lg.EntityType]; !ok {
+					response.DeletedEntities[lg.EntityType] = []string{}
+				}
 				response.DeletedEntities[lg.EntityType] = append(response.DeletedEntities[lg.EntityType], idStr)
-				delete(processedUpdatedIDs, lg.EntityType+"_"+idStr)
-			} else if lg.OperationType == OpTypeUpdate && !processedUpdatedIDs[lg.EntityType+"_"+idStr] {
-				response.UpdatedEntities[lg.EntityType] = append(response.UpdatedEntities[lg.EntityType], idStr)
-				processedUpdatedIDs[lg.EntityType+"_"+idStr] = true
+				processedDeletedIDs[key] = true
+				// Also remove from UpdatedEntities if it was there
+				delete(processedUpdatedIDs, key)
+			} else if lg.OperationType == OpTypeUpdate && !processedUpdatedIDs[key] {
+				var changedFields map[string]string
+				if lg.ChangedFields != nil && *lg.ChangedFields != "" {
+					_ = json.Unmarshal([]byte(*lg.ChangedFields), &changedFields)
+				}
+				if _, ok := response.UpdatedEntities[lg.EntityType]; !ok {
+					response.UpdatedEntities[lg.EntityType] = []map[string]interface{}{}
+				}
+				response.UpdatedEntities[lg.EntityType] = append(response.UpdatedEntities[lg.EntityType], map[string]interface{}{"id": idStr, "changedFields": changedFields})
+				processedUpdatedIDs[key] = true
 			}
 		}
 	}
@@ -1317,6 +1390,13 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 		}
 		return fmt.Errorf("error finding entity %s with ID %s for delete: %w", entityTypeStr, entityIDStr, err)
 	}
+
+	// Before deleting, collect all child IDs that will be cascade-deleted
+	allIDsToDelete, err := c.collectAllChildIDs(strings.ToLower(entityTypeStr), entityIDmssql)
+	if err != nil {
+		return fmt.Errorf("failed to collect child IDs before delete: %w", err)
+	}
+
 	err = c.DB.Transaction(func(tx *gorm.DB) error {
 		result := tx.Delete(modelInstance)
 		if result.Error != nil {
@@ -1325,20 +1405,21 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 		if result.RowsAffected == 0 {
 			return fmt.Errorf("no entity %s with ID %s actually deleted", entityTypeStr, entityIDStr)
 		}
-		var loggedEntityID mssql.UniqueIdentifier
-		switch e := modelInstance.(type) {
-		case *Line:
-			loggedEntityID = e.ID
-		case *Station:
-			loggedEntityID = e.ID
-		case *Tool:
-			loggedEntityID = e.ID
-		case *Operation:
-			loggedEntityID = e.ID
-		default:
-			return errors.New("could not determine ID for logging delete operation")
+
+		// Log delete operations for all entities that will be deleted (including cascaded children)
+		for entityType, ids := range allIDsToDelete {
+			for _, idStr := range ids {
+				entityID, parseErr := parseMSSQLUniqueIdentifierFromString(idStr)
+				if parseErr != nil {
+					return fmt.Errorf("error parsing entity ID %s for logging: %w", idStr, parseErr)
+				}
+				if logErr := updateGlobalLastUpdateTimestampAndLogChange(tx, entityID, entityType, OpTypeDelete, strPtr(userName), nil); logErr != nil {
+					return fmt.Errorf("error logging delete for %s %s: %w", entityType, idStr, logErr)
+				}
+			}
 		}
-		return updateGlobalLastUpdateTimestampAndLogChange(tx, loggedEntityID, strings.ToLower(entityTypeStr), OpTypeDelete, strPtr(userName), nil)
+
+		return nil
 	})
 	return err
 }
