@@ -675,10 +675,21 @@ export function StationForm({ entityId }: { entityId: string }) {
             name="Name"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {station && station.Name?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel>{t("Name")}</FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent>{t(stationDb.Name)}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel>{t("Name")}</FormLabel>
-                  {station && station.Name?.draft && <SquarePen size={15} />}
-                </div>
+                )}
                 <FormControl>
                   <Input
                     {...field}
@@ -705,12 +716,23 @@ export function StationForm({ entityId }: { entityId: string }) {
             name="Description"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {station && station.Description?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel>{t("Station Description")}</FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent>
+                        {t(stationDb.Description)}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel>{t("Station Description")}</FormLabel>
-                  {station && station.Description?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <FormControl>
                   <Input
                     {...field}
@@ -736,12 +758,23 @@ export function StationForm({ entityId }: { entityId: string }) {
             name="StationType"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {station && station.StationType?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel>{t("Station Type")}</FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent>
+                        {t("ST_" + String(stationDb.StationType) + "_Name")}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel>{t("Station Type")}</FormLabel>
-                  {station && station.StationType?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <Select
                   value={field.value ?? ""}
                   onValueChange={(value) => {
