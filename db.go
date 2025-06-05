@@ -81,7 +81,7 @@ type Operation struct {
 	GenerationClass    *string                `gorm:"default:null"`
 	OperationDecisions *string                `gorm:"default:null"`
 	ParentID           mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	SequenceGroup	   mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+	SequenceGroup	   *mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
 }
 
 type SequenceGroup struct {

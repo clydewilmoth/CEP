@@ -1,4 +1,3 @@
-import { EntityCollection } from "@/components/logic/EntityCollection";
 import { ToolForm } from "@/components/logic/EntityForms";
 import { BreadcrumbNavigation } from "@/components/logic/Navigation";
 import {
@@ -9,6 +8,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTranslation } from "react-i18next";
 import { useParams } from "wouter";
+import { EntityCollection } from "@/components/logic/EntityCollection";
 
 export default function Operations() {
   const params = useParams<{ luuid: string; suuid: string; tuuid: string }>();

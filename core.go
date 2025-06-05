@@ -674,13 +674,14 @@ func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStrIf
             return nil, fmt.Errorf("invalid ParentID for %s: %w", entityTypeStr, err)
         }
         var highest int
+		var indexStr string = "index"
         var groups []SequenceGroup
         if err := c.DB.Where("parent_id = ?", parentIDmssql).Find(&groups).Error; err != nil {
             return nil, fmt.Errorf("DB error reading SequenceGroups: %w", err)
         }
-        for k, g := range groups {
-            if k == "index" {
-                if parsed, err := strconv.Atoi(*g); err == nil {
+        for _, g := range groups {
+            if *g.index == indexStr {
+                if parsed, err := strconv.Atoi(*g.index); err == nil {
                     if parsed > highest {
                         highest = parsed
                     }
@@ -688,7 +689,7 @@ func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStrIf
             }
         }
         newIndex := strconv.Itoa(highest + 1)
-        entityToCreate = &SequenceGroup{ParentID: parentIDmssql, Index: &newIndex}
+        entityToCreate = &SequenceGroup{ParentID: parentIDmssql, index: &newIndex}
 	default:
 		return nil, fmt.Errorf("unknown entity type for Create: %s", entityTypeStr)
 	}
@@ -914,6 +915,35 @@ func (c *Core) GetAllEntities(entityTypeStr string, parentIDStr_optional string)
 	return results, nil
 }
 
+func (c *Core) GetOperationsByStation(stationID string) ([]Operation, error) {
+    if c.DB == nil {
+        return nil, errors.New("DB not initialized")
+    }
+    stationUUID, err := parseMSSQLUniqueIdentifierFromString(stationID)
+    if err != nil {
+        return nil, fmt.Errorf("invalid stationID: %w", err)
+    }
+
+    var tools []Tool
+    if err := c.DB.Where("parent_id = ?", stationUUID).Find(&tools).Error; err != nil {
+        return nil, fmt.Errorf("error loading tools for station: %w", err)
+    }
+
+    var toolIDs []mssql.UniqueIdentifier
+    for _, t := range tools {
+        toolIDs = append(toolIDs, t.ID)
+    }
+    if len(toolIDs) == 0 {
+        return []Operation{}, nil
+    }
+
+    var ops []Operation
+    if err := c.DB.Where("parent_id IN ?", toolIDs).Find(&ops).Error; err != nil {
+        return nil, fmt.Errorf("error loading operations for tools: %w", err)
+    }
+    return ops, nil
+}
+
 func (c *Core) GetEntityHierarchyString(entityTypeStr string, entityIDStr string) (*HierarchyResponse, error) {
 	if c.DB == nil {
 		return nil, errors.New("DB not initialized")
@@ -944,7 +974,7 @@ func internalGetEntityHierarchy(db *gorm.DB, entityTypeStr string, entityIDStr s
 		txDB = txDB.Preload("Stations.Tools.Operations").Preload("Stations.SequenceGroups.Operations")
 	case "station":
 		txDB = txDB.Preload("Tools.Operations").Preload("SequenceGroups.Operations").Preload("Line")
-	case "tool" || "sequencegroup":
+	case "tool", "sequencegroup":
 		txDB = txDB.Preload("Operations").Preload("Station.Line")
 	case "operation":
 		txDB = txDB.Preload("Tool.Station.Line").Preload("SequenceGroup.Station.Line")
@@ -1057,7 +1087,18 @@ func importEntityRecursive_UseOriginalData(currentTx *gorm.DB, originalEntityDat
 		for i := range entity.Tools {
 			childrenToProcess = append(childrenToProcess, &entity.Tools[i])
 		}
-	case *Tool || *SequenceGroup:
+	case *Tool:
+		if entity.ID == emptyMsSQLID {
+			return fmt.Errorf("tool in JSON has no ID")
+		}
+		currentEntityID = entity.ID
+		currentEntityNamePtr = entity.Name
+		entity.ParentID = newParentActualID
+		childEntityTypeStr = "operation"
+		for i := range entity.Operations {
+			childrenToProcess = append(childrenToProcess, &entity.Operations[i])
+		}
+	case *SequenceGroup:
 		if entity.ID == emptyMsSQLID {
 			return fmt.Errorf("tool in JSON has no ID")
 		}
@@ -1118,8 +1159,6 @@ func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr 
 		tx = c.DB.Preload("Operations")
 	case "operation":
 		tx = c.DB
-		tx.Find("sequence_groups").Update(nil)
-		tx.Find("sequence").Update(nil)
 	default:
 		return fmt.Errorf("unsupported entity type: %s", entityTypeStr)
 	}
@@ -1137,6 +1176,13 @@ func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr 
 	if err := tx.First(modelInstance, "id = ?", entityID).Error; err != nil {
 		return fmt.Errorf("error loading entity with hierarchy: %w", err)
 	}
+
+	if entityTypeStr == "operation" {
+        if op, ok := modelInstance.(*Operation); ok {
+            op.SequenceGroup = nil
+			op.Sequence = nil
+        }
+    }
 
 	jsonData, err := json.MarshalIndent(modelInstance, "", "  ")
 	if err != nil {

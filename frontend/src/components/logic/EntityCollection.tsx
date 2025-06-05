@@ -289,7 +289,7 @@ function CreateEntityCard({
   );
 }
 
-function EntityCard({
+export function EntityCard({
   entityType,
   entityId,
   entityName,
