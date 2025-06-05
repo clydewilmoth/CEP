@@ -407,6 +407,8 @@ export function Menu() {
     setIsAnyDialogOpen(dialogOpen);
     if (dialogOpen) {
       setOpen(false);
+    } else {
+      setTimeout(() => setOpen(false), 0);
     }
   };
 
