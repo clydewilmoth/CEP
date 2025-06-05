@@ -10,14 +10,12 @@ import (
 	"net/url"
 	"os"
 	"os/user"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 
 	"github.com/atotto/clipboard"
 	"github.com/google/uuid"
-	"github.com/joho/godotenv"
 	mssql "github.com/microsoft/go-mssqldb"
 	ws "github.com/wailsapp/wails/v2/pkg/runtime"
 	"gorm.io/driver/sqlserver"
@@ -97,9 +95,33 @@ func (c *Core) HandleImport(user string) string {
 	}
 }
 
+// enableServiceBroker ensures Service Broker is enabled on the database before any other Service Broker operations
+func enableServiceBroker(sqlDB *sql.DB, dbName string) error {
+	// This MUST be the first Service Broker operation - enable Service Broker on the database if not already enabled
+	enableStmt := fmt.Sprintf(`IF (SELECT is_broker_enabled FROM sys.databases WHERE name = '%s') = 0
+		 BEGIN
+		   ALTER DATABASE [%s] SET ENABLE_BROKER;
+		 END;`, dbName, dbName)
+
+	if _, err := sqlDB.Exec(enableStmt); err != nil {
+		// Don't fail for broker already enabled
+		if !strings.Contains(err.Error(), "already enabled") {
+			return fmt.Errorf("failed to enable Service Broker: %w", err)
+		}
+	}
+
+	log.Printf("Service Broker enabled on database: %s", dbName)
+	return nil
+}
+
 func setupBroker(DB *gorm.DB, dbName string) (string, string, error) {
 	sqlDB, err := DB.DB()
 	if err != nil {
+		return "", "", err
+	}
+
+	// FIRST: Enable Service Broker before any other Service Broker operations
+	if err := enableServiceBroker(sqlDB, dbName); err != nil {
 		return "", "", err
 	}
 
@@ -108,16 +130,9 @@ func setupBroker(DB *gorm.DB, dbName string) (string, string, error) {
 	queueName := fmt.Sprintf("DataChangeQueue_%s", strings.ReplaceAll(sessionID, "-", ""))
 	serviceName := fmt.Sprintf("DataChangeService_%s", strings.ReplaceAll(sessionID, "-", ""))
 
-	// First, clean up any orphaned Service Broker resources from previous runs
+	// Clean up any orphaned Service Broker resources from previous runs
 	cleanupOrphanedResources(sqlDB)
-
 	stmts := []string{
-		// Enable Service Broker on the database (only if not already enabled)
-		fmt.Sprintf(`IF (SELECT is_broker_enabled FROM sys.databases WHERE name = '%s') = 0
-		 BEGIN
-		   ALTER DATABASE [%s] SET ENABLE_BROKER;
-		 END;`, dbName, dbName),
-
 		// Create message type if not exists
 		`IF NOT EXISTS (SELECT * FROM sys.service_message_types WHERE name = 'DataChanged')
 		 CREATE MESSAGE TYPE [DataChanged] VALIDATION = NONE;`,
@@ -292,44 +307,6 @@ const OpTypeUpdate = "UPDATE"
 const OpTypeDelete = "DELETE"
 const OpTypeSystemEvent = "SYSTEM_EVENT"
 
-func (c *Core) CheckEnvInExeDir() bool {
-	exePath, err := os.Executable()
-	if err != nil {
-		return false
-	}
-	envPath := filepath.Join(filepath.Dir(exePath), ".env")
-	_, err = os.Stat(envPath)
-	return err == nil
-}
-
-func loadConfiguration() {
-	exePath, err := os.Executable()
-	if err == nil {
-		envPath := filepath.Join(filepath.Dir(exePath), ".env")
-		errLoad := godotenv.Load(envPath)
-		if errLoad == nil {
-			log.Printf("Successfully loaded .env file from: %s", envPath)
-			return
-		}
-		if !os.IsNotExist(errLoad) {
-			log.Printf("Warning: Error loading .env file from %s: %v", envPath, errLoad)
-		} else {
-			log.Printf("Info: No .env file found at %s.", envPath)
-		}
-	} else {
-		log.Printf("Warning: Could not get executable path: %v. Will try to load .env from current working directory.", err)
-	}
-	err = godotenv.Load()
-	if err != nil {
-		if os.IsNotExist(err) {
-			log.Println("Info: No .env file found in current working directory. Relying on OS environment variables or awaiting configuration.")
-		} else {
-			log.Printf("Warning: Error loading .env file from current working directory: %v", err)
-		}
-	} else {
-		log.Println("Successfully loaded .env file from current working directory.")
-	}
-}
 func (c *Core) InitDB(dsn string) string {
 	// Stop any existing listener
 	if c.listenerCancel != nil {
@@ -359,20 +336,11 @@ func (c *Core) InitDB(dsn string) string {
 	// Clear queue and service names
 	c.queueName = ""
 	c.serviceName = ""
-	loadConfiguration()
 	if dsn == "" {
 		return "InitError"
 	}
-	gormLogLevelStr := os.Getenv("GORM_LOGGER_LEVEL")
 	gormLogLevel := logger.Warn
-	switch strings.ToLower(gormLogLevelStr) {
-	case "silent":
-		gormLogLevel = logger.Silent
-	case "error":
-		gormLogLevel = logger.Error
-	case "info":
-		gormLogLevel = logger.Info
-	}
+
 	var err error
 	c.DB, err = gorm.Open(sqlserver.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(gormLogLevel)})
 	if err != nil {
