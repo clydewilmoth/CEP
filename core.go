@@ -12,6 +12,7 @@ import (
 	"os/user"
 	"runtime"
 	"strings"
+	"strconv"
 	"time"
 
 	"github.com/atotto/clipboard"
@@ -666,21 +667,28 @@ func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStrIf
 		entityToCreate = &Operation{BaseModel: base, ParentID: parentIDmssql}
 	case "sequencegroup":
 		if parentIDStrIfApplicable == "" {
-			return nil, fmt.Errorf("ParentID is required for %s", entityTypeStr)
-		}
-		parentIDmssql, err = parseMSSQLUniqueIdentifierFromString(parentIDStrIfApplicable)
-		highest := 0
-		for key, value := range tx.Model(&SequenceGroup{}).Where("parent_id= ?", parentIDStrIfApplicable) {
-			parsedValue, err = strconv.Atoi(value)
-			if err != nil {
-				return nil, fmt.Errorf("invalid index value for %s: %w", entityTypeStr, err)
-			}
-			if key == "index" {
-				highest = if parsedValue > highest ? parsedValue : highest
-			}
-		}
-		newIndex := strconv.Itoa(highest + 1)
-		entityToCreate = if highest != 0 ? &SequenceGroup{ParentID: parentIDmssql, index: newIndex} : &SequenceGroup{ParentID: parentIDmssql, index: "1"}
+            return nil, fmt.Errorf("ParentID is required for %s", entityTypeStr)
+        }
+        parentIDmssql, err = parseMSSQLUniqueIdentifierFromString(parentIDStrIfApplicable)
+        if err != nil {
+            return nil, fmt.Errorf("invalid ParentID for %s: %w", entityTypeStr, err)
+        }
+        var highest int
+        var groups []SequenceGroup
+        if err := c.DB.Where("parent_id = ?", parentIDmssql).Find(&groups).Error; err != nil {
+            return nil, fmt.Errorf("DB error reading SequenceGroups: %w", err)
+        }
+        for k, g := range groups {
+            if k == "index" {
+                if parsed, err := strconv.Atoi(*g); err == nil {
+                    if parsed > highest {
+                        highest = parsed
+                    }
+                }
+            }
+        }
+        newIndex := strconv.Itoa(highest + 1)
+        entityToCreate = &SequenceGroup{ParentID: parentIDmssql, Index: &newIndex}
 	default:
 		return nil, fmt.Errorf("unknown entity type for Create: %s", entityTypeStr)
 	}
@@ -933,13 +941,13 @@ func internalGetEntityHierarchy(db *gorm.DB, entityTypeStr string, entityIDStr s
 	txDB := db
 	switch strings.ToLower(entityTypeStr) {
 	case "line":
-		txDB = txDB.Preload("Stations.Tools.Operations")
+		txDB = txDB.Preload("Stations.Tools.Operations").Preload("Stations.SequenceGroups.Operations")
 	case "station":
-		txDB = txDB.Preload("Tools.Operations").Preload("Line")
+		txDB = txDB.Preload("Tools.Operations").Preload("SequenceGroups.Operations").Preload("Line")
 	case "tool" || "sequencegroup":
 		txDB = txDB.Preload("Operations").Preload("Station.Line")
 	case "operation":
-		txDB = txDB.Preload("Tool.Station.Line")
+		txDB = txDB.Preload("Tool.Station.Line").Preload("SequenceGroup.Station.Line")
 	default:
 		return nil, fmt.Errorf("hierarchical loading not defined for type: %s", entityTypeStr)
 	}
