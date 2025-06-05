@@ -5,6 +5,7 @@ import Tools from "./pages/Tools";
 import Operations from "./pages/Operations";
 import {
   GetChangesSince,
+  GetEntityDetails,
   GetGlobalLastUpdateTimestamp,
   GetPlatformSpecificUserName,
   InitDB,
@@ -147,4 +148,31 @@ export default function App() {
       </QueryClientProvider>
     </ThemeProvider>
   );
+}
+
+async function draftConflicts(ts: string) {
+  const { deletedEntities, updatedEntities } = await GetChangesSince(ts);
+  let draftConflicts: Record<string, string> = {};
+  Object.entries(deletedEntities).forEach(([entityType, ids]) => {
+    ids.forEach(async (id) => {
+      localStorage.getItem(`${entityType}_${id}`) &&
+        localStorage.removeItem(`${entityType}_${id}`);
+    });
+  });
+
+  Object.entries(updatedEntities).forEach(([entityType, entities]) => {
+    entities.forEach(async (entity) => {
+      if (localStorage.getItem(`${entityType}_${entity.id}`)) {
+        const name = await GetEntityDetails(entityType, entity.id);
+        const localEntity = JSON.parse(
+          localStorage.getItem(`${entityType}_${entity.id}`) ?? "{}"
+        );
+        Object.entries(entity.changedFields).forEach(([field]) => {
+          if (localEntity[field]) draftConflicts[name] = field;
+        });
+      }
+    });
+  });
+
+  Object.keys(draftConflicts).length != 0; // zeige Draft Conflicts an
 }
