@@ -1524,15 +1524,8 @@ export function OperationForm({ entityId }: { entityId: string }) {
     (async () => {
       const operation = await GetEntityDetails("operation", entityId);
       const parentId = operation.ParentID;
-      const ptool = await GetEntityDetails("tool", parentId);
-      setParentTool(ptool);
-      const stationId = ptool.ParentID;
-      const pstation = await GetEntityDetails("station", stationId);
-      setParentStation(pstation);
-      if (!ptool || !pstation) {
-        toast.error("Parent Tool or Station not found");
-        return;
-      }
+      setParentTool(await GetEntityDetails("tool", parentId));
+
       setMeta({
         UpdatedAt: operation.UpdatedAt,
         UpdatedBy: operation.UpdatedBy,
