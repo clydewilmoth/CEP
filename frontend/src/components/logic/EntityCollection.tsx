@@ -590,36 +590,7 @@ function PasteEntityHierarchyFromClipboard({
       queryClient.invalidateQueries();
       toast.success(t("PasteFromClipboardSuccess"));
     },
-    onError: (error: any) => {
-      console.error("Paste error:", error);
-
-      let errorMessage = t("PasteFromClipboardError");
-      let description = error?.message ?? String(error);
-
-      if (description.includes("type mismatch")) {
-        errorMessage = t("PasteTypeMismatchError");
-        const match = description.match(
-          /clipboard contains '(\w+)' but expected '(\w+)'/
-        );
-        if (match) {
-          description = t("PasteTypeMismatchDescription", {
-            clipboardType: t(match[1]),
-            expectedType: t(match[2]),
-          });
-        }
-      } else if (description.includes("could not detect entity type")) {
-        errorMessage = t("PasteInvalidDataError");
-        description = t("PasteInvalidDataDescription");
-      } else if (description.includes("clipboard does not contain valid")) {
-        errorMessage = t("PasteInvalidFormatError");
-        description = t("PasteInvalidFormatDescription");
-      }
-
-      toast.error(errorMessage, {
-        description: description,
-        duration: 5000,
-      });
-    },
+    onError: () => toast.error(t("PasteFromClipboardError")),
   });
 
   return (
