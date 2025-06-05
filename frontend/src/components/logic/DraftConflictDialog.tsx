@@ -56,12 +56,8 @@ export function DraftConflictDialog() {
                 ([field, value]) => {
                   if (localEntity[field]) {
                     conflicts[
-                      `${conflictCounter}<><><><><><><><><><><><><><><><><><><><><>${t(
-                        entityType
-                      )} ${Name}`
-                    ] = `${t(
-                      field
-                    )}<><><><><><><><><><><><><><><><><><><><><>${value}`;
+                      `${conflictCounter}<|||>${t(entityType)} ${Name}`
+                    ] = `${t(field)}<|||>${value}`;
 
                     conflictCounter++;
                   }
@@ -91,9 +87,7 @@ export function DraftConflictDialog() {
             </AlertDialogDescription>{" "}
             <div className="py-3 flex flex-col gap-2">
               {Object.entries(draftConflicts).map(([key, value]) => {
-                const keyWithoutCounter = key.split(
-                  "<><><><><><><><><><><><><><><><><><><><><>"
-                )[1];
+                const keyWithoutCounter = key.split("<|||>")[1];
                 const showKey = keyWithoutCounter != prevKey;
 
                 if (showKey) {
@@ -108,14 +102,8 @@ export function DraftConflictDialog() {
                       >{`${keyWithoutCounter}: `}</div>
                     )}
                     <div key={key + value} className="text-sm">
-                      {`${t(
-                        value.split(
-                          "<><><><><><><><><><><><><><><><><><><><><>"
-                        )[0]
-                      )}: ${t(
-                        value.split(
-                          "<><><><><><><><><><><><><><><><><><><><><>"
-                        )[1]
+                      {`${t(value.split("<|||>")[0])}: ${t(
+                        value.split("<|||>")[1]
                       )}`}
                     </div>
                   </>

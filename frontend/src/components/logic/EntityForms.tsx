@@ -182,7 +182,9 @@ export function LineForm({ entityId }: { entityId: string }) {
                     <TooltipTrigger asChild>
                       <SquarePen size={15} />
                     </TooltipTrigger>
-                    <TooltipContent>{t(lineDb.StatusColor)}</TooltipContent>
+                    <TooltipContent className="max-w-sm">
+                      {t(lineDb.StatusColor)}
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
@@ -247,7 +249,9 @@ export function LineForm({ entityId }: { entityId: string }) {
                         <SquarePen size={15} />
                       </TooltipTrigger>
                     </div>
-                    <TooltipContent>{t(lineDb.Comment)}</TooltipContent>
+                    <TooltipContent className="max-w-sm">
+                      {t(lineDb.Comment)}
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               ) : (
@@ -299,7 +303,9 @@ export function LineForm({ entityId }: { entityId: string }) {
                           <SquarePen size={15} />
                         </TooltipTrigger>
                       </div>
-                      <TooltipContent>{t(lineDb.Name)}</TooltipContent>
+                      <TooltipContent className="max-w-sm">
+                        {t(lineDb.Name)}
+                      </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 ) : (
@@ -342,7 +348,9 @@ export function LineForm({ entityId }: { entityId: string }) {
                           <SquarePen size={15} />
                         </TooltipTrigger>
                       </div>
-                      <TooltipContent>{t(lineDb.AssemblyArea)}</TooltipContent>
+                      <TooltipContent className="max-w-sm">
+                        {t(lineDb.AssemblyArea)}
+                      </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 ) : (
@@ -579,7 +587,9 @@ export function StationForm({ entityId }: { entityId: string }) {
                     <TooltipTrigger asChild>
                       <SquarePen size={15} />
                     </TooltipTrigger>
-                    <TooltipContent>{t(stationDb.StatusColor)}</TooltipContent>
+                    <TooltipContent className="max-w-sm">
+                      {t(stationDb.StatusColor)}
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
@@ -644,7 +654,9 @@ export function StationForm({ entityId }: { entityId: string }) {
                         <SquarePen size={15} />
                       </TooltipTrigger>
                     </div>
-                    <TooltipContent>{t(stationDb.Comment)}</TooltipContent>
+                    <TooltipContent className="max-w-sm">
+                      {t(stationDb.Comment)}
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               ) : (
@@ -696,7 +708,9 @@ export function StationForm({ entityId }: { entityId: string }) {
                           <SquarePen size={15} />
                         </TooltipTrigger>
                       </div>
-                      <TooltipContent>{t(stationDb.Name)}</TooltipContent>
+                      <TooltipContent className="max-w-sm">
+                        {t(stationDb.Name)}
+                      </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 ) : (
@@ -739,7 +753,7 @@ export function StationForm({ entityId }: { entityId: string }) {
                           <SquarePen size={15} />
                         </TooltipTrigger>
                       </div>
-                      <TooltipContent>
+                      <TooltipContent className="max-w-sm">
                         {t(stationDb.Description)}
                       </TooltipContent>
                     </Tooltip>
@@ -785,8 +799,9 @@ export function StationForm({ entityId }: { entityId: string }) {
                           <SquarePen size={15} />
                         </TooltipTrigger>
                       </div>
-                      <TooltipContent>
-                        {t("ST_" + String(stationDb.StationType) + "_Name")}
+                      <TooltipContent className="max-w-sm">
+                        {stationDb.StationType &&
+                          t("ST_" + String(stationDb.StationType) + "_Name")}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -1097,7 +1112,9 @@ export function ToolForm({ entityId }: { entityId: string }) {
                     <TooltipTrigger asChild>
                       <SquarePen size={15} />
                     </TooltipTrigger>
-                    <TooltipContent>{t(toolDb.StatusColor)}</TooltipContent>
+                    <TooltipContent className="max-w-sm">
+                      {t(toolDb.StatusColor)}
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
@@ -1162,7 +1179,9 @@ export function ToolForm({ entityId }: { entityId: string }) {
                         <SquarePen size={15} />
                       </TooltipTrigger>
                     </div>
-                    <TooltipContent>{t(toolDb.Comment)}</TooltipContent>
+                    <TooltipContent className="max-w-sm">
+                      {t(toolDb.Comment)}
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               ) : (
@@ -1214,7 +1233,9 @@ export function ToolForm({ entityId }: { entityId: string }) {
                           <SquarePen size={15} />
                         </TooltipTrigger>
                       </div>
-                      <TooltipContent>{t(toolDb.Name)}</TooltipContent>
+                      <TooltipContent className="max-w-sm">
+                        {t(toolDb.Name)}
+                      </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 ) : (
@@ -1258,7 +1279,9 @@ export function ToolForm({ entityId }: { entityId: string }) {
                             <SquarePen size={15} />
                           </TooltipTrigger>
                         </div>
-                        <TooltipContent>{t(toolDb.Description)}</TooltipContent>
+                        <TooltipContent className="max-w-sm">
+                          {t(toolDb.Description)}
+                        </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   ) : (
@@ -1304,8 +1327,11 @@ export function ToolForm({ entityId }: { entityId: string }) {
                           <SquarePen size={15} />
                         </TooltipTrigger>
                       </div>
-                      <TooltipContent>
-                        {t("TC_" + String(toolDb.ToolClass) + "_ToolClassName")}
+                      <TooltipContent className="max-w-sm">
+                        {toolDb.ToolClass &&
+                          t(
+                            "TC_" + String(toolDb.ToolClass) + "_ToolClassName"
+                          )}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -1384,14 +1410,15 @@ export function ToolForm({ entityId }: { entityId: string }) {
                           <SquarePen size={15} />
                         </TooltipTrigger>
                       </div>
-                      <TooltipContent>
-                        {t(
-                          "TT_" +
-                            String(toolDb.ToolType) +
-                            "_" +
-                            String(toolDb.ToolClass) +
-                            "_Description"
-                        )}
+                      <TooltipContent className="max-w-sm">
+                        {toolDb.ToolType &&
+                          t(
+                            "TT_" +
+                              String(toolDb.ToolType) +
+                              "_" +
+                              String(toolDb.ToolClass) +
+                              "_Description"
+                          )}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -1452,16 +1479,14 @@ export function ToolForm({ entityId }: { entityId: string }) {
                                   )}
                                 </SelectItem>
                               </TooltipTrigger>
-                              <TooltipContent>
-                                <div className="max-w-md">
-                                  {t(
-                                    "TT_" +
-                                      String(tooltype.id) +
-                                      "_" +
-                                      String(tooltype.toolClassId) +
-                                      "_HelpText"
-                                  )}
-                                </div>
+                              <TooltipContent className="max-w-sm">
+                                {t(
+                                  "TT_" +
+                                    String(tooltype.id) +
+                                    "_" +
+                                    String(tooltype.toolClassId) +
+                                    "_HelpText"
+                                )}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -1490,7 +1515,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                           <SquarePen size={15} />
                         </TooltipTrigger>
                       </div>
-                      <TooltipContent>
+                      <TooltipContent className="max-w-sm">
                         {t(toolDb.IpAddressDevice)}
                       </TooltipContent>
                     </Tooltip>
@@ -1555,7 +1580,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                               <SquarePen size={15} />
                             </TooltipTrigger>
                           </div>
-                          <TooltipContent>
+                          <TooltipContent className="max-w-sm">
                             {t(toolDb.SPSPLCNameSPAService)}
                           </TooltipContent>
                         </Tooltip>
@@ -1602,7 +1627,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                               <SquarePen size={15} />
                             </TooltipTrigger>
                           </div>
-                          <TooltipContent>
+                          <TooltipContent className="max-w-sm">
                             {t(toolDb.SPSDBNoSend)}
                           </TooltipContent>
                         </Tooltip>
@@ -1649,7 +1674,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                               <SquarePen size={15} />
                             </TooltipTrigger>
                           </div>
-                          <TooltipContent>
+                          <TooltipContent className="max-w-sm">
                             {t(toolDb.SPSDBNoReceive)}
                           </TooltipContent>
                         </Tooltip>
@@ -1696,7 +1721,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                               <SquarePen size={15} />
                             </TooltipTrigger>
                           </div>
-                          <TooltipContent>
+                          <TooltipContent className="max-w-sm">
                             {t(toolDb.SPSPreCheck)}
                           </TooltipContent>
                         </Tooltip>
@@ -1743,7 +1768,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                               <SquarePen size={15} />
                             </TooltipTrigger>
                           </div>
-                          <TooltipContent>
+                          <TooltipContent className="max-w-sm">
                             {t(toolDb.SPSAddressInSendDB)}
                           </TooltipContent>
                         </Tooltip>
@@ -1790,7 +1815,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                               <SquarePen size={15} />
                             </TooltipTrigger>
                           </div>
-                          <TooltipContent>
+                          <TooltipContent className="max-w-sm">
                             {t(toolDb.SPSAddressInReceiveDB)}
                           </TooltipContent>
                         </Tooltip>
@@ -1888,9 +1913,9 @@ export function OperationForm({
       const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
 
       const jsonDecisionCriteria =
-        json.DecisionCriteria && json.DecisionCriteria.split("|");
+        json.DecisionCriteria && json.DecisionCriteria.split("<|||>");
       const operationDecisionCriteria =
-        operation.DecisionCriteria && operation.DecisionCriteria.split("|");
+        operation.DecisionCriteria && operation.DecisionCriteria.split("<|||>");
 
       form.reset({
         Name: json.Name ?? operation.Name ?? "",
@@ -2007,7 +2032,7 @@ export function OperationForm({
     Object.entries(operation).forEach(([key, value]) => {
       if (value.draft && operationDb.key != value.data) {
         if (key == "DecisionCriteria") {
-          changesRecord[key] = value.data.join("|");
+          changesRecord[key] = value.data.join("<|||>");
           return;
         }
         changesRecord[key] = value.data;
@@ -2052,7 +2077,7 @@ export function OperationForm({
                     <TooltipTrigger asChild>
                       <SquarePen size={15} />
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent className="max-w-sm">
                       {t(operationDb.StatusColor)}
                     </TooltipContent>
                   </Tooltip>
@@ -2119,7 +2144,9 @@ export function OperationForm({
                         <SquarePen size={15} />
                       </TooltipTrigger>
                     </div>
-                    <TooltipContent>{t(operationDb.Comment)}</TooltipContent>
+                    <TooltipContent className="max-w-sm">
+                      {t(operationDb.Comment)}
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               ) : (
@@ -2160,12 +2187,25 @@ export function OperationForm({
             name="Name"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {operation && operation.Name?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("Name")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent className="max-w-sm">
+                        {t(operationDb.Name)}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel className="flex h-[15px]">{t("Name")}</FormLabel>
-                  {operation && operation.Name?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <FormControl>
                   <Input
                     {...field}
@@ -2192,14 +2232,27 @@ export function OperationForm({
             name="Description"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {operation && operation.Description?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("Operation Description")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent className="max-w-sm">
+                        {t(operationDb.Description)}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel className="flex h-[15px]">
                     {t("Operation Description")}
                   </FormLabel>
-                  {operation && operation.Description?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <FormControl>
                   <Input
                     {...field}
@@ -2238,14 +2291,32 @@ export function OperationForm({
             name="SerialOrParallel"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {operation && operation.SerialOrParallel?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("Serial / Parallel")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent className="max-w-sm">
+                        {operationDb.SerialOrParallel &&
+                          t(
+                            "SOP_" +
+                              String(operationDb.SerialOrParallel) +
+                              "_name"
+                          )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel className="flex h-[15px]">
                     {t("Serial / Parallel")}
                   </FormLabel>
-                  {operation && operation.SerialOrParallel?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <Select
                   value={field.value ?? ""}
                   onValueChange={(value) => {
@@ -2299,14 +2370,27 @@ export function OperationForm({
             name="SequenceGroup"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {operation && operation.SequenceGroup?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("SequenceGroup")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent className="max-w-sm">
+                        {t(operationDb.SequenceGroup)}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel className="flex h-[15px]">
                     {t("SequenceGroup")}
                   </FormLabel>
-                  {operation && operation.SequenceGroup?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <FormControl>
                   <Input
                     {...field}
@@ -2333,14 +2417,27 @@ export function OperationForm({
             name="Sequence"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {operation && operation.Sequence?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("Sequence")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent className="max-w-sm">
+                        {t(operationDb.Sequence)}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel className="flex h-[15px]">
                     {t("Sequence")}
                   </FormLabel>
-                  {operation && operation.Sequence?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <FormControl>
                   <Input
                     {...field}
@@ -2383,14 +2480,27 @@ export function OperationForm({
                     }}
                   />
                 </FormControl>
-                <div className="flex gap-3">
-                  <FormLabel className="hover:cursor-pointer">
+                {operation && operation.AlwaysPerform?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("AlwaysPerform")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent className="max-w-sm">
+                        {t(operationDb.AlwaysPerform)}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  <FormLabel className="flex h-[15px]">
                     {t("AlwaysPerform")}
                   </FormLabel>
-                  {operation && operation.AlwaysPerform?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
               </FormItem>
             )}
           />
@@ -2400,14 +2510,30 @@ export function OperationForm({
             name="QGateRelevant"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {operation && operation.QGateRelevant?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("QGateRelevant")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent className="max-w-sm">
+                        {operationDb.QGateRelevant &&
+                          t(
+                            "QR_" + String(operationDb.QGateRelevant) + "_name"
+                          )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel className="flex h-[15px]">
                     {t("QGateRelevant")}
                   </FormLabel>
-                  {operation && operation.QGateRelevant?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <Select
                   value={field.value ?? ""}
                   onValueChange={(value) => {
@@ -2452,14 +2578,30 @@ export function OperationForm({
             name="Template"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {operation && operation.Template?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("Template")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent className="max-w-sm">
+                        {operationDb.Template &&
+                          t(
+                            "T_" + String(operationDb.Template) + "_Description"
+                          )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel className="flex h-[15px]">
                     {t("Template")}
                   </FormLabel>
-                  {operation && operation.Template?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <Select
                   value={field.value ?? ""}
                   onValueChange={(value) => {
@@ -2522,14 +2664,32 @@ export function OperationForm({
             name="DecisionClass"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {operation && operation.DecisionClass?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("OperationClassDecision")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent className="max-w-sm">
+                        {operationDb.DecisionClass &&
+                          t(
+                            "OC_DECISION_" +
+                              String(operationDb.DecisionClass) +
+                              "_ClassDescription"
+                          )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel className="flex h-[15px]">
                     {t("OperationClassDecision")}
                   </FormLabel>
-                  {operation && operation.DecisionClass?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <Select
                   value={field.value ?? ""}
                   onValueChange={(value) => {
@@ -2580,14 +2740,12 @@ export function OperationForm({
                                   )}
                                 </SelectItem>
                               </TooltipTrigger>
-                              <TooltipContent>
-                                <div className="max-w-md">
-                                  {t(
-                                    "OC_DECISION_" +
-                                      String(decisionclass.id) +
-                                      "_HelpText"
-                                  )}
-                                </div>
+                              <TooltipContent className="max-w-sm">
+                                {t(
+                                  "OC_DECISION_" +
+                                    String(decisionclass.id) +
+                                    "_HelpText"
+                                )}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -2605,14 +2763,34 @@ export function OperationForm({
             name="VerificationClass"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {operation && operation.VerificationClass?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("OperationClassVerification")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent className="max-w-sm">
+                        {operationDb.VerificationClass &&
+                          t(
+                            "OC_VERIFICATION_" +
+                              String(operationDb.VerificationClass) +
+                              "_" +
+                              String(operationDb.Template) +
+                              "_ClassDescription"
+                          )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel className="flex h-[15px]">
                     {t("OperationClassVerification")}
                   </FormLabel>
-                  {operation && operation.VerificationClass?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <Select
                   value={field.value ?? ""}
                   onValueChange={(value) => {
@@ -2666,16 +2844,14 @@ export function OperationForm({
                                   )}
                                 </SelectItem>
                               </TooltipTrigger>
-                              <TooltipContent>
-                                <div className="max-w-md">
-                                  {t(
-                                    "OC_VERIFICATION_" +
-                                      String(verificationclass.id) +
-                                      "_" +
-                                      String(verificationclass.templateId) +
-                                      "_HelpText"
-                                  )}
-                                </div>
+                              <TooltipContent className="max-w-sm">
+                                {t(
+                                  "OC_VERIFICATION_" +
+                                    String(verificationclass.id) +
+                                    "_" +
+                                    String(verificationclass.templateId) +
+                                    "_HelpText"
+                                )}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -2693,14 +2869,34 @@ export function OperationForm({
             name="GenerationClass"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {operation && operation.GenerationClass?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("OperationClassGeneration")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent className="max-w-sm">
+                        {operationDb.GenerationClass &&
+                          t(
+                            "OC_GENERATION_" +
+                              String(operationDb.GenerationClass) +
+                              "_" +
+                              String(operationDb.Template) +
+                              "_ClassDescription"
+                          )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel className="flex h-[15px]">
                     {t("OperationClassGeneration")}
                   </FormLabel>
-                  {operation && operation.GenerationClass?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <Select
                   value={field.value ?? ""}
                   onValueChange={(value) => {
@@ -2749,16 +2945,14 @@ export function OperationForm({
                                   )}
                                 </SelectItem>
                               </TooltipTrigger>
-                              <TooltipContent>
-                                <div className="max-w-md">
-                                  {t(
-                                    "OC_GENERATION_" +
-                                      String(generationclass.id) +
-                                      "_" +
-                                      String(generationclass.templateId) +
-                                      "_HelpText"
-                                  )}
-                                </div>
+                              <TooltipContent className="max-w-sm">
+                                {t(
+                                  "OC_GENERATION_" +
+                                    String(generationclass.id) +
+                                    "_" +
+                                    String(generationclass.templateId) +
+                                    "_HelpText"
+                                )}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -2776,14 +2970,34 @@ export function OperationForm({
             name="SavingClass"
             render={({ field }) => (
               <FormItem>
-                <div className="flex gap-3">
+                {operation && operation.SavingClass?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("OperationClassSaving")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent className="max-w-sm">
+                        {operation.SavingClass &&
+                          t(
+                            "OC_SAVING_" +
+                              String(operationDb.SavingClass) +
+                              "_" +
+                              String(operationDb.Template) +
+                              "_ClassDescription"
+                          )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel className="flex h-[15px]">
                     {t("OperationClassSaving")}
                   </FormLabel>
-                  {operation && operation.SavingClass?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <Select
                   value={field.value ?? ""}
                   onValueChange={(value) => {
@@ -2828,16 +3042,14 @@ export function OperationForm({
                                   )}
                                 </SelectItem>
                               </TooltipTrigger>
-                              <TooltipContent>
-                                <div className="max-w-md">
-                                  {t(
-                                    "OC_SAVING_" +
-                                      String(savingclass.id) +
-                                      "_" +
-                                      String(savingclass.templateId) +
-                                      "_HelpText"
-                                  )}
-                                </div>
+                              <TooltipContent className="max-w-sm">
+                                {t(
+                                  "OC_SAVING_" +
+                                    String(savingclass.id) +
+                                    "_" +
+                                    String(savingclass.templateId) +
+                                    "_HelpText"
+                                )}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -2854,14 +3066,27 @@ export function OperationForm({
             name="DecisionCriteria"
             render={({ field }) => (
               <FormItem className="col-span-2">
-                <div className="flex gap-3">
+                {operation && operation.DecisionCriteria?.draft ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <div className="flex gap-3">
+                        <FormLabel className="flex h-[15px]">
+                          {t("DecisionCriteria")}
+                        </FormLabel>
+                        <TooltipTrigger asChild>
+                          <SquarePen size={15} />
+                        </TooltipTrigger>
+                      </div>
+                      <TooltipContent className="max-w-sm">
+                        {operationDb.DecisionCriteria.split("<|||>").join("; ")}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
                   <FormLabel className="flex h-[15px]">
                     {t("DecisionCriteria")}
                   </FormLabel>
-                  {operation && operation.DecisionCriteria?.draft && (
-                    <SquarePen size={15} />
-                  )}
-                </div>
+                )}
                 <FormControl>
                   <TagsInput
                     value={field.value ?? []}
@@ -2870,7 +3095,7 @@ export function OperationForm({
                       const json = JSON.parse(
                         localStorage.getItem(entityId) ?? "{}"
                       );
-                      json.DecisionCriteria = value.join("|");
+                      json.DecisionCriteria = value.join("<|||>");
                       localStorage.setItem(entityId, JSON.stringify(json));
                       queryClient.invalidateQueries({
                         queryKey: ["operation", entityId],
