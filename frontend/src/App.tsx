@@ -25,6 +25,15 @@ import { Menu } from "./components/logic/Menu";
 import { cn } from "./lib/utils";
 import Operation from "./pages/Operation";
 import { useContext } from "./store";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./components/ui/alert-dialog";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +52,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const { setTheme } = useTheme();
 
+  const [draftConflictsKey, revalidateDraftConflictsKey] = useState(0);
   const lastUpdateRef = useRef(lastUpdate);
 
   useEffect(() => {
@@ -63,9 +73,7 @@ export default function App() {
     EventsOn("database:changed", async (ts: string) => {
       console.log("Last Update: ", lastUpdateRef.current);
       console.log("DB Change: ", ts);
-      const changes = await GetChangesSince(lastUpdateRef.current ?? "");
-      console.log(changes);
-      setLastUpdate(changes.newGlobalLastUpdatedAt);
+      revalidateDraftConflictsKey((prev) => prev + 1);
       dbChange();
     });
     EventsOn("database:connection_lost", (err: string) => {
@@ -81,7 +89,12 @@ export default function App() {
       const initMessage = await InitDB(localStorage.getItem("dsn") ?? "");
       setInitialised(initMessage == "InitSuccess" ? true : false);
       setIsLoading(false);
-      setLastUpdate(await GetGlobalLastUpdateTimestamp());
+      !localStorage.getItem("lastUpdate") &&
+        localStorage.setItem(
+          "lastUpdate",
+          await GetGlobalLastUpdateTimestamp()
+        );
+      setLastUpdate(localStorage.getItem("lastUpdate") ?? "");
       initMessage == "InitSuccess"
         ? toast.success(t(initMessage))
         : toast.error(t(initMessage));
@@ -113,6 +126,7 @@ export default function App() {
             )}
             {!isLoading && initialised ? (
               <div className="w-full h-full">
+                <DraftConflicts key={draftConflictsKey} />
                 <Route path={"/"} component={Lines} />
                 <Route path={"/line/:luuid"} component={Stations} />
                 <Route path={"/line/:luuid/station/:suuid"} component={Tools} />
@@ -150,29 +164,86 @@ export default function App() {
   );
 }
 
-async function draftConflicts(ts: string) {
-  const { deletedEntities, updatedEntities } = await GetChangesSince(ts);
-  let draftConflicts: Record<string, string> = {};
-  Object.entries(deletedEntities).forEach(([entityType, ids]) => {
-    ids.forEach(async (id) => {
-      localStorage.getItem(`${entityType}_${id}`) &&
-        localStorage.removeItem(`${entityType}_${id}`);
-    });
-  });
+function DraftConflicts() {
+  const { t } = useTranslation();
+  const [draftConflicts, setDraftConflicts] = useState<Record<string, string>>(
+    {}
+  );
+  const [open, setOpen] = useState(false);
+  const { lastUpdate, setLastUpdate } = useContext();
 
-  Object.entries(updatedEntities).forEach(([entityType, entities]) => {
-    entities.forEach(async (entity) => {
-      if (localStorage.getItem(`${entityType}_${entity.id}`)) {
-        const name = await GetEntityDetails(entityType, entity.id);
-        const localEntity = JSON.parse(
-          localStorage.getItem(`${entityType}_${entity.id}`) ?? "{}"
-        );
-        Object.entries(entity.changedFields).forEach(([field]) => {
-          if (localEntity[field]) draftConflicts[name] = field;
+  useEffect(() => {
+    (async () => {
+      const { deletedEntities, updatedEntities, newGlobalLastUpdatedAt } =
+        await GetChangesSince(lastUpdate ?? "");
+
+      if (newGlobalLastUpdatedAt != lastUpdate) {
+        localStorage.setItem("lastUpdate", newGlobalLastUpdatedAt);
+        setLastUpdate(newGlobalLastUpdatedAt);
+        let conflictCounter = 1;
+        let conflicts: Record<string, string> = {};
+
+        Object.entries(deletedEntities).forEach(([, ids]) => {
+          ids.forEach((id) => {
+            if (localStorage.getItem(`${id}`)) {
+              localStorage.removeItem(`${id}`);
+            }
+          });
         });
-      }
-    });
-  });
+        for (const [entityType, entities] of Object.entries(updatedEntities)) {
+          for (const entity of entities) {
+            if (
+              JSON.parse(localStorage.getItem(`${entity.id}`) ?? "{}") != "{}"
+            ) {
+              const localEntity = JSON.parse(
+                localStorage.getItem(`${entity.id}`) ?? "{}"
+              );
+              const { Name: dbName } = await GetEntityDetails(
+                entityType,
+                entity.id
+              );
+              const Name = localEntity.Name ?? dbName;
+              Object.entries(entity.changedFields || {}).forEach(
+                ([field, value]) => {
+                  if (localEntity[field]) {
+                    conflicts[
+                      `${conflictCounter}: ${t(entityType)} ${Name}`
+                    ] = `${t(field)} -> ${value}`;
 
-  Object.keys(draftConflicts).length != 0; // zeige Draft Conflicts an
+                    conflictCounter++;
+                  }
+                }
+              );
+            }
+          }
+        }
+        setDraftConflicts(conflicts);
+        setOpen(conflictCounter > 1);
+      }
+    })();
+  }, []);
+
+  return (
+    <>
+      {Object.keys(draftConflicts).length !== 0 && (
+        <AlertDialog open={open} onOpenChange={setOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("DraftConflicts")}</AlertDialogTitle>
+              {Object.entries(draftConflicts).map(([key, value]) => {
+                return (
+                  <AlertDialogDescription key={key}>
+                    {`${key}: ${value}`}
+                  </AlertDialogDescription>
+                );
+              })}
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction>{t("Confirm")}</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </>
+  ); // zeige Draft Conflicts an
 }
