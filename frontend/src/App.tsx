@@ -230,48 +230,46 @@ function DraftConflictDialog() {
     <>
       {Object.keys(draftConflicts).length !== 0 && (
         <AlertDialog open={open} onOpenChange={setOpen}>
-          <AlertDialogContent className="p-0 w-1/2">
-            <ScrollArea className="max-h-[90vh]">
-              <div className="p-6">
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="font-bold">
-                    {t("DraftConflicts Title")}
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {t("DraftConflicts Description")}
-                  </AlertDialogDescription>{" "}
-                  {Object.entries(draftConflicts).map(([key, value]) => {
-                    const keyWithoutCounter = key.split("<><><>")[1];
-                    const showKey = keyWithoutCounter != prevKey;
+          <AlertDialogContent>
+            <AlertDialogTitle className="font-bold">
+              {t("DraftConflicts Title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("DraftConflicts Description")}
+            </AlertDialogDescription>{" "}
+            <div className="py-3 flex flex-col gap-2">
+              {Object.entries(draftConflicts).map(([key, value]) => {
+                const keyWithoutCounter = key.split("<><><>")[1];
+                const showKey = keyWithoutCounter != prevKey;
 
-                    if (showKey) {
-                      prevKey = keyWithoutCounter;
-                    }
-                    return (
-                      <>
-                        {showKey && (
-                          <span
-                            key={keyWithoutCounter}
-                            className="font-bold"
-                          >{`${keyWithoutCounter}: `}</span>
-                        )}
-                        <span
-                          key={keyWithoutCounter + value}
-                          className="text-sm"
-                        >
-                          {`${t(value.split("<><><>")[0])} -> ${t(
-                            value.split("<><><>")[1]
-                          )}`}
-                        </span>
-                      </>
-                    );
-                  })}
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogAction>{t("Understood")}</AlertDialogAction>
-                </AlertDialogFooter>
-              </div>
-            </ScrollArea>
+                if (showKey) {
+                  prevKey = keyWithoutCounter;
+                }
+                return (
+                  <>
+                    {showKey && (
+                      <div
+                        key={keyWithoutCounter}
+                        className="font-bold"
+                      >{`${keyWithoutCounter}: `}</div>
+                    )}
+                    <div key={keyWithoutCounter + value} className="text-sm">
+                      {`${t(value.split("<><><>")[0])}: ${t(
+                        value.split("<><><>")[1]
+                      )}`}
+                    </div>
+                  </>
+                );
+              })}
+            </div>
+            <Button
+              variant="outline"
+              type="submit"
+              className="w-1/3 mx-auto"
+              onClick={() => setOpen(false)}
+            >
+              {t("Understood")}
+            </Button>
           </AlertDialogContent>
         </AlertDialog>
       )}
