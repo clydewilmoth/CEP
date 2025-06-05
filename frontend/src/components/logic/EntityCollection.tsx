@@ -71,7 +71,7 @@ export function EntityCollection({
   parentId: string;
   link: string;
 }) {
-  const { data: entities } = useQuery({
+  const { data: entities, status } = useQuery({
     queryKey: ["entities", entityType, parentId],
     queryFn: async () => await GetAllEntities(entityType, String(parentId)),
   });
@@ -253,7 +253,7 @@ function CreateEntityCard({
 
   return (
     <Card
-      className="w-36 h-fit flex relative justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all"
+      className="w-36 flex relative justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all"
       onClick={async () =>
         await createEntity({
           name: String(localStorage.getItem("name")),
@@ -270,15 +270,20 @@ function CreateEntityCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-            <PasteEntityHierarchyFromClipboard
-              entityType={entityType}
-              parentId={parentId}
-              onClick={() => setKey((k) => k + 1)}
-            />
-            <DropdownMenuSeparator className="bg-accent" />
-            {entityType == "line" && (
-              <ImportJSON onClick={() => setKey((k) => k + 1)} />
-            )}
+            <>
+              {/*<ContextMenuSeparator />*/}
+              {entityType == "line" && (
+                <>
+                  <ImportJSON onClick={() => setKey((k) => k + 1)} />
+                  <DropdownMenuSeparator className="bg-accent" />
+                </>
+              )}
+              <PasteEntityHierarchyFromClipboard
+                entityType={entityType}
+                parentId={parentId}
+                onClick={() => setKey((k) => k + 1)}
+              />
+            </>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -590,7 +595,36 @@ function PasteEntityHierarchyFromClipboard({
       queryClient.invalidateQueries();
       toast.success(t("PasteFromClipboardSuccess"));
     },
-    onError: () => toast.error(t("PasteFromClipboardError")),
+    onError: (error: any) => {
+      console.error("Paste error:", error);
+
+      let errorMessage = t("PasteFromClipboardError");
+      let description = error?.message ?? String(error);
+
+      if (description.includes("type mismatch")) {
+        errorMessage = t("PasteTypeMismatchError");
+        const match = description.match(
+          /clipboard contains '(\w+)' but expected '(\w+)'/
+        );
+        if (match) {
+          description = t("PasteTypeMismatchDescription", {
+            clipboardType: t(match[1]),
+            expectedType: t(match[2]),
+          });
+        }
+      } else if (description.includes("could not detect entity type")) {
+        errorMessage = t("PasteInvalidDataError");
+        description = t("PasteInvalidDataDescription");
+      } else if (description.includes("clipboard does not contain valid")) {
+        errorMessage = t("PasteInvalidFormatError");
+        description = t("PasteInvalidFormatDescription");
+      }
+
+      toast.error(errorMessage, {
+        description: description,
+        duration: 5000,
+      });
+    },
   });
 
   return (

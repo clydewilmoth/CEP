@@ -7,8 +7,6 @@ export const useContext = create<{
   tryInitialise: () => void;
   dbState: number;
   dbChange: () => void;
-  lastUpdate: string | null;
-  setLastUpdate: (lastUpdate: string) => void;
 }>((set) => ({
   initialised: false,
   setInitialised: (initialised) => set({ initialised }),
@@ -16,6 +14,4 @@ export const useContext = create<{
   tryInitialise: () => set((state) => ({ tryInitialiseListener: state.tryInitialiseListener + 1 })),
   dbState: 0,
   dbChange: () => set((state) => ({ dbState: state.dbState + 1 })),
-  lastUpdate: null,
-  setLastUpdate: (lastUpdate) => set({ lastUpdate })
 }));

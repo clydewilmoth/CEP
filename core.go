@@ -1,21 +1,26 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/url"
 	"os"
 	"os/user"
+	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/atotto/clipboard"
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 	mssql "github.com/microsoft/go-mssqldb"
 	ws "github.com/wailsapp/wails/v2/pkg/runtime"
 	"gorm.io/driver/sqlserver"
@@ -24,15 +29,19 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+// Robust timestamp parsing helper for concurrency and DB compatibility
 func parseTimestampFlexible(ts string) (time.Time, error) {
+	// Try RFC3339Nano
 	t, err := time.Parse(time.RFC3339Nano, ts)
 	if err == nil {
 		return t, nil
 	}
+	// Try RFC3339
 	t, err = time.Parse(time.RFC3339, ts)
 	if err == nil {
 		return t, nil
 	}
+	// Try SQL Server datetime2 (no T, no timezone)
 	const mssqlFormat = "2006-01-02 15:04:05.9999999"
 	t, err = time.Parse(mssqlFormat, ts)
 	if err == nil {
@@ -45,9 +54,9 @@ func parseTimestampFlexible(ts string) (time.Time, error) {
 type Core struct {
 	ctx            context.Context
 	listenerCancel context.CancelFunc
-	DB             *gorm.DB
-	queueName      string
-	serviceName    string
+	DB             *gorm.DB // Jede Instanz hat ihre eigene Verbindung
+	queueName      string   // Unique queue name for this instance
+	serviceName    string   // Unique service name for this instance
 }
 
 func NewCore() *Core {
@@ -91,51 +100,45 @@ func (c *Core) HandleImport(user string) string {
 	}
 }
 
-func enableServiceBroker(sqlDB *sql.DB, dbName string) error {
-	enableStmt := fmt.Sprintf(`IF (SELECT is_broker_enabled FROM sys.databases WHERE name = '%s') = 0
-		 BEGIN
-		   ALTER DATABASE [%s] SET ENABLE_BROKER;
-		 END;`, dbName, dbName)
-
-	if _, err := sqlDB.Exec(enableStmt); err != nil {
-		if !strings.Contains(err.Error(), "already enabled") {
-			return fmt.Errorf("failed to enable Service Broker: %w", err)
-		}
-	}
-
-	log.Printf("Service Broker enabled on database: %s", dbName)
-	return nil
-}
-
 func setupBroker(DB *gorm.DB, dbName string) (string, string, error) {
 	sqlDB, err := DB.DB()
 	if err != nil {
 		return "", "", err
 	}
 
-	if err := enableServiceBroker(sqlDB, dbName); err != nil {
-		return "", "", err
-	}
-
+	// Generate unique session ID for tracking
 	sessionID := uuid.New().String()
 	queueName := fmt.Sprintf("DataChangeQueue_%s", strings.ReplaceAll(sessionID, "-", ""))
 	serviceName := fmt.Sprintf("DataChangeService_%s", strings.ReplaceAll(sessionID, "-", ""))
 
+	// First, clean up any orphaned Service Broker resources from previous runs
 	cleanupOrphanedResources(sqlDB)
+
 	stmts := []string{
+		// Enable Service Broker on the database (only if not already enabled)
+		fmt.Sprintf(`IF (SELECT is_broker_enabled FROM sys.databases WHERE name = '%s') = 0
+		 BEGIN
+		   ALTER DATABASE [%s] SET ENABLE_BROKER;
+		 END;`, dbName, dbName),
+
+		// Create message type if not exists
 		`IF NOT EXISTS (SELECT * FROM sys.service_message_types WHERE name = 'DataChanged')
 		 CREATE MESSAGE TYPE [DataChanged] VALIDATION = NONE;`,
 
+		// Create contract if not exists
 		`IF NOT EXISTS (SELECT * FROM sys.service_contracts WHERE name = 'DataChangedContract')
 		 CREATE CONTRACT [DataChangedContract] ([DataChanged] SENT BY INITIATOR);`,
 
+		// Create unique queue for this session
 		fmt.Sprintf(`IF NOT EXISTS (SELECT * FROM sys.service_queues WHERE name = '%s')
 		 CREATE QUEUE [dbo].[%s];`, queueName, queueName),
 
+		// Create unique service for this session
 		fmt.Sprintf(`IF NOT EXISTS (SELECT * FROM sys.services WHERE name = '%s')
 		 CREATE SERVICE [%s] ON QUEUE [dbo].[%s] ([DataChangedContract]);`,
 			serviceName, serviceName, queueName),
 
+		// Create the trigger only if it doesn't exist (don't drop and recreate)
 		`IF OBJECT_ID('dbo.TRG_app_metadata_Notify_All', 'TR') IS NULL
 		 BEGIN
 		   EXEC('CREATE TRIGGER dbo.TRG_app_metadata_Notify_All
@@ -185,6 +188,7 @@ func setupBroker(DB *gorm.DB, dbName string) (string, string, error) {
 
 	for _, stmt := range stmts {
 		if _, err := sqlDB.Exec(stmt); err != nil {
+			// Don't fail for broker already enabled
 			if !strings.Contains(err.Error(), "already enabled") {
 				log.Printf("Warning: Service Broker setup issue: %v", err)
 			}
@@ -194,7 +198,7 @@ func setupBroker(DB *gorm.DB, dbName string) (string, string, error) {
 	return queueName, serviceName, nil
 }
 
-func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB, dsn string) {
+func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("PANIC in listenForChanges: %v", r)
@@ -203,45 +207,47 @@ func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB, dsn string) 
 
 	log.Printf("Starting Service Broker listener (session: %s)", c.queueName)
 
+	// Add a connection health check ticker
+	healthCheckTicker := time.NewTicker(15 * time.Second)
+	defer healthCheckTicker.Stop()
+
 	for {
 		select {
 		case <-ctx.Done():
 			log.Println("Listener stopped (context canceled)")
 			return
+		case <-healthCheckTicker.C:
+			// Proactive connection health check
+			if err := c.checkConnectionHealth(ctx, sqlDB); err != nil {
+				log.Printf("Connection health check failed: %v", err)
+				c.cleanupBrokerWithDeadConnection()
+				ws.EventsEmit(ctx, "database:connection_lost", err.Error())
+				log.Printf("Listener exiting due to failed health check (session: %s)", c.queueName)
+				return
+			}
 		default:
 		}
 
+		// Use WAITFOR RECEIVE to block until a message arrives (reduced timeout for faster detection)
 		query := fmt.Sprintf(`
 			WAITFOR (
 				RECEIVE TOP(1) message_body 
 				FROM [dbo].[%s]
-			), TIMEOUT 30000;
+			), TIMEOUT 15000;
 		`, c.queueName)
 
-		ctx_timeout, cancel := context.WithTimeout(ctx, 35*time.Second)
+		ctx_timeout, cancel := context.WithTimeout(ctx, 20*time.Second)
 		row := sqlDB.QueryRowContext(ctx_timeout, query)
 
 		var messageBody sql.NullString
 		err := row.Scan(&messageBody)
 		cancel()
+
 		if err != nil {
 			if ctx.Err() != nil {
 				log.Println("Listener stopped due to context cancellation")
 				return
-			}
-
-			if strings.Contains(err.Error(), "Invalid object name") &&
-				(strings.Contains(err.Error(), "DataChangeQueue_") || strings.Contains(err.Error(), "DataChangeService_")) {
-				log.Printf("Service Broker resources no longer exist (cleaned up by another instance): %v", err)
-				log.Printf("Listener exiting - resources deleted (session: %s)", c.queueName)
-
-				c.queueName = ""
-				c.serviceName = ""
-
-				ws.EventsEmit(ctx, "database:connection_lost", "Service Broker resources removed")
-				return
-			}
-
+			} // Check for connection errors
 			if strings.Contains(err.Error(), "connection") ||
 				strings.Contains(err.Error(), "network") ||
 				strings.Contains(err.Error(), "timeout") ||
@@ -249,17 +255,22 @@ func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB, dsn string) 
 				strings.Contains(err.Error(), "transport") {
 				log.Printf("Database connection lost: %v", err)
 
-				c.cleanupBrokerWithDeadConnection(dsn)
+				// Clean up Service Broker resources for this dead connection
+				// We do this here to prevent stale resources from interfering
+				c.cleanupBrokerWithDeadConnection()
 
 				ws.EventsEmit(ctx, "database:connection_lost", err.Error())
 
+				// Exit the listener - let InitDB restart everything cleanly
 				log.Printf("Listener exiting due to connection loss (session: %s)", c.queueName)
 				return
 			}
 
+			// Handle timeout (no messages) - this is normal, continue listening
 			if strings.Contains(err.Error(), "no rows") ||
 				strings.Contains(err.Error(), "WAITFOR") ||
 				strings.Contains(err.Error(), "timeout") {
+				// No messages received within timeout period - continue listening
 				continue
 			}
 
@@ -268,10 +279,10 @@ func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB, dsn string) 
 			continue
 		}
 
+		// If we reach here, a message was received (database changed!)
 		if messageBody.Valid {
 			log.Printf("Database change notification received: %s", messageBody.String)
-			ts, _ := c.GetGlobalLastUpdateTimestamp()
-			ws.EventsEmit(ctx, "database:changed", ts)
+			ws.EventsEmit(ctx, "database:changed", time.Now())
 		}
 	}
 }
@@ -281,19 +292,100 @@ const OpTypeUpdate = "UPDATE"
 const OpTypeDelete = "DELETE"
 const OpTypeSystemEvent = "SYSTEM_EVENT"
 
-func (c *Core) InitDB(dsn string) string {
+func (c *Core) CheckEnvInExeDir() bool {
+	exePath, err := os.Executable()
+	if err != nil {
+		return false
+	}
+	envPath := filepath.Join(filepath.Dir(exePath), ".env")
+	_, err = os.Stat(envPath)
+	return err == nil
+}
+
+type DSNParams struct {
+	User                   string
+	Password               string
+	Host                   string
+	Port                   string
+	Database               string
+	Encrypt                string
+	TrustServerCertificate string
+}
+
+func (c *Core) ParseDSNFromEnv() (*DSNParams, error) {
+	dsn := os.Getenv("MSSQL_DSN")
+	if dsn == "" {
+		return nil, errors.New("MSSQL_DSN not set in environment")
+	}
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return nil, err
+	}
+	user := ""
+	pass := ""
+	if u.User != nil {
+		user = u.User.Username()
+		pass, _ = u.User.Password()
+	}
+	host, port, _ := net.SplitHostPort(u.Host)
+	q := u.Query()
+	return &DSNParams{
+		User:                   user,
+		Password:               pass,
+		Host:                   host,
+		Port:                   port,
+		Database:               q.Get("database"),
+		Encrypt:                q.Get("encrypt"),
+		TrustServerCertificate: q.Get("trustservercertificate"),
+	}, nil
+}
+
+func loadConfiguration() {
+	exePath, err := os.Executable()
+	if err == nil {
+		envPath := filepath.Join(filepath.Dir(exePath), ".env")
+		errLoad := godotenv.Load(envPath)
+		if errLoad == nil {
+			log.Printf("Successfully loaded .env file from: %s", envPath)
+			return
+		}
+		if !os.IsNotExist(errLoad) {
+			log.Printf("Warning: Error loading .env file from %s: %v", envPath, errLoad)
+		} else {
+			log.Printf("Info: No .env file found at %s.", envPath)
+		}
+	} else {
+		log.Printf("Warning: Could not get executable path: %v. Will try to load .env from current working directory.", err)
+	}
+	err = godotenv.Load()
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Println("Info: No .env file found in current working directory. Relying on OS environment variables or awaiting configuration.")
+		} else {
+			log.Printf("Warning: Error loading .env file from current working directory: %v", err)
+		}
+	} else {
+		log.Println("Successfully loaded .env file from current working directory.")
+	}
+}
+func (c *Core) InitDB() string {
+	// Stop any existing listener
 	if c.listenerCancel != nil {
 		c.listenerCancel()
 		c.listenerCancel = nil
+		// Give the listener time to exit cleanly
 		time.Sleep(100 * time.Millisecond)
 	}
 
+	// Clean up existing Service Broker resources before closing DB
 	c.cleanupBroker()
 
+	// Also try cleanup with a fresh connection in case the current one is dead
 	if c.queueName != "" || c.serviceName != "" {
-		c.cleanupBrokerWithDeadConnection(dsn)
+		c.cleanupBrokerWithDeadConnection()
 	}
 
+	// Close existing DB connection
 	if c.DB != nil {
 		sqlDB, err := c.DB.DB()
 		if err == nil {
@@ -302,19 +394,30 @@ func (c *Core) InitDB(dsn string) string {
 		c.DB = nil
 	}
 
+	// Clear queue and service names
 	c.queueName = ""
 	c.serviceName = ""
+	loadConfiguration()
+	dsn := os.Getenv("MSSQL_DSN")
 	if dsn == "" {
 		return "InitError"
 	}
+	gormLogLevelStr := os.Getenv("GORM_LOGGER_LEVEL")
 	gormLogLevel := logger.Warn
-
+	switch strings.ToLower(gormLogLevelStr) {
+	case "silent":
+		gormLogLevel = logger.Silent
+	case "error":
+		gormLogLevel = logger.Error
+	case "info":
+		gormLogLevel = logger.Info
+	}
 	var err error
 	c.DB, err = gorm.Open(sqlserver.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(gormLogLevel)})
 	if err != nil {
 		return "InitError"
 	}
-	err = c.DB.AutoMigrate(&Line{}, &Station{}, &Tool{}, &Operation{}, &AppMetadata{}, &EntityChangeLog{})
+	err = c.DB.AutoMigrate(&Line{}, &Station{}, &Tool{}, &Operation{}, &Version{}, &LineHistory{}, &StationHistory{}, &ToolHistory{}, &OperationHistory{}, &AppMetadata{}, &EntityChangeLog{})
 	if err != nil {
 		return "InitError"
 	}
@@ -328,8 +431,8 @@ func (c *Core) InitDB(dsn string) string {
 	if err != nil {
 		return "InitError"
 	}
-	c.queueName = queueName
-	c.serviceName = serviceName
+	c.queueName = queueName     // Store queue name for this instance
+	c.serviceName = serviceName // Store service name for this instance
 	log.Println("Service Broker setup complete")
 
 	sqlDB, err := c.DB.DB()
@@ -346,7 +449,7 @@ func (c *Core) InitDB(dsn string) string {
 	}
 	listenerCtx, cancel := context.WithCancel(c.ctx)
 	c.listenerCancel = cancel
-	go c.listenForChanges(listenerCtx, sqlDB, dsn)
+	go c.listenForChanges(listenerCtx, sqlDB) // Pass Core instance to use queueName
 
 	log.Println("Successfully connected to and migrated MS SQL server DB.")
 	return "InitSuccess"
@@ -363,7 +466,52 @@ func ensureAppMetadataExists(db *gorm.DB) {
 		log.Printf("Warning: error checking app metadata: %v", err)
 	}
 }
+func (c *Core) ConfigureAndSaveDSN(host, portStr, dbname, user, password, encrypt, trustServerCertificate string) error {
+	if host == "" || portStr == "" || dbname == "" || user == "" {
+		return errors.New("host, port, database name, and user are required fields")
+	}
+	if _, err := strconv.Atoi(portStr); err != nil {
+		return fmt.Errorf("invalid port number: %s", portStr)
+	}
+	encryptLower := strings.ToLower(encrypt)
+	if encryptLower == "" {
+		encryptLower = "disable"
+	} else if encryptLower != "true" && encryptLower != "false" && encryptLower != "disable" {
+		return errors.New("invalid encrypt option, must be true, false, or disable")
+	}
 
+	trustLower := strings.ToLower(trustServerCertificate)
+	trustParam := ""
+	if trustLower == "true" {
+		trustParam = "&trustservercertificate=true"
+	}
+
+	dsn := fmt.Sprintf(
+		"sqlserver://%s:%s@%s:%s?database=%s&encrypt=%s%s&connection+timeout=10&dial+timeout=5",
+		user, password, host, portStr, dbname, encryptLower, trustParam,
+	)
+
+	exePath, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("could not get executable path to save .env file: %w", err)
+	}
+	envFilePath := filepath.Join(filepath.Dir(exePath), ".env")
+	file, err := os.OpenFile(envFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		return fmt.Errorf("failed to open/create .env file at %s: %w", envFilePath, err)
+	}
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(fmt.Sprintf("MSSQL_DSN=%s\n", dsn))
+	if err != nil {
+		return fmt.Errorf("failed to write MSSQL_DSN to .env file: %w", err)
+	}
+	if err = writer.Flush(); err != nil {
+		return fmt.Errorf("failed to flush .env file writer: %w", err)
+	}
+	log.Printf(".env file successfully created/updated at: %s", envFilePath)
+	return nil
+}
 func (c *Core) GetPlatformSpecificUserName() string {
 	currentUser, err := user.Current()
 	if err != nil {
@@ -381,7 +529,7 @@ func (c *Core) GetPlatformSpecificUserName() string {
 	}
 	return username
 }
-func updateGlobalLastUpdateTimestampAndLogChange(tx *gorm.DB, entityID mssql.UniqueIdentifier, entityType string, operationType string, userID *string, changedFields map[string]string) error {
+func updateGlobalLastUpdateTimestampAndLogChange(tx *gorm.DB, entityID mssql.UniqueIdentifier, entityType string, operationType string, userID *string) error {
 	now := time.Now()
 	if err := tx.Model(&AppMetadata{}).Where("config_key = ?", GlobalMetadataKey).Update("last_update", now).Error; err != nil {
 		return fmt.Errorf("failed to update global timestamp: %w", err)
@@ -398,24 +546,7 @@ func updateGlobalLastUpdateTimestampAndLogChange(tx *gorm.DB, entityID mssql.Uni
 		if operationType == OpTypeSystemEvent && entityType == "" {
 			logEntityType = "system"
 		}
-
-		// Convert changed fields to JSON string for UPDATE operations
-		var changedFieldsJSON *string
-		if operationType == OpTypeUpdate && changedFields != nil && len(changedFields) > 0 {
-			if jsonBytes, err := json.Marshal(changedFields); err == nil {
-				changedFieldsStr := string(jsonBytes)
-				changedFieldsJSON = &changedFieldsStr
-			}
-		}
-
-		changeLog := EntityChangeLog{
-			EntityID:        entityID,
-			EntityType:      logEntityType,
-			OperationType:   operationType,
-			ChangedFields:   changedFieldsJSON,
-			ChangeTime:      now,
-			ChangedByUserID: userID,
-		}
+		changeLog := EntityChangeLog{EntityID: entityID, EntityType: logEntityType, OperationType: operationType, ChangeTime: now, ChangedByUserID: userID}
 		if err := tx.Create(&changeLog).Error; err != nil {
 			return fmt.Errorf("failed to create entity change log for %s on %s (ID: %s): %w", operationType, entityType, entityID.String(), err)
 		}
@@ -439,67 +570,9 @@ func (c *Core) GetGlobalLastUpdateTimestamp() (string, error) {
 }
 
 type ChangeResponse struct {
-	NewGlobalLastUpdatedAt string                              `json:"newGlobalLastUpdatedAt"`
-	UpdatedEntities        map[string][]map[string]interface{} `json:"updatedEntities"`
-	DeletedEntities        map[string][]string                 `json:"deletedEntities"`
-}
-
-// Helper: rekursiv alle Kind-IDs für eine gelöschte Entity sammeln, gruppiert nach EntityType
-func (c *Core) collectAllChildIDs(entityType string, entityID mssql.UniqueIdentifier) (map[string][]string, error) {
-	result := make(map[string][]string)
-	idStr := entityID.String()
-
-	// Füge die aktuelle Entity hinzu
-	result[entityType] = append(result[entityType], idStr)
-
-	switch entityType {
-	case "line":
-		var stations []Station
-		if err := c.DB.Where("parent_id = ?", entityID).Find(&stations).Error; err != nil {
-			return result, err
-		}
-		for _, s := range stations {
-			childResults, err := c.collectAllChildIDs("station", s.ID)
-			if err != nil {
-				return result, err
-			}
-			// Merge child results
-			for childType, childIDs := range childResults {
-				result[childType] = append(result[childType], childIDs...)
-			}
-		}
-	case "station":
-		var tools []Tool
-		if err := c.DB.Where("parent_id = ?", entityID).Find(&tools).Error; err != nil {
-			return result, err
-		}
-		for _, t := range tools {
-			childResults, err := c.collectAllChildIDs("tool", t.ID)
-			if err != nil {
-				return result, err
-			}
-			// Merge child results
-			for childType, childIDs := range childResults {
-				result[childType] = append(result[childType], childIDs...)
-			}
-		}
-	case "tool":
-		var ops []Operation
-		if err := c.DB.Where("parent_id = ?", entityID).Find(&ops).Error; err != nil {
-			return result, err
-		}
-		for _, o := range ops {
-			childResults, err := c.collectAllChildIDs("operation", o.ID)
-			if err != nil {
-				return result, err
-			}
-			// Merge child results
-			for childType, childIDs := range childResults {
-				result[childType] = append(result[childType], childIDs...)
-			}
-		}
-	}
-	return result, nil
+	NewGlobalLastUpdatedAt string              `json:"newGlobalLastUpdatedAt"`
+	UpdatedEntities        map[string][]string `json:"updatedEntities"`
+	DeletedEntities        map[string][]string `json:"deletedEntities"`
 }
 
 func (c *Core) GetChangesSince(clientLastKnownTimestampStr string) (*ChangeResponse, error) {
@@ -515,41 +588,26 @@ func (c *Core) GetChangesSince(clientLastKnownTimestampStr string) (*ChangeRespo
 		return nil, fmt.Errorf("failed to get current global update timestamp: %w", err)
 	}
 	currentGlobalTime, _ := parseTimestampFlexible(currentGlobalTsStr)
-	response := &ChangeResponse{NewGlobalLastUpdatedAt: currentGlobalTsStr, UpdatedEntities: make(map[string][]map[string]interface{}), DeletedEntities: make(map[string][]string)}
+	response := &ChangeResponse{NewGlobalLastUpdatedAt: currentGlobalTsStr, UpdatedEntities: make(map[string][]string), DeletedEntities: make(map[string][]string)}
 	if currentGlobalTime.After(clientLastKnownTime) {
 		var logs []EntityChangeLog
 		if err := c.DB.Where("change_time > ?", clientLastKnownTime).Order("change_time asc").Find(&logs).Error; err != nil {
 			return nil, fmt.Errorf("failed to fetch change logs: %w", err)
 		}
 		processedUpdatedIDs := make(map[string]bool)
-		processedDeletedIDs := make(map[string]bool)
 		for _, lg := range logs {
 			idStr := lg.EntityID.String()
-			key := lg.EntityType + "_" + idStr
 			if lg.OperationType == OpTypeSystemEvent {
 				if _, ok := response.UpdatedEntities["system_event"]; !ok {
-					response.UpdatedEntities["system_event"] = []map[string]interface{}{}
+					response.UpdatedEntities["system_event"] = []string{}
 				}
-				response.UpdatedEntities["system_event"] = append(response.UpdatedEntities["system_event"], map[string]interface{}{"id": idStr, "entityType": lg.EntityType})
-			} else if lg.OperationType == OpTypeDelete && !processedDeletedIDs[key] {
-				// Simply add the deleted entity to the response
-				if _, ok := response.DeletedEntities[lg.EntityType]; !ok {
-					response.DeletedEntities[lg.EntityType] = []string{}
-				}
+				response.UpdatedEntities["system_event"] = append(response.UpdatedEntities["system_event"], fmt.Sprintf("%s:%s", lg.EntityType, idStr))
+			} else if lg.OperationType == OpTypeDelete {
 				response.DeletedEntities[lg.EntityType] = append(response.DeletedEntities[lg.EntityType], idStr)
-				processedDeletedIDs[key] = true
-				// Also remove from UpdatedEntities if it was there
-				delete(processedUpdatedIDs, key)
-			} else if lg.OperationType == OpTypeUpdate && !processedUpdatedIDs[key] {
-				var changedFields map[string]string
-				if lg.ChangedFields != nil && *lg.ChangedFields != "" {
-					_ = json.Unmarshal([]byte(*lg.ChangedFields), &changedFields)
-				}
-				if _, ok := response.UpdatedEntities[lg.EntityType]; !ok {
-					response.UpdatedEntities[lg.EntityType] = []map[string]interface{}{}
-				}
-				response.UpdatedEntities[lg.EntityType] = append(response.UpdatedEntities[lg.EntityType], map[string]interface{}{"id": idStr, "changedFields": changedFields})
-				processedUpdatedIDs[key] = true
+				delete(processedUpdatedIDs, lg.EntityType+"_"+idStr)
+			} else if lg.OperationType == OpTypeUpdate && !processedUpdatedIDs[lg.EntityType+"_"+idStr] {
+				response.UpdatedEntities[lg.EntityType] = append(response.UpdatedEntities[lg.EntityType], idStr)
+				processedUpdatedIDs[lg.EntityType+"_"+idStr] = true
 			}
 		}
 	}
@@ -590,6 +648,14 @@ func getModelInstance(entityTypeStr string) (interface{}, error) {
 		return &Tool{}, nil
 	case "operation":
 		return &Operation{}, nil
+	case "linehistory":
+		return &LineHistory{}, nil
+	case "stationhistory":
+		return &StationHistory{}, nil
+	case "toolhistory":
+		return &ToolHistory{}, nil
+	case "operationhistory":
+		return &OperationHistory{}, nil
 	case "appmetadata":
 		return &AppMetadata{}, nil
 	default:
@@ -780,7 +846,7 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 			return fmt.Errorf("error reloading entity after update within tx: %w", errLoad)
 		}
 		finalModelInstance = reloadedEntityWithinTx
-		return updateGlobalLastUpdateTimestampAndLogChange(tx, entityIDmssql, strings.ToLower(entityTypeStr), OpTypeUpdate, strPtr(userName), updatesMapStr)
+		return updateGlobalLastUpdateTimestampAndLogChange(tx, entityIDmssql, strings.ToLower(entityTypeStr), OpTypeUpdate, strPtr(userName))
 	})
 	if err != nil {
 		return nil, err
@@ -808,7 +874,31 @@ func (c *Core) GetEntityDetails(entityTypeStr string, entityIDStr string) (inter
 	}
 	return modelInstance, nil
 }
-
+func (c *Core) GetVersionedEntityDetails(versionIDStr string, entityTypeStr string, entityOriginalIDStr string) (interface{}, error) {
+	if c.DB == nil {
+		return nil, errors.New("DB not initialized")
+	}
+	versionIDmssql, err := parseMSSQLUniqueIdentifierFromString(versionIDStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid versionID: %w", err)
+	}
+	entityOriginalIDmssql, err := parseMSSQLUniqueIdentifierFromString(entityOriginalIDStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid entityOriginalID: %w", err)
+	}
+	historyModelName := strings.ToLower(entityTypeStr) + "history"
+	historyInstance, err := getModelInstance(historyModelName)
+	if err != nil {
+		return nil, fmt.Errorf("could not get history model instance for %s: %w", entityTypeStr, err)
+	}
+	if err := c.DB.Where("version_id = ? AND id = ?", versionIDmssql, entityOriginalIDmssql).Take(historyInstance).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%s with original ID %s in version %s not found", entityTypeStr, entityOriginalIDStr, versionIDStr)
+		}
+		return nil, fmt.Errorf("error fetching versioned %s (ID: %s, Version: %s): %w", entityTypeStr, entityOriginalIDStr, versionIDStr, err)
+	}
+	return historyInstance, nil
+}
 func (c *Core) GetAllEntities(entityTypeStr string, parentIDStr_optional string) ([]interface{}, error) {
 	if c.DB == nil {
 		return nil, errors.New("DB not initialized")
@@ -868,7 +958,70 @@ func (c *Core) GetAllEntities(entityTypeStr string, parentIDStr_optional string)
 	}
 	return results, nil
 }
-
+func (c *Core) GetAllVersionedEntities(versionIDStr string, entityTypeStr string, parentIDStr_optional string) ([]interface{}, error) {
+	if c.DB == nil {
+		return nil, errors.New("DB not initialized")
+	}
+	versionIDmssql, err := parseMSSQLUniqueIdentifierFromString(versionIDStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid versionID: %w", err)
+	}
+	historyModelName := strings.ToLower(entityTypeStr) + "history"
+	historyInstance, err := getModelInstance(historyModelName)
+	if err != nil {
+		return nil, err
+	}
+	var results []interface{}
+	query := c.DB.Model(historyInstance).Where("version_id = ?", versionIDmssql).Order("created_at asc")
+	if parentIDStr_optional != "" {
+		parentIDmssql, err := parseMSSQLUniqueIdentifierFromString(parentIDStr_optional)
+		if err != nil {
+			return nil, fmt.Errorf("invalid parentID for GetAllVersionedEntities: %w", err)
+		}
+		query = query.Where("parent_id = ?", parentIDmssql)
+	} else {
+		if strings.ToLower(entityTypeStr) != "line" {
+			return nil, errors.New("ParentID is required for non-line entities in GetAllVersionedEntities unless fetching all lines of a version")
+		}
+	}
+	switch strings.ToLower(entityTypeStr) {
+	case "line":
+		var items []LineHistory
+		if err := query.Find(&items).Error; err != nil {
+			return nil, err
+		}
+		for i := range items {
+			results = append(results, &items[i])
+		}
+	case "station":
+		var items []StationHistory
+		if err := query.Find(&items).Error; err != nil {
+			return nil, err
+		}
+		for i := range items {
+			results = append(results, &items[i])
+		}
+	case "tool":
+		var items []ToolHistory
+		if err := query.Find(&items).Error; err != nil {
+			return nil, err
+		}
+		for i := range items {
+			results = append(results, &items[i])
+		}
+	case "operation":
+		var items []OperationHistory
+		if err := query.Find(&items).Error; err != nil {
+			return nil, err
+		}
+		for i := range items {
+			results = append(results, &items[i])
+		}
+	default:
+		return nil, fmt.Errorf("GetAllVersionedEntities not implemented for type: %s", entityTypeStr)
+	}
+	return results, nil
+}
 func (c *Core) GetEntityHierarchyString(entityTypeStr string, entityIDStr string) (*HierarchyResponse, error) {
 	if c.DB == nil {
 		return nil, errors.New("DB not initialized")
@@ -938,6 +1091,30 @@ func (c *Core) ExportEntityHierarchyToJSON(entityTypeStr string, entityIDStr str
 	return nil
 }
 
+/*
+	func (c *Core) ExportVersionedEntityHierarchyToJSON(versionIDStr string, rootEntityTypeStr string, rootEntityOriginalIDStr string, filePath string) error {
+		if DB == nil {
+			return errors.New("DB not initialized")
+		}
+		if filePath == "" {
+			return errors.New("export filePath is empty")
+		}
+		hierarchyData, err := c.GetVersionedEntityHierarchy(versionIDStr, rootEntityTypeStr, rootEntityOriginalIDStr)
+		if err != nil {
+			return fmt.Errorf("error loading versioned entity hierarchy for export: %w", err)
+		}
+		jsonData, err := json.MarshalIndent(hierarchyData, "", "  ")
+		if err != nil {
+			return fmt.Errorf("error converting versioned data to JSON: %w", err)
+		}
+		err = os.WriteFile(filePath, jsonData, 0644)
+		if err != nil {
+			return fmt.Errorf("error writing versioned JSON file to '%s': %w", filePath, err)
+		}
+		log.Printf("Versioned hierarchy (Version: %s) successfully exported to '%s'.", versionIDStr, filePath)
+		return nil
+	}
+*/
 func (c *Core) ImportEntityHierarchyFromJSON_UseOriginalData(importingUserName string, filePath string) (err error) {
 	if c.DB == nil {
 		return errors.New("DB not initialized")
@@ -978,7 +1155,7 @@ func (c *Core) ImportEntityHierarchyFromJSON_UseOriginalData(importingUserName s
 	}()
 	err = importEntityRecursive_UseOriginalData(tx, &rootImportedLine, "line", emptyMsSQLID)
 	if err == nil {
-		if errTimestamp := updateGlobalLastUpdateTimestampAndLogChange(tx, emptyMsSQLID, "system", OpTypeSystemEvent, strPtr(importingUserName), nil); errTimestamp != nil {
+		if errTimestamp := updateGlobalLastUpdateTimestampAndLogChange(tx, emptyMsSQLID, "system", OpTypeSystemEvent, strPtr(importingUserName)); errTimestamp != nil {
 			log.Printf("Warning: failed to update global timestamp and log after successful import: %v", errTimestamp)
 		}
 	}
@@ -1123,7 +1300,7 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 		return fmt.Errorf("could not detect entity type from clipboard: %w", err)
 	}
 
-	if !strings.EqualFold(actualEntityType, expectedEntityType) {
+	if strings.ToLower(actualEntityType) != strings.ToLower(expectedEntityType) {
 		return fmt.Errorf("type mismatch: clipboard contains '%s' but expected '%s'", actualEntityType, expectedEntityType)
 	}
 
@@ -1191,13 +1368,14 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 			}
 		}
 	}()
+
 	idMap := make(map[mssql.UniqueIdentifier]mssql.UniqueIdentifier)
 	_, err = importCopiedEntityRecursive(tx, userName, root, expectedEntityType, parentID, idMap)
 	if err != nil {
 		return err
 	}
 
-	return tx.Model(&AppMetadata{}).Where("config_key = ?", GlobalMetadataKey).Update("last_update", time.Now()).Error
+	return updateGlobalLastUpdateTimestampAndLogChange(tx, mssql.UniqueIdentifier{}, "system", OpTypeSystemEvent, strPtr(userName))
 }
 
 func detectEntityTypeFromClipboard(clipboardData string) (string, error) {
@@ -1272,7 +1450,7 @@ func importCopiedEntityRecursive(
 	newParentID mssql.UniqueIdentifier,
 	idMap map[mssql.UniqueIdentifier]mssql.UniqueIdentifier,
 ) (mssql.UniqueIdentifier, error) {
-	_ = entityTypeStr
+
 	newUUID := mssql.UniqueIdentifier{}
 	_ = newUUID.Scan(uuid.New().String())
 
@@ -1348,7 +1526,6 @@ func importCopiedEntityRecursive(
 			BaseModel:          createBaseFromOriginal(e.BaseModel, userName),
 			Description:        e.Description,
 			DecisionCriteria:   e.DecisionCriteria,
-			SerialOrParallel:   e.SerialOrParallel,
 			SequenceGroup:      e.SequenceGroup,
 			Sequence:           e.Sequence,
 			AlwaysPerform:      e.AlwaysPerform,
@@ -1390,13 +1567,6 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 		}
 		return fmt.Errorf("error finding entity %s with ID %s for delete: %w", entityTypeStr, entityIDStr, err)
 	}
-
-	// Before deleting, collect all child IDs that will be cascade-deleted
-	allIDsToDelete, err := c.collectAllChildIDs(strings.ToLower(entityTypeStr), entityIDmssql)
-	if err != nil {
-		return fmt.Errorf("failed to collect child IDs before delete: %w", err)
-	}
-
 	err = c.DB.Transaction(func(tx *gorm.DB) error {
 		result := tx.Delete(modelInstance)
 		if result.Error != nil {
@@ -1405,25 +1575,25 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 		if result.RowsAffected == 0 {
 			return fmt.Errorf("no entity %s with ID %s actually deleted", entityTypeStr, entityIDStr)
 		}
-
-		// Log delete operations for all entities that will be deleted (including cascaded children)
-		for entityType, ids := range allIDsToDelete {
-			for _, idStr := range ids {
-				entityID, parseErr := parseMSSQLUniqueIdentifierFromString(idStr)
-				if parseErr != nil {
-					return fmt.Errorf("error parsing entity ID %s for logging: %w", idStr, parseErr)
-				}
-				if logErr := updateGlobalLastUpdateTimestampAndLogChange(tx, entityID, entityType, OpTypeDelete, strPtr(userName), nil); logErr != nil {
-					return fmt.Errorf("error logging delete for %s %s: %w", entityType, idStr, logErr)
-				}
-			}
+		var loggedEntityID mssql.UniqueIdentifier
+		switch e := modelInstance.(type) {
+		case *Line:
+			loggedEntityID = e.ID
+		case *Station:
+			loggedEntityID = e.ID
+		case *Tool:
+			loggedEntityID = e.ID
+		case *Operation:
+			loggedEntityID = e.ID
+		default:
+			return errors.New("could not determine ID for logging delete operation")
 		}
-
-		return nil
+		return updateGlobalLastUpdateTimestampAndLogChange(tx, loggedEntityID, strings.ToLower(entityTypeStr), OpTypeDelete, strPtr(userName))
 	})
 	return err
 }
 
+// cleanupBroker removes the queue and service for this instance
 func (c *Core) cleanupBroker() {
 	if c.DB == nil || c.queueName == "" || c.serviceName == "" {
 		return
@@ -1435,10 +1605,13 @@ func (c *Core) cleanupBroker() {
 		return
 	}
 
+	// Clean up this instance's Service Broker resources
 	stmts := []string{
+		// Drop the service first
 		fmt.Sprintf(`IF EXISTS (SELECT * FROM sys.services WHERE name = '%s')
 		 DROP SERVICE [%s];`, c.serviceName, c.serviceName),
 
+		// Drop the queue
 		fmt.Sprintf(`IF EXISTS (SELECT * FROM sys.service_queues WHERE name = '%s')
 		 DROP QUEUE [dbo].[%s];`, c.queueName, c.queueName),
 	}
@@ -1452,16 +1625,21 @@ func (c *Core) cleanupBroker() {
 	log.Printf("Service Broker cleanup completed for session: %s", c.queueName)
 }
 
-func (c *Core) cleanupBrokerWithDeadConnection(dsn string) {
+// cleanupBrokerWithDeadConnection attempts cleanup when the main connection is dead
+// This uses a new connection to avoid dependency on the failed connection
+func (c *Core) cleanupBrokerWithDeadConnection() {
 	if c.queueName == "" || c.serviceName == "" {
 		return
 	}
 
+	// Try to create a new connection for cleanup
+	dsn := os.Getenv("MSSQL_DSN")
 	if dsn == "" {
 		log.Printf("Warning: No DSN available for Service Broker cleanup")
 		return
 	}
 
+	// Create a temporary connection just for cleanup
 	tempDB, err := sql.Open("sqlserver", dsn)
 	if err != nil {
 		log.Printf("Warning: could not create temp connection for Service Broker cleanup: %v", err)
@@ -1469,13 +1647,17 @@ func (c *Core) cleanupBrokerWithDeadConnection(dsn string) {
 	}
 	defer tempDB.Close()
 
+	// Set a short timeout for cleanup operations
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// Clean up this instance's Service Broker resources
 	stmts := []string{
+		// Drop the service first
 		fmt.Sprintf(`IF EXISTS (SELECT * FROM sys.services WHERE name = '%s')
 		 DROP SERVICE [%s];`, c.serviceName, c.serviceName),
 
+		// Drop the queue
 		fmt.Sprintf(`IF EXISTS (SELECT * FROM sys.service_queues WHERE name = '%s')
 		 DROP QUEUE [dbo].[%s];`, c.queueName, c.queueName),
 	}
@@ -1489,80 +1671,92 @@ func (c *Core) cleanupBrokerWithDeadConnection(dsn string) {
 	log.Printf("Service Broker cleanup with dead connection completed for session: %s", c.queueName)
 }
 
+// cleanupOrphanedResources removes old Service Broker resources that might be left from crashed instances
 func cleanupOrphanedResources(sqlDB *sql.DB) {
-	stmt := `
-	DECLARE @queueName NVARCHAR(256);
-	DECLARE @serviceName NVARCHAR(256);
-	DECLARE @isOrphaned BIT;
-	
-	-- Check for orphaned services and their associated queues
-	DECLARE service_cursor CURSOR FOR
-	  SELECT s.name as service_name, sq.name as queue_name
-	  FROM sys.services s
-	  JOIN sys.service_queues sq ON s.service_queue_id = sq.object_id
-	  WHERE s.name LIKE 'DataChangeService_%';
-	
-	OPEN service_cursor;
-	FETCH NEXT FROM service_cursor INTO @serviceName, @queueName;
-	
-	WHILE @@FETCH_STATUS = 0
-	BEGIN
-	  SET @isOrphaned = 0;
-	  
-	  -- Try to peek at the queue to see if it's accessible
-	  -- If there's an error, it might be orphaned
-	  BEGIN TRY
-	    DECLARE @dummy_body VARBINARY(MAX);
-	    SELECT TOP(1) @dummy_body = message_body 
-	    FROM [dbo].[' + @queueName + ']
-	    WITH (NOLOCK);
-	    -- If we get here without error, queue is accessible (not orphaned)
-	  END TRY
-	  BEGIN CATCH
-	    -- Queue might be orphaned, but be conservative
-	    -- Only mark as orphaned if it's a specific access error
-	    IF ERROR_NUMBER() = 208 -- Invalid object name
-	      SET @isOrphaned = 1;
-	  END CATCH
-	  
-	  -- Only clean up if we're confident it's orphaned
-	  -- For now, we'll be very conservative and not auto-cleanup
-	  -- This prevents interfering with other running instances
-	  
-	  FETCH NEXT FROM service_cursor INTO @serviceName, @queueName;
-	END;
-	
-	CLOSE service_cursor;
-	DEALLOCATE service_cursor;
-	
-	-- Clean up only truly orphaned queues (those without any associated service)
-	DECLARE orphan_queue_cursor CURSOR FOR
-	  SELECT name FROM sys.service_queues 
-	  WHERE name LIKE 'DataChangeQueue_%'
-	  AND object_id NOT IN (SELECT service_queue_id FROM sys.services WHERE service_queue_id IS NOT NULL);
-	
-	OPEN orphan_queue_cursor;
-	FETCH NEXT FROM orphan_queue_cursor INTO @queueName;
-	
-	WHILE @@FETCH_STATUS = 0
-	BEGIN
-	  BEGIN TRY
-	    EXEC('DROP QUEUE [dbo].[' + @queueName + '];');
-	    PRINT 'Cleaned up truly orphaned queue: ' + @queueName;
-	  END TRY
-	  BEGIN CATCH
-	    -- Ignore errors
-	  END CATCH
-	  
-	  FETCH NEXT FROM orphan_queue_cursor INTO @queueName;
-	END;
-	
-	CLOSE orphan_queue_cursor;
-	DEALLOCATE orphan_queue_cursor;`
+	// Clean up orphaned services and queues older than 30 minutes (was 5 minutes, too aggressive)
+	// This helps prevent accumulation of resources from crashed instances
+	stmts := []string{
+		// Get and clean up old services - more conservative approach
+		`DECLARE @serviceName NVARCHAR(256);
+		 DECLARE service_cursor CURSOR FOR
+		   SELECT name FROM sys.services 
+		   WHERE name LIKE 'DataChangeService_%'
+		   AND create_date < DATEADD(MINUTE, -30, GETDATE());
+		 
+		 OPEN service_cursor;
+		 FETCH NEXT FROM service_cursor INTO @serviceName;
+		 
+		 WHILE @@FETCH_STATUS = 0
+		 BEGIN
+		   BEGIN TRY
+		     EXEC('DROP SERVICE [' + @serviceName + '];');
+		     PRINT 'Cleaned up old service: ' + @serviceName;
+		   END TRY
+		   BEGIN CATCH
+		     -- Ignore errors
+		   END CATCH
+		   
+		   FETCH NEXT FROM service_cursor INTO @serviceName;
+		 END;
+		 
+		 CLOSE service_cursor;
+		 DEALLOCATE service_cursor;`,
 
-	if _, err := sqlDB.Exec(stmt); err != nil {
-		log.Printf("Warning: Conservative orphaned resource cleanup issue: %v", err)
+		// Clean up orphaned queues - only those not associated with any service
+		`DECLARE @queueName NVARCHAR(256);
+		 DECLARE queue_cursor CURSOR FOR
+		   SELECT name FROM sys.service_queues 
+		   WHERE name LIKE 'DataChangeQueue_%'
+		   AND object_id NOT IN (SELECT service_queue_id FROM sys.services WHERE service_queue_id IS NOT NULL);
+		 
+		 OPEN queue_cursor;
+		 FETCH NEXT FROM queue_cursor INTO @queueName;
+		 
+		 WHILE @@FETCH_STATUS = 0
+		 BEGIN
+		   BEGIN TRY
+		     EXEC('DROP QUEUE [dbo].[' + @queueName + '];');
+		     PRINT 'Cleaned up orphaned queue: ' + @queueName;
+		   END TRY
+		   BEGIN CATCH
+		     -- Ignore errors
+		   END CATCH
+		   
+		   FETCH NEXT FROM queue_cursor INTO @queueName;
+		 END;
+		 
+		 CLOSE queue_cursor;
+		 DEALLOCATE queue_cursor;`,
 	}
 
-	log.Println("Conservative orphaned Service Broker resources cleanup completed")
+	for _, stmt := range stmts {
+		if _, err := sqlDB.Exec(stmt); err != nil {
+			log.Printf("Warning: Orphaned resource cleanup issue: %v", err)
+		}
+	}
+
+	log.Println("Orphaned Service Broker resources cleanup completed")
+}
+
+func (c *Core) checkConnectionHealth(ctx context.Context, sqlDB *sql.DB) error {
+	healthCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	// Simple ping to detect connection issues
+	if err := sqlDB.PingContext(healthCtx); err != nil {
+		return fmt.Errorf("connection ping failed: %w", err)
+	}
+
+	// Quick query to verify Service Broker queue accessibility
+	query := fmt.Sprintf("SELECT COUNT(*) FROM sys.service_queues WHERE name = '%s'", c.queueName)
+	var count int
+	if err := sqlDB.QueryRowContext(healthCtx, query).Scan(&count); err != nil {
+		return fmt.Errorf("service broker health check failed: %w", err)
+	}
+
+	if count == 0 {
+		return fmt.Errorf("service broker queue %s no longer exists", c.queueName)
+	}
+
+	return nil
 }

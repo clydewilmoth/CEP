@@ -5,6 +5,7 @@ go 1.22.0
 toolchain go1.23.3
 
 require (
+	github.com/joho/godotenv v1.5.1
 	github.com/wailsapp/wails/v2 v2.10.1
 	gorm.io/driver/sqlserver v1.5.4
 )

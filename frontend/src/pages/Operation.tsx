@@ -38,7 +38,7 @@ export default function Operations() {
             </ResizablePanel>
             <ResizableHandle disabled />
             <ResizablePanel defaultSize={100}>
-              <OperationForm entityId={ouuid} suuid={suuid} />
+              <OperationForm entityId={ouuid} />
             </ResizablePanel>
           </ScrollArea>
         </ResizablePanelGroup>
