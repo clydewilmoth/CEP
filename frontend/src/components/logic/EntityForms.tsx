@@ -26,7 +26,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   GetAllEntities,
   GetEntityDetails,
-  GetGlobalLastUpdateTimestamp,
   UpdateEntityFieldsString,
 } from "../../../wailsjs/go/main/Core";
 import {

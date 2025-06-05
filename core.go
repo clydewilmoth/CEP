@@ -270,7 +270,8 @@ func (c *Core) listenForChanges(ctx context.Context, sqlDB *sql.DB, dsn string) 
 
 		if messageBody.Valid {
 			log.Printf("Database change notification received: %s", messageBody.String)
-			ws.EventsEmit(ctx, "database:changed", time.Now())
+			ts, _ := c.GetGlobalLastUpdateTimestamp()
+			ws.EventsEmit(ctx, "database:changed", ts)
 		}
 	}
 }
@@ -380,7 +381,7 @@ func (c *Core) GetPlatformSpecificUserName() string {
 	}
 	return username
 }
-func updateGlobalLastUpdateTimestampAndLogChange(tx *gorm.DB, entityID mssql.UniqueIdentifier, entityType string, operationType string, userID *string) error {
+func updateGlobalLastUpdateTimestampAndLogChange(tx *gorm.DB, entityID mssql.UniqueIdentifier, entityType string, operationType string, userID *string, changedFields map[string]string) error {
 	now := time.Now()
 	if err := tx.Model(&AppMetadata{}).Where("config_key = ?", GlobalMetadataKey).Update("last_update", now).Error; err != nil {
 		return fmt.Errorf("failed to update global timestamp: %w", err)
@@ -397,7 +398,24 @@ func updateGlobalLastUpdateTimestampAndLogChange(tx *gorm.DB, entityID mssql.Uni
 		if operationType == OpTypeSystemEvent && entityType == "" {
 			logEntityType = "system"
 		}
-		changeLog := EntityChangeLog{EntityID: entityID, EntityType: logEntityType, OperationType: operationType, ChangeTime: now, ChangedByUserID: userID}
+
+		// Convert changed fields to JSON string for UPDATE operations
+		var changedFieldsJSON *string
+		if operationType == OpTypeUpdate && changedFields != nil && len(changedFields) > 0 {
+			if jsonBytes, err := json.Marshal(changedFields); err == nil {
+				changedFieldsStr := string(jsonBytes)
+				changedFieldsJSON = &changedFieldsStr
+			}
+		}
+
+		changeLog := EntityChangeLog{
+			EntityID:        entityID,
+			EntityType:      logEntityType,
+			OperationType:   operationType,
+			ChangedFields:   changedFieldsJSON,
+			ChangeTime:      now,
+			ChangedByUserID: userID,
+		}
 		if err := tx.Create(&changeLog).Error; err != nil {
 			return fmt.Errorf("failed to create entity change log for %s on %s (ID: %s): %w", operationType, entityType, entityID.String(), err)
 		}
@@ -689,7 +707,7 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 			return fmt.Errorf("error reloading entity after update within tx: %w", errLoad)
 		}
 		finalModelInstance = reloadedEntityWithinTx
-		return updateGlobalLastUpdateTimestampAndLogChange(tx, entityIDmssql, strings.ToLower(entityTypeStr), OpTypeUpdate, strPtr(userName))
+		return updateGlobalLastUpdateTimestampAndLogChange(tx, entityIDmssql, strings.ToLower(entityTypeStr), OpTypeUpdate, strPtr(userName), updatesMapStr)
 	})
 	if err != nil {
 		return nil, err
@@ -887,7 +905,7 @@ func (c *Core) ImportEntityHierarchyFromJSON_UseOriginalData(importingUserName s
 	}()
 	err = importEntityRecursive_UseOriginalData(tx, &rootImportedLine, "line", emptyMsSQLID)
 	if err == nil {
-		if errTimestamp := updateGlobalLastUpdateTimestampAndLogChange(tx, emptyMsSQLID, "system", OpTypeSystemEvent, strPtr(importingUserName)); errTimestamp != nil {
+		if errTimestamp := updateGlobalLastUpdateTimestampAndLogChange(tx, emptyMsSQLID, "system", OpTypeSystemEvent, strPtr(importingUserName), nil); errTimestamp != nil {
 			log.Printf("Warning: failed to update global timestamp and log after successful import: %v", errTimestamp)
 		}
 	}
@@ -1100,14 +1118,13 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 			}
 		}
 	}()
-
 	idMap := make(map[mssql.UniqueIdentifier]mssql.UniqueIdentifier)
 	_, err = importCopiedEntityRecursive(tx, userName, root, expectedEntityType, parentID, idMap)
 	if err != nil {
 		return err
 	}
 
-	return updateGlobalLastUpdateTimestampAndLogChange(tx, mssql.UniqueIdentifier{}, "system", OpTypeSystemEvent, strPtr(userName))
+	return tx.Model(&AppMetadata{}).Where("config_key = ?", GlobalMetadataKey).Update("last_update", time.Now()).Error
 }
 
 func detectEntityTypeFromClipboard(clipboardData string) (string, error) {
@@ -1321,7 +1338,7 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 		default:
 			return errors.New("could not determine ID for logging delete operation")
 		}
-		return updateGlobalLastUpdateTimestampAndLogChange(tx, loggedEntityID, strings.ToLower(entityTypeStr), OpTypeDelete, strPtr(userName))
+		return updateGlobalLastUpdateTimestampAndLogChange(tx, loggedEntityID, strings.ToLower(entityTypeStr), OpTypeDelete, strPtr(userName), nil)
 	})
 	return err
 }

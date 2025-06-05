@@ -4,6 +4,7 @@ import Stations from "./pages/Stations";
 import Tools from "./pages/Tools";
 import Operations from "./pages/Operations";
 import {
+  GetChangesSince,
   GetGlobalLastUpdateTimestamp,
   GetPlatformSpecificUserName,
   InitDB,
@@ -23,7 +24,6 @@ import { Menu } from "./components/logic/Menu";
 import { cn } from "./lib/utils";
 import Operation from "./pages/Operation";
 import { useContext } from "./store";
-import { set } from "react-hook-form";
 
 const queryClient = new QueryClient();
 
@@ -55,7 +55,9 @@ export default function App() {
     })();
     EventsOn("database:changed", async (ts: string) => {
       console.log("DB Change: ", ts);
-      setLastUpdate(await GetGlobalLastUpdateTimestamp());
+      setLastUpdate(ts);
+      console.log("Last Update: ", lastUpdate);
+      console.log(await GetChangesSince(lastUpdate ?? ""));
       dbChange();
     });
     EventsOn("database:connection_lost", (err: string) => {

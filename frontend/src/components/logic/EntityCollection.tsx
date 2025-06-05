@@ -253,7 +253,7 @@ function CreateEntityCard({
 
   return (
     <Card
-      className="w-36 flex relative justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all"
+      className="w-36 h-fit flex relative justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all"
       onClick={async () =>
         await createEntity({
           name: String(localStorage.getItem("name")),

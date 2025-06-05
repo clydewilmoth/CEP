@@ -93,6 +93,7 @@ type EntityChangeLog struct {
 	EntityID        mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
 	EntityType      string                 `gorm:"size:50;index"`
 	OperationType   string                 `gorm:"size:20"`
+	ChangedFields   *string                `gorm:"default:null"`
 	ChangeTime      time.Time              `gorm:"type:datetime2;index"`
 	ChangedByUserID *string                `gorm:"size:255;default:null"`
 }

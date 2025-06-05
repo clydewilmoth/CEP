@@ -219,7 +219,6 @@ export function DSNDialog({
 
   useEffect(() => {
     (async () => {
-      console.log(localStorage.getItem("database"));
       const db = JSON.parse(localStorage.getItem("database") ?? "{}");
       db != "{}" &&
         form.reset({
