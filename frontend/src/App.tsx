@@ -97,7 +97,6 @@ export default function App() {
   return (
     <ThemeProvider attribute="class" enableSystem disableTransitionOnChange>
       <QueryClientProvider client={queryClient}>
-        {" "}
         <div
           className={cn(
             "flex flex-row w-full flex-1 mx-auto border border-neutral-200 dark:border-neutral-700 overflow-hidden",

@@ -56,7 +56,9 @@ export function DraftConflictDialog() {
                 ([field, value]) => {
                   if (localEntity[field]) {
                     conflicts[
-                      `${conflictCounter}<|||>${t(entityType)} ${Name}`
+                      `${conflictCounter}<|||>${t(entityType)} ${
+                        Name ?? t("unnamed")
+                      }`
                     ] = `${t(field)}<|||>${value}`;
 
                     conflictCounter++;
@@ -85,7 +87,7 @@ export function DraftConflictDialog() {
             <AlertDialogDescription>
               {t("DraftConflicts Description")}
             </AlertDialogDescription>{" "}
-            <div className="py-3 flex flex-col gap-2">
+            <div className="pb-5 flex flex-col gap-2">
               {Object.entries(draftConflicts).map(([key, value]) => {
                 const keyWithoutCounter = key.split("<|||>")[1];
                 const showKey = keyWithoutCounter != prevKey;
