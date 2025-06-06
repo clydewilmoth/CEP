@@ -26,13 +26,6 @@ func TestStrPtr(t *testing.T) {
 		t.Fatalf("Expected pointer to point to an empty string, got: %v", emptyPtr)
 	}
 
-	// Test with a nil string (should not compile, so we skip this test)
-	// var nilStr *string = nil
-	// nilPtr := strPtr(nilStr)
-	// if nilPtr != nil {
-	// 	t.Fatal("Expected pointer to be nil for a nil string, but it was not.")
-	// }
-
 }
 
 func TestCheckEnvInExeDir(t *testing.T) {
@@ -42,7 +35,7 @@ func TestCheckEnvInExeDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
-	core.ConfigureAndSaveDSN("test_dsn", "user:password@tcp(localhost:3306)/dbname?charset=utf8&parseTime=True&loc=Local", "", "", "", "", "")
+	core.ConfigureAndSaveDSN("MSSQL_DSN", "test_user", "test_password", "localhost", "1433", "test_db", "true")
 	// Create a .env file in the temporary directory
 	envFilePath := filepath.Join(tempDir, ".env")
 	fmt.Printf("Creating .env file at: %s\n", envFilePath) // Uncomment for debug output
@@ -135,7 +128,7 @@ func TestParseDSNFromEnv(t *testing.T) {
 
 func TestParseMSSQLUniqueIdentifierFromString(t *testing.T) {
 	// Test with a valid unique identifier
-	validID := "123e4567-e89b-12d3-a456-426614174000"
+	validID := "123E4567-E89B-12D3-A456-426614174000"
 	parsedID, err := parseMSSQLUniqueIdentifierFromString(validID)
 	if err != nil {
 		t.Fatalf("Expected no error for valid ID, got: %v", err)
