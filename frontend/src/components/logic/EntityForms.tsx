@@ -3078,7 +3078,9 @@ export function OperationForm({
                         </TooltipTrigger>
                       </div>
                       <TooltipContent className="max-w-sm">
-                        {operationDb.DecisionCriteria.split("<|||>").join("; ")}
+                        {operationDb.DecisionCriteria?.split("<|||>").join(
+                          "; "
+                        )}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
