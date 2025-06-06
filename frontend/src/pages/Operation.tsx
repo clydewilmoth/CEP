@@ -54,7 +54,6 @@ export default function Operations() {
               <SequenceGroupView
                 entityType="sequencegroup"
                 parentId={suuid}
-                link={`/line/${luuid}/station/${suuid}/tool/${tuuid}/operation/`}
               />
           </div>
         </ScrollArea>

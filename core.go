@@ -623,7 +623,7 @@ func getIDFromModel(entity interface{}) mssql.UniqueIdentifier {
 	}
 }
 
-func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStrIfApplicable string) (interface{}, error) {
+func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStrIfApplicable string, sequenceGroupName string) (interface{}, error) {
 	if c.DB == nil {
 		return nil, errors.New("DB not initialized")
 	}
@@ -673,23 +673,22 @@ func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStrIf
         if err != nil {
             return nil, fmt.Errorf("invalid ParentID for %s: %w", entityTypeStr, err)
         }
+		
         var highest int
-		var indexStr string = "index"
         var groups []SequenceGroup
         if err := c.DB.Where("parent_id = ?", parentIDmssql).Find(&groups).Error; err != nil {
             return nil, fmt.Errorf("DB error reading SequenceGroups: %w", err)
         }
         for _, g := range groups {
-            if *g.index == indexStr {
-                if parsed, err := strconv.Atoi(*g.index); err == nil {
-                    if parsed > highest {
-                        highest = parsed
-                    }
-                }
-            }
+			if parsed, err := strconv.Atoi(*g.Index); err == nil {
+				if parsed > highest {
+					highest = parsed
+				}
+			}
         }
         newIndex := strconv.Itoa(highest + 1)
-        entityToCreate = &SequenceGroup{ParentID: parentIDmssql, index: &newIndex}
+		base.Name = strPtr(sequenceGroupName)
+        entityToCreate = &SequenceGroup{ BaseModel: base, ParentID: parentIDmssql, Index: &newIndex}
 	default:
 		return nil, fmt.Errorf("unknown entity type for Create: %s", entityTypeStr)
 	}
@@ -1179,8 +1178,9 @@ func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr 
 
 	if entityTypeStr == "operation" {
         if op, ok := modelInstance.(*Operation); ok {
-            op.SequenceGroup = nil
+            op.GroupID = nil
 			op.Sequence = nil
+			op.SequenceGroup = nil
         }
     }
 
@@ -1452,7 +1452,8 @@ func importCopiedEntityRecursive(
 			GenerationClass:    e.GenerationClass,
 			OperationDecisions: e.OperationDecisions,
 			ParentID:           newParentID,
-			SequenceGroup:      e.SequenceGroup,
+			GroupID:      		e.GroupID,
+			SequenceGroup: 		e.SequenceGroup,
 		}
 		if err := tx.Create(&newOp).Error; err != nil {
 			return newUUID, fmt.Errorf("failed to insert new Operation: %w", err)

@@ -1,5 +1,4 @@
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
-import { Card, CardTitle } from "@/components/ui/card";
 import {
     GetAllEntities,
     GetOperationsByStation,
@@ -7,22 +6,29 @@ import {
 } from "../../../wailsjs/go/main/Core";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useLocation } from "wouter";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "wouter";
-import { EntityCard } from "@/components/logic/EntityCollection";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Flex, Text } from "@radix-ui/themes";
+import { Card, CardTitle } from "@/components/ui/card";
+import { DeleteEntityDialog } from "./EntityCollection";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Ellipsis } from "lucide-react";
+import { ScrollArea } from "../ui/scroll-area";
+
 
 export function SequenceGroupView({
     entityType,
     parentId,
-    link,
 }: {
     entityType: string;
     parentId: string;
-    link: string;
 }) {
     const { suuid } = useParams<{ luuid: string; suuid: string; tuuid: string }>();
     const { data: entitiesOp } = useQuery({
@@ -33,77 +39,79 @@ export function SequenceGroupView({
         queryKey: ["entities", entityType, parentId],
         queryFn: async () => await GetAllEntities(entityType, String(parentId)),
     });
+    const [inputValue, setInputValue] = useState("");
     const { t } = useTranslation();
     
     return (
         <div className="flex flex-col gap-7 w-full">
-            <div>
-                {entitiesOp?.map((entity, index) => {
-                    return (
-                        <EntityCard
-                            entityType={entityType}
-                            entityId={String(entity.ID)}
-                            entityName={String(entity.Name)}
-                            entityComment={String(entity.Comment)}
-                            entityStatusColor={ undefined }
-                            link={link}
-                            key={index}
-                        />
-                    );
-                })}
+          <ScrollArea>
+            <div className="w-1/2 flex flex-col gap-3">
+              {entitiesOp?.map((entity, index) => {
+                return (
+                <Card key={index}
+                      className="w-36 h-fit flex relative justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all">
+                  <Text as="div" size="2" weight="bold">
+                    {entity.Name || t("unnamed_entity")}
+                  </Text>
+                </Card>
+                );
+              })}
             </div>
-            <div>
-                <InputDemo />
-                <ButtonDemo 
-                    name="selim"
+          </ScrollArea>
+          <ScrollArea>
+            <div className="w-1/2 flex flex-col gap-3">
+              {entitiesSequenceGroup?.map((entity, index) => {
+                return (
+                  <SequenceGroupCard
+                    key={index}
                     entityType={entityType}
-                    parentId={parentId}
-                    link={link}
-                />
-                {entitiesSequenceGroup?.map((entity, index) => {
-                    return (
-                        <div key={index} className="flex items-center gap-4">
-                            <p className="text-blue-500 hover:underline">
-                                {entity.name || t("unnamed_entity")}
-                            </p>
-                            <span className="text-sm text-gray-500">
-                                {entity.description || t("no_description")}
-                            </span>
-                        </div>
-                    );
-                })}
+                    entityId={entity.ID}
+                    entityName={entity.Name || t("unnamed_group")}
+                  />
+                );
+              })}
+              <Input value={inputValue} onChange={e => setInputValue(e.target.value)} />
+              <CreateSequenceGroupCard
+                  name={t("Create Sequencegroup")}
+                  entityType={entityType}
+                  parentId={parentId}
+                  sequenceGroupName={inputValue}
+              />
             </div>
+          </ScrollArea>
         </div>
     );
 }
 
-function createSequenceGroup({
+function CreateSequenceGroupCard({
   name,
   entityType,
   parentId,
-  link,
+  sequenceGroupName,
 }: {
   name: string;
   entityType: string;
   parentId: string;
-  link: string;
+  sequenceGroupName: string;
 }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
 
   const { mutateAsync: createEntity } = useMutation({
     mutationFn: ({
-      name,
+      username,
       entityType,
       parentId,
+      sequenceGroupName,
     }: {
-      name: string;
+      username: string;
       entityType: string;
       parentId: string;
+      sequenceGroupName: string;
     }) => {
-      return CreateEntity(name, entityType, parentId);
+      return CreateEntity(username, entityType, parentId, sequenceGroupName);
     },
-    onSuccess: (res) => {
+    onSuccess: () => {
       queryClient.invalidateQueries();
       toast.success(`${t(entityType)} ${t("CreateToast")}`);
     },
@@ -114,39 +122,56 @@ function createSequenceGroup({
       className="w-36 h-fit flex relative justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all"
       onClick={async () =>
         await createEntity({
-          name: String(localStorage.getItem("name")),
+          username: String(localStorage.getItem("name")),
           entityType: entityType,
           parentId: parentId,
+          sequenceGroupName: sequenceGroupName,
         })
       }
     >
-      <div className="absolute top-0 left-0">
-        <CardTitle className="text-center text-sm font-semibold">
-          {name}
-        </CardTitle>
-      </div>
+      <Button variant="ghost" size="icon" className="hover:bg-card">
+        {name}
+      </Button>
     </Card>
   );
 }
 
-function ButtonDemo({
-  name,
+function SequenceGroupCard({
   entityType,
-  parentId,
-  link,
+  entityId,
+  entityName,
 }: {
-  name: string;
   entityType: string;
-  parentId: string;
-  link: string; 
+  entityId: string;
+  entityName: string;
 }) {
-  return (
-    <div className="flex flex-wrap items-center gap-2 md:flex-row">
-      <Button onClick={() => createSequenceGroup({ name, entityType, parentId, link })}>Button</Button>
-    </div>
-  )
-}
+  const { t } = useTranslation();
+  const [key, setKey] = useState(0);
 
-function InputDemo() {
-  return <Input type="text" />
+  return (
+    <Card className="w-36 h-fit flex relative justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all">
+      <div>
+      <DropdownMenu key={key}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <Ellipsis />
+          </Button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+          <DeleteEntityDialog
+            entityType={entityType}
+            entityId={entityId}
+            onClose={() => setKey((k) => k + 1)}
+          />
+        </DropdownMenuContent>
+      </DropdownMenu>
+      </div>
+      <div>
+        <CardTitle>
+          {entityName || t("unnamed_group")}
+        </CardTitle>
+      </div>
+    </Card>
+  );
 }

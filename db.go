@@ -68,28 +68,28 @@ type Tool struct {
 
 type Operation struct {
 	BaseModel
-	Description        *string                `gorm:"default:null"`
-	DecisionCriteria   *string                `gorm:"default:null"`
-	SerialOrParallel   *string                `gorm:"default:null"`
-	Sequence           *string                `gorm:"default:null"`
-	AlwaysPerform      *string                `gorm:"default:null"`
-	QGateRelevant      *string                `gorm:"default:null"`
-	Template           *string                `gorm:"default:null"`
-	DecisionClass      *string                `gorm:"default:null"`
-	SavingClass        *string                `gorm:"default:null"`
-	VerificationClass  *string                `gorm:"default:null"`
-	GenerationClass    *string                `gorm:"default:null"`
-	OperationDecisions *string                `gorm:"default:null"`
-	ParentID           mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	SequenceGroup	   *mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+	Description        *string                 `gorm:"default:null"`
+	DecisionCriteria   *string                 `gorm:"default:null"`
+	SerialOrParallel   *string                 `gorm:"default:null"`
+	Sequence           *string                 `gorm:"default:null"`
+	AlwaysPerform      *string                 `gorm:"default:null"`
+	QGateRelevant      *string                 `gorm:"default:null"`
+	Template           *string                 `gorm:"default:null"`
+	DecisionClass      *string                 `gorm:"default:null"`
+	SavingClass        *string                 `gorm:"default:null"`
+	VerificationClass  *string                 `gorm:"default:null"`
+	GenerationClass    *string                 `gorm:"default:null"`
+	OperationDecisions *string                 `gorm:"default:null"`
+	ParentID           mssql.UniqueIdentifier  `gorm:"type:uniqueidentifier;index"`
+	GroupID	   		   *mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+	SequenceGroup	   *string                 `gorm:"default:null"`
 }
 
 type SequenceGroup struct {
-	ID		  		mssql.UniqueIdentifier 		`gorm:"type:uniqueidentifier;primary_key;"`
+	BaseModel
 	ParentID        mssql.UniqueIdentifier 		`gorm:"type:uniqueidentifier;index"`
-	Name			*string                		`gorm:"size:255;default:null"`
-	index	        *string                		`gorm:"size:255;default:null"`
-	Operations      []Operation           		`gorm:"foreignKey:SequenceGroup;"`
+	Index	        *string                		`gorm:"size:255;default:null"`
+	Operations      []Operation           		`gorm:"foreignKey:GroupID;"`
 }
 
 type AppMetadata struct {

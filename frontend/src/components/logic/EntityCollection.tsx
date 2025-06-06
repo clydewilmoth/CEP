@@ -239,7 +239,7 @@ function CreateEntityCard({
       entityType: string;
       parentId: string;
     }) => {
-      return CreateEntity(name, entityType, parentId);
+      return CreateEntity(name, entityType, parentId, "");
     },
     onSuccess: (res) => (
       queryClient.invalidateQueries(),
@@ -405,7 +405,7 @@ export function EntityCard({
   );
 }
 
-function DeleteEntityDialog({
+export function DeleteEntityDialog({
   entityType,
   entityId,
   onClose,
