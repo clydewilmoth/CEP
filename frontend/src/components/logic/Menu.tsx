@@ -37,7 +37,7 @@ import {
 
 import { useTheme } from "next-themes";
 import { ScrollArea } from "../ui/scroll-area";
-import { Sidebar, SidebarBody, SidebarMenu } from "../ui/sidebar";
+import { Sidebar, SidebarBody, SidebarMenu, useSidebar } from "../ui/sidebar";
 import { t } from "i18next";
 import { Checkbox } from "../ui/checkbox";
 import { booleanToString, stringToBoolean } from "./EntityForms";
@@ -402,13 +402,15 @@ export function ThemeSwitch() {
 export function Menu() {
   const [open, setOpen] = useState(false);
   const [isAnyDialogOpen, setIsAnyDialogOpen] = useState(false);
-
+  const [preventSidebarOpen, setPreventSidebarOpen] = useState(false);
   const handleDialogStateChange = (dialogOpen: boolean) => {
     setIsAnyDialogOpen(dialogOpen);
     if (dialogOpen) {
       setOpen(false);
     } else {
-      setTimeout(() => setOpen(false), 0);
+      setOpen(false);
+      setPreventSidebarOpen(true);
+      setTimeout(() => setPreventSidebarOpen(false), 100);
     }
   };
 
@@ -416,26 +418,79 @@ export function Menu() {
     if (!name) return "";
     return name.length > 15 ? name.substring(0, 15) + "..." : name;
   };
+  const handleSetOpen = (value: React.SetStateAction<boolean>) => {
+    const newOpen = typeof value === "function" ? value(open) : value;
+
+    if (newOpen && (isAnyDialogOpen || preventSidebarOpen)) {
+      return;
+    }
+    setOpen(newOpen);
+  };
 
   return (
-    <Sidebar open={open && !isAnyDialogOpen} setOpen={setOpen}>
-      <SidebarBody className="justify-between gap-10 overflow-hidden">
-        <div className="flex flex-col">
-          <SidebarMenu
-            item={<DSNDialog onDialogStateChange={handleDialogStateChange} />}
-            text={t("Database")}
-          />
-          <SidebarMenu
-            item={<LangDialog onDialogStateChange={handleDialogStateChange} />}
-            text={t("Language")}
-          />
-          <SidebarMenu item={<ThemeSwitch />} text={t("Theme")} />
-        </div>
-        <SidebarMenu
-          item={<UserDialog onDialogStateChange={handleDialogStateChange} />}
-          text={truncateName(localStorage.getItem("name"))}
-        />
-      </SidebarBody>
+    <Sidebar
+      open={open && !isAnyDialogOpen && !preventSidebarOpen}
+      setOpen={handleSetOpen}
+    >
+      <MenuContent
+        handleDialogStateChange={handleDialogStateChange}
+        truncateName={truncateName}
+      />
     </Sidebar>
+  );
+}
+
+function MenuContent({
+  handleDialogStateChange,
+  truncateName,
+}: {
+  handleDialogStateChange: (open: boolean) => void;
+  truncateName: (name: string | null) => string;
+}) {
+  const { simulateMouseLeave, checkMousePosition } = useSidebar();
+  const handleDialogStateChangeWithMouseLeave = (dialogOpen: boolean) => {
+    if (dialogOpen && simulateMouseLeave) {
+      simulateMouseLeave();
+    }
+
+    handleDialogStateChange(dialogOpen);
+
+    if (!dialogOpen && checkMousePosition) {
+      setTimeout(() => {
+        checkMousePosition();
+      }, 150);
+    }
+  };
+
+  return (
+    <SidebarBody className="justify-between gap-10 overflow-hidden">
+      <div className="flex flex-col">
+        <SidebarMenu
+          item={
+            <DSNDialog
+              onDialogStateChange={handleDialogStateChangeWithMouseLeave}
+            />
+          }
+          text={t("Database")}
+        />
+        <SidebarMenu
+          item={
+            <LangDialog
+              onDialogStateChange={handleDialogStateChangeWithMouseLeave}
+            />
+          }
+          text={t("Language")}
+        />
+        <SidebarMenu item={<ThemeSwitch />} text={t("Theme")} />
+      </div>
+      <SidebarMenu
+        item={
+          <UserDialog
+            onDialogStateChange={handleDialogStateChangeWithMouseLeave}
+          />
+        }
+        text={truncateName(localStorage.getItem("name"))}
+      />
+    </SidebarBody>
   );
 }

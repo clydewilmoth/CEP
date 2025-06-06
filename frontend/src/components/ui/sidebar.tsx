@@ -1,13 +1,18 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import React, { useState, createContext, useContext } from "react";
+import React, { useState, createContext, useContext, useRef } from "react";
 import { motion } from "framer-motion";
 
 interface SidebarContextProps {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   animate: boolean;
+  simulateMouseLeave?: () => void;
+  setMouseLeaveHandler?: (handler: () => void) => void;
+  setMouseEnterHandler?: (handler: () => void) => void;
+  setSidebarElement?: (element: HTMLDivElement | null) => void;
+  checkMousePosition?: () => void;
 }
 
 const SidebarContext = createContext<SidebarContextProps | undefined>(
@@ -34,12 +39,72 @@ export const SidebarProvider = ({
   animate?: boolean;
 }) => {
   const [openState, setOpenState] = useState(false);
+  const mouseLeaveHandlerRef = useRef<(() => void) | undefined>(undefined);
+  const mouseEnterHandlerRef = useRef<(() => void) | undefined>(undefined);
+  const sidebarElementRef = useRef<HTMLDivElement | null>(null);
+  const lastMousePositionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const open = openProp !== undefined ? openProp : openState;
   const setOpen = setOpenProp !== undefined ? setOpenProp : setOpenState;
 
+  React.useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      lastMousePositionRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
+
+  const simulateMouseLeave = () => {
+    if (mouseLeaveHandlerRef.current) {
+      mouseLeaveHandlerRef.current();
+    }
+  };
+
+  const setMouseLeaveHandler = (handler: () => void) => {
+    mouseLeaveHandlerRef.current = handler;
+  };
+
+  const setMouseEnterHandler = (handler: () => void) => {
+    mouseEnterHandlerRef.current = handler;
+  };
+
+  const setSidebarElement = (element: HTMLDivElement | null) => {
+    sidebarElementRef.current = element;
+  };
+
+  const checkMousePosition = () => {
+    if (open || !sidebarElementRef.current || !mouseEnterHandlerRef.current) {
+      return;
+    }
+
+    const { x, y } = lastMousePositionRef.current;
+    const rect = sidebarElementRef.current.getBoundingClientRect();
+
+    const isMouseOverSidebar =
+      x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+
+    if (isMouseOverSidebar && mouseEnterHandlerRef.current) {
+      mouseEnterHandlerRef.current();
+    }
+  };
+
   return (
-    <SidebarContext.Provider value={{ open, setOpen, animate }}>
+    <SidebarContext.Provider
+      value={{
+        open,
+        setOpen,
+        animate,
+        simulateMouseLeave,
+        setMouseLeaveHandler,
+        setMouseEnterHandler,
+        setSidebarElement,
+        checkMousePosition,
+      }}
+    >
       {children}
     </SidebarContext.Provider>
   );
@@ -72,9 +137,60 @@ export const DesktopSidebar = ({
   children,
   ...props
 }: React.ComponentProps<typeof motion.div>) => {
-  const { open, setOpen, animate } = useSidebar();
+  const {
+    open,
+    setOpen,
+    animate,
+    setMouseLeaveHandler,
+    setMouseEnterHandler,
+    setSidebarElement,
+  } = useSidebar();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseEnter = () => {
+    if (!open) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        setOpen(true);
+      }, 1000);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    setOpen(false);
+  };
+
+  React.useEffect(() => {
+    if (!open && timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, [open]);
+
+  React.useEffect(() => {
+    if (setMouseLeaveHandler) {
+      setMouseLeaveHandler(handleMouseLeave);
+    }
+    if (setMouseEnterHandler) {
+      setMouseEnterHandler(handleMouseEnter);
+    }
+    if (setSidebarElement && sidebarRef.current) {
+      setSidebarElement(sidebarRef.current);
+    }
+  }, [setMouseLeaveHandler, setMouseEnterHandler, setSidebarElement]);
+
   return (
     <motion.div
+      ref={sidebarRef}
       className={cn(
         "h-full px-[0.55rem] py-4 flex flex-col flex-shrink-0 min-w-0",
         className
@@ -84,8 +200,8 @@ export const DesktopSidebar = ({
         minWidth: animate ? (open ? "12.5rem" : "3.75rem") : "3.75rem",
         maxWidth: animate ? (open ? "12.5rem" : "3.75rem") : "3.75rem",
       }}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       {...props}
     >
       {children}
