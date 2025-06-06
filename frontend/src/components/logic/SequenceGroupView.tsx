@@ -11,7 +11,6 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "wouter";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Flex, Text } from "@radix-ui/themes";
 import { Card, CardTitle } from "@/components/ui/card";
 import { DeleteEntityDialog } from "./EntityCollection";
 import {
@@ -43,23 +42,25 @@ export function SequenceGroupView({
     const { t } = useTranslation();
     
     return (
-        <div className="flex flex-col gap-7 w-full">
-          <ScrollArea>
-            <div className="w-1/2 flex flex-col gap-3">
+        <div className="grid grid-cols-2 px-5">
+          
+          <ScrollArea className="h-[87.5vh]">
+            <div className="flex flex-col gap-3 p-8">
               {entitiesOp?.map((entity, index) => {
                 return (
                 <Card key={index}
                       className="w-36 h-fit flex relative justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all">
-                  <Text as="div" size="2" weight="bold">
+                  <div className="fon-bold text-sm text-center">
                     {entity.Name || t("unnamed_entity")}
-                  </Text>
+                  </div>
                 </Card>
                 );
               })}
             </div>
           </ScrollArea>
-          <ScrollArea>
-            <div className="w-1/2 flex flex-col gap-3">
+          
+          <ScrollArea className="h-[87.5vh]">
+            <div className="flex flex-col gap-3 p-8">
               {entitiesSequenceGroup?.map((entity, index) => {
                 return (
                   <SequenceGroupCard
@@ -77,8 +78,9 @@ export function SequenceGroupView({
                   parentId={parentId}
                   sequenceGroupName={inputValue}
               />
-            </div>
+          </div>
           </ScrollArea>
+          
         </div>
     );
 }

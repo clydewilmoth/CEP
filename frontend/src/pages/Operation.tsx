@@ -48,7 +48,6 @@ export default function Operations() {
       </ResizablePanel>
       <ResizableHandle disabled />
       <ResizablePanel>
-        <ScrollArea>
           <div className="p-8 bg-muted h-screen w-full">
             <h1 className="text-xl font-bold">{t("sequenceGroups")}</h1>
               <SequenceGroupView
@@ -56,7 +55,6 @@ export default function Operations() {
                 parentId={suuid}
               />
           </div>
-        </ScrollArea>
       </ResizablePanel>
     </ResizablePanelGroup>
   );
