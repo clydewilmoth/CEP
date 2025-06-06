@@ -156,7 +156,7 @@ export const DesktopSidebar = ({
 
       timeoutRef.current = setTimeout(() => {
         setOpen(true);
-      }, 1000);
+      }, 250);
     }
   };
 
