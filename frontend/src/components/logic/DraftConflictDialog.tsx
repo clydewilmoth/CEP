@@ -51,7 +51,7 @@ export function DraftConflictDialog() {
                 entityType,
                 entity.id
               );
-              const Name = localEntity.Name ?? dbName;
+              const Name = /*localEntity.Name ??*/ dbName;
               Object.entries(entity.changedFields || {}).forEach(
                 ([field, value]) => {
                   if (localEntity[field]) {
@@ -98,11 +98,11 @@ export function DraftConflictDialog() {
                     {showKey && (
                       <div
                         key={key}
-                        className="font-bold"
-                      >{`${keyWithoutCounter}: `}</div>
+                        className="font-bold mt-4"
+                      >{`${keyWithoutCounter}`}</div>
                     )}
                     <div key={key + value} className="text-sm">
-                      {`${t(value.split("<|||>")[0])}: ${t(
+                      {`${t(value.split("<|||>")[0])} → ${t(
                         value.split("<|||>")[1]
                       )}`}
                     </div>
