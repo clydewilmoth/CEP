@@ -164,7 +164,7 @@ export function LineForm({ entityId }: { entityId: string }) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(() => submitForm())}
-          className="py-5 pt-7 flex flex-col gap-8"
+          className="py-3  flex flex-col gap-5"
         >
           <div className="flex gap-3 items-center justify-between">
             <Button
@@ -569,7 +569,7 @@ export function StationForm({ entityId }: { entityId: string }) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(() => submitForm())}
-          className="py-5 pt-7 flex flex-col gap-8"
+          className="py-3  flex flex-col gap-5"
         >
           <div className="flex gap-3 items-center justify-between">
             <Button
@@ -1094,7 +1094,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(() => submitForm())}
-          className="py-5 pt-7 flex flex-col gap-8"
+          className="py-3  flex flex-col gap-5"
         >
           <div className="flex gap-3 items-center justify-between">
             <Button
@@ -1321,7 +1321,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                     <Tooltip>
                       <div className="flex gap-3">
                         <FormLabel className="flex h-[15px]">
-                          {t("Tool Class")}
+                          {t("ToolClass")}
                         </FormLabel>
                         <TooltipTrigger asChild>
                           <SquarePen size={15} />
@@ -1337,7 +1337,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                   </TooltipProvider>
                 ) : (
                   <FormLabel className="flex h-[15px]">
-                    {t("Tool Class")}
+                    {t("ToolClass")}
                   </FormLabel>
                 )}
                 <Select
@@ -1404,7 +1404,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                     <Tooltip>
                       <div className="flex gap-3">
                         <FormLabel className="flex h-[15px]">
-                          {t("Tool Type")}
+                          {t("ToolType")}
                         </FormLabel>
                         <TooltipTrigger asChild>
                           <SquarePen size={15} />
@@ -1424,7 +1424,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                   </TooltipProvider>
                 ) : (
                   <FormLabel className="flex h-[15px]">
-                    {t("Tool Type")}
+                    {t("ToolType")}
                   </FormLabel>
                 )}
                 <Select
@@ -2059,7 +2059,7 @@ export function OperationForm({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(() => submitForm())}
-          className="py-5 pt-7 flex flex-col gap-8"
+          className="py-3  flex flex-col gap-5"
         >
           <div className="flex gap-3 items-center justify-between">
             <Button
@@ -2296,7 +2296,7 @@ export function OperationForm({
                     <Tooltip>
                       <div className="flex gap-3">
                         <FormLabel className="flex h-[15px]">
-                          {t("Serial / Parallel")}
+                          {t("SerialOrParallel")}
                         </FormLabel>
                         <TooltipTrigger asChild>
                           <SquarePen size={15} />
@@ -2314,7 +2314,7 @@ export function OperationForm({
                   </TooltipProvider>
                 ) : (
                   <FormLabel className="flex h-[15px]">
-                    {t("Serial / Parallel")}
+                    {t("SerialOrParallel")}
                   </FormLabel>
                 )}
                 <Select
@@ -2669,7 +2669,7 @@ export function OperationForm({
                     <Tooltip>
                       <div className="flex gap-3">
                         <FormLabel className="flex h-[15px]">
-                          {t("OperationClassDecision")}
+                          {t("DecisionClass")}
                         </FormLabel>
                         <TooltipTrigger asChild>
                           <SquarePen size={15} />
@@ -2687,7 +2687,7 @@ export function OperationForm({
                   </TooltipProvider>
                 ) : (
                   <FormLabel className="flex h-[15px]">
-                    {t("OperationClassDecision")}
+                    {t("DecisionClass")}
                   </FormLabel>
                 )}
                 <Select
@@ -2768,7 +2768,7 @@ export function OperationForm({
                     <Tooltip>
                       <div className="flex gap-3">
                         <FormLabel className="flex h-[15px]">
-                          {t("OperationClassVerification")}
+                          {t("VerificationClass")}
                         </FormLabel>
                         <TooltipTrigger asChild>
                           <SquarePen size={15} />
@@ -2788,7 +2788,7 @@ export function OperationForm({
                   </TooltipProvider>
                 ) : (
                   <FormLabel className="flex h-[15px]">
-                    {t("OperationClassVerification")}
+                    {t("VerificationClass")}
                   </FormLabel>
                 )}
                 <Select
@@ -2874,7 +2874,7 @@ export function OperationForm({
                     <Tooltip>
                       <div className="flex gap-3">
                         <FormLabel className="flex h-[15px]">
-                          {t("OperationClassGeneration")}
+                          {t("GenerationClass")}
                         </FormLabel>
                         <TooltipTrigger asChild>
                           <SquarePen size={15} />
@@ -2894,7 +2894,7 @@ export function OperationForm({
                   </TooltipProvider>
                 ) : (
                   <FormLabel className="flex h-[15px]">
-                    {t("OperationClassGeneration")}
+                    {t("GenerationClass")}
                   </FormLabel>
                 )}
                 <Select
@@ -2975,7 +2975,7 @@ export function OperationForm({
                     <Tooltip>
                       <div className="flex gap-3">
                         <FormLabel className="flex h-[15px]">
-                          {t("OperationClassSaving")}
+                          {t("SavingClass")}
                         </FormLabel>
                         <TooltipTrigger asChild>
                           <SquarePen size={15} />
@@ -2995,7 +2995,7 @@ export function OperationForm({
                   </TooltipProvider>
                 ) : (
                   <FormLabel className="flex h-[15px]">
-                    {t("OperationClassSaving")}
+                    {t("SavingClass")}
                   </FormLabel>
                 )}
                 <Select

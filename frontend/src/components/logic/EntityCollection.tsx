@@ -451,7 +451,7 @@ function DeleteEntityDialog({
           </Button>
         </DialogTrigger>
       </div>
-      <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
+      <DialogContent className="py-10 grid grid-cols-1 gap-5 w-80">
         <DialogTitle>{t("DeleteDialog Title")}</DialogTitle>
         <DialogDescription>
           {`${t("DeleteDialog Description1")} ${t(entityType)}${t(

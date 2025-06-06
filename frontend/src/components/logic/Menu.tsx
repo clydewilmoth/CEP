@@ -72,7 +72,7 @@ export function UserDialog({
           <UserRound />
         </Button>
       </DialogTrigger>
-      <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
+      <DialogContent className="py-10 grid grid-cols-1 gap-5 w-80">
         <DialogTitle>{t("NameDialog Title")}</DialogTitle>
         <DialogDescription>{t("NameDialog Description")}</DialogDescription>
         <Input
@@ -106,7 +106,7 @@ export function LangDialog({
           <Globe />
         </Button>
       </DialogTrigger>
-      <DialogContent className="py-10 grid grid-cols-1 gap-8 w-80">
+      <DialogContent className="py-10 grid grid-cols-1 gap-5 w-80">
         <DialogTitle>{t("LangDialog Title")}</DialogTitle>
         <DialogDescription>{t("LangDialog Description")}</DialogDescription>
         <Select
@@ -251,7 +251,7 @@ export function DSNDialog({
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="py-5 grid grid-cols-2 gap-8"
+                className="py-3 grid grid-cols-2 gap-5"
               >
                 <DialogTitle className="col-span-2">
                   {t("DSN FormTitle")}

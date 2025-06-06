@@ -1345,21 +1345,20 @@ func importCopiedEntityRecursive(
 
 	case *Operation:
 		newOp := Operation{
-			BaseModel:          createBaseFromOriginal(e.BaseModel, userName),
-			Description:        e.Description,
-			DecisionCriteria:   e.DecisionCriteria,
-			SerialOrParallel:   e.SerialOrParallel,
-			SequenceGroup:      e.SequenceGroup,
-			Sequence:           e.Sequence,
-			AlwaysPerform:      e.AlwaysPerform,
-			QGateRelevant:      e.QGateRelevant,
-			Template:           e.Template,
-			DecisionClass:      e.DecisionClass,
-			SavingClass:        e.SavingClass,
-			VerificationClass:  e.VerificationClass,
-			GenerationClass:    e.GenerationClass,
-			OperationDecisions: e.OperationDecisions,
-			ParentID:           newParentID,
+			BaseModel:         createBaseFromOriginal(e.BaseModel, userName),
+			Description:       e.Description,
+			DecisionCriteria:  e.DecisionCriteria,
+			SerialOrParallel:  e.SerialOrParallel,
+			SequenceGroup:     e.SequenceGroup,
+			Sequence:          e.Sequence,
+			AlwaysPerform:     e.AlwaysPerform,
+			QGateRelevant:     e.QGateRelevant,
+			Template:          e.Template,
+			DecisionClass:     e.DecisionClass,
+			SavingClass:       e.SavingClass,
+			VerificationClass: e.VerificationClass,
+			GenerationClass:   e.GenerationClass,
+			ParentID:          newParentID,
 		}
 		if err := tx.Create(&newOp).Error; err != nil {
 			return newUUID, fmt.Errorf("failed to insert new Operation: %w", err)
