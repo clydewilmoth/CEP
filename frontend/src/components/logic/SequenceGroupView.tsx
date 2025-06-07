@@ -122,6 +122,7 @@ export function SequenceGroupView({
                   entityType={entityType}
                   entityId={group.ID}
                   entityName={group.Name || t("unnamed_group")}
+                  visualIndex={index + 1}
                 />
               </Reorder.Item>
             ))}
@@ -236,16 +237,19 @@ function SequenceGroupCard({
   entityType,
   entityId,
   entityName,
+  visualIndex,
 }: {
   entityType: string;
   entityId: string;
   entityName: string;
+  visualIndex: number;
 }) {
   const { t } = useTranslation();
   const [key, setKey] = useState(0);
 
   return (
     <Card className="w-36 h-fit flex relative justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all">
+      <div>{visualIndex}</div>
       <div>
         <DropdownMenu key={key}>
           <DropdownMenuTrigger asChild>
