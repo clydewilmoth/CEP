@@ -3,8 +3,9 @@ import {
     GetAllEntities,
     GetOperationsByStation,
     CreateEntity,
+    GetOperationsBySeqeunceGroup,
 } from "../../../wailsjs/go/main/Core";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -20,6 +21,7 @@ import {
 } from "../ui/dropdown-menu";
 import { Ellipsis } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
+import { Reorder } from "framer-motion";
 
 
 export function SequenceGroupView({
@@ -29,7 +31,7 @@ export function SequenceGroupView({
     entityType: string;
     parentId: string;
 }) {
-    const { suuid } = useParams<{ luuid: string; suuid: string; tuuid: string }>();
+    const { suuid } = useParams<{ luuid: string; suuid: string; tuuid: string; }>();
     const { data: entitiesOp } = useQuery({
         queryKey: ["entitiesOp", entityType, parentId],
         queryFn: async () => await GetOperationsByStation(suuid),
@@ -38,8 +40,49 @@ export function SequenceGroupView({
         queryKey: ["entities", entityType, parentId],
         queryFn: async () => await GetAllEntities(entityType, String(parentId)),
     });
+
+    type Operation = {
+      ID: string;
+      Name: string;
+      SequenceGroup: string;
+      Sequence: number;
+    };
+    type Group = {
+      ID: string;
+      Name: string;
+      Index: string;
+      Operations: Operation[];
+    };
+    const [groups, setGroups] = useState<Group[]>([]);
     const [inputValue, setInputValue] = useState("");
     const { t } = useTranslation();
+
+  useEffect(() => {
+  if (!entitiesSequenceGroup) return;
+
+  const fetchGroupsWithOperations = async () => {
+    const newGroups: any[] = await Promise.all(
+      entitiesSequenceGroup.map(async (entity: any) => {
+        const operationFull: any[] = await GetOperationsBySeqeunceGroup(entity.ID);
+        const operations: Operation[] = operationFull.map((op: any) => ({
+          ID: op.ID,
+          Name: op.Name,
+          SequenceGroup: op.SequenceGroup,
+          Sequence: op.Sequence,
+        })).sort((a, b) => a.Sequence - b.Sequence);
+        return {
+          ID: entity.ID,
+          Index: entity.Index,
+          Operations: operations,
+        };
+      })
+    );
+
+    setGroups(newGroups);
+  };
+
+  fetchGroupsWithOperations();
+}, [entitiesSequenceGroup]); //noch nicht so sinnvoller hook? vllt []
     
     return (
         <div className="grid grid-cols-2 px-5">
@@ -61,6 +104,7 @@ export function SequenceGroupView({
           
           <ScrollArea className="h-[87.5vh]">
             <div className="flex flex-col gap-3 p-8">
+              <Reorder.Group values={groups} onReorder={setGroups} className="flex flex-col gap-3">
               {entitiesSequenceGroup?.map((entity, index) => {
                 return (
                   <SequenceGroupCard
@@ -71,6 +115,7 @@ export function SequenceGroupView({
                   />
                 );
               })}
+              </Reorder.Group>
               <Input value={inputValue} onChange={e => setInputValue(e.target.value)} />
               <CreateSequenceGroupCard
                   name={t("Create Sequencegroup")}
