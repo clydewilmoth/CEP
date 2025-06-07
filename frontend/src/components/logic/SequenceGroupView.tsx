@@ -47,6 +47,7 @@ export function SequenceGroupView({
 }) {
   const { suuid } = useParams<{ luuid: string; suuid: string; tuuid: string }>();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
   const { data: entitiesOp } = useQuery({
     queryKey: ["entitiesOp", entityType, parentId],
@@ -57,26 +58,31 @@ export function SequenceGroupView({
     queryKey: ["entitiesSequenceGroup", entityType, parentId],
     queryFn: async (): Promise<Group[]> => {
       const groups = await GetAllEntities(entityType, String(parentId));
-      const groupsWithOperations: Group[] = await Promise.all(
-        (groups ?? []).map(async (group: any) => {
-          const rawOps = await GetAllEntities("operation", group.ID);
-          const operations: Operation[] = (rawOps ?? []).map((op: any) => ({
+      // Get all operations for this station
+      const allOperations = await GetOperationsByStation(suuid);
+      
+      const groupsWithOperations: Group[] = (groups ?? []).map((group: any) => {
+        // Find operations that belong to this group
+        const operations: Operation[] = (allOperations ?? [])
+          .filter((op: any) => op.GroupID === group.ID || op.SequenceGroup === group.Index)
+          .map((op: any) => ({
             ID: op.ID,
             Name: op.Name,
             SequenceGroup: op.SequenceGroup,
             Sequence: op.Sequence,
             UpdatedAt: op.UpdatedAt,
-          })).sort((a, b) => a.Sequence - b.Sequence);
+          }))
+          .sort((a, b) => a.Sequence - b.Sequence);
 
-          return {
-            ID: group.ID,
-            Name: group.Name ?? "Unnamed",
-            Index: group.Index,
-            UpdatedAt: group.UpdatedAt,
-            Operations: operations,
-          };
-        })
-      );
+        return {
+          ID: group.ID,
+          Name: group.Name ?? "Unnamed",
+          Index: group.Index,
+          UpdatedAt: group.UpdatedAt,
+          Operations: operations,
+        };
+      });
+      
       return groupsWithOperations.sort((a, b) => parseInt(a.Index) - parseInt(b.Index));
     },
   });
@@ -93,7 +99,7 @@ export function SequenceGroupView({
   useEffect(() => {
     if (entitiesOp) {
       const operations: Operation[] = entitiesOp
-        .filter((op: any) => !op.SequenceGroup)
+        .filter((op: any) => !op.SequenceGroup && !op.GroupID)
         .map((op: any) => ({
           ID: op.ID,
           Name: op.Name,
@@ -150,6 +156,57 @@ export function SequenceGroupView({
         }));
       }
     }
+  };
+
+  // Handle reordering operations within a group
+  const reorderOperationsInGroup = (groupId: string, newOperations: Operation[]) => {
+    setReorderableGroups(prev => prev.map(group => 
+      group.ID === groupId ? { ...group, Operations: newOperations } : group
+    ));
+  };
+
+  // Handle group deletion and move its operations to unassigned
+  const handleGroupDelete = async (groupId: string) => {
+    // Find the group being deleted
+    const groupToDelete = reorderableGroups.find(group => group.ID === groupId);
+    
+    if (groupToDelete && groupToDelete.Operations.length > 0) {
+      // Move all operations from this group to unassigned
+      const operationsToMove = groupToDelete.Operations.map(op => ({
+        ...op,
+        SequenceGroup: "",
+        Sequence: 0
+      }));
+      
+      // Update operations in the database to unassign them
+      for (const op of operationsToMove) {
+        try {
+          await UpdateEntityFieldsString(
+            localStorage.getItem("name") || "", 
+            "operation", 
+            op.ID, 
+            op.UpdatedAt, 
+            { 
+              "Sequence": "0",
+              "SequenceGroup": "", 
+              "GroupID": ""
+            }
+          );
+        } catch (error) {
+          console.error("Error unassigning operation:", error);
+        }
+      }
+      
+      // Update local state
+      setUnassignedOperations(prev => [...prev, ...operationsToMove]);
+    }
+    
+    // Remove the group from local state
+    setReorderableGroups(prev => prev.filter(group => group.ID !== groupId));
+    
+    // Refresh queries to ensure data consistency
+    queryClient.invalidateQueries({ queryKey: ["entitiesOp", entityType, parentId] });
+    queryClient.invalidateQueries({ queryKey: ["entitiesSequenceGroup", entityType, parentId] });
   };
 
   return (
@@ -227,6 +284,7 @@ export function SequenceGroupView({
                   entityName={group.Name || t("unnamed_group")}
                   visualIndex={index + 1}
                   onMoveOperation={moveOperationToGroup}
+                  onReorderOperations={reorderOperationsInGroup}
                   availableGroups={reorderableGroups}
                 />
               </Reorder.Item>
@@ -248,6 +306,11 @@ export function SequenceGroupView({
           <SubmitGroupsOrderButton 
             reorderableGroups={reorderableGroups} 
             unassignedOperations={unassignedOperations}
+            onSubmitComplete={() => {
+              // Refresh the data after submission
+              queryClient.invalidateQueries({ queryKey: ["entitiesOp", entityType, parentId] });
+              queryClient.invalidateQueries({ queryKey: ["entitiesSequenceGroup", entityType, parentId] });
+            }}
           />
         </div>
       </ScrollArea>
@@ -271,7 +334,7 @@ function OperationCard({
 
   return (
     <Card
-      className={`w-36 h-fit flex relative justify-center items-center hover:cursor-grab active:cursor-grabbing transition-all p-3 ${
+      className={`w-full max-w-xs h-fit flex relative justify-center items-center hover:cursor-grab active:cursor-grabbing transition-all p-3 ${
         isDragging ? 'opacity-50 scale-95' : 'hover:shadow-md'
       }`}
       draggable
@@ -292,62 +355,81 @@ function OperationCard({
 
 export function SubmitGroupsOrderButton({
   reorderableGroups,
-  unassignedOperations
+  unassignedOperations,
+  onSubmitComplete
 }: {
   reorderableGroups: Group[];
   unassignedOperations: Operation[];
+  onSubmitComplete: () => void;
 }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleClick = async () => {
-    let countIndex = 1;
-    let operationSequence = 1;
+    setIsSubmitting(true);
+    try {
+      let countIndex = 1;
 
-    // Update groups and their operations
-    for (const group of reorderableGroups) { 
-      await UpdateEntityFieldsString(
-        localStorage.getItem("name") || "", 
-        "sequencegroup", 
-        group.ID, 
-        group.UpdatedAt, 
-        { "Index": String(countIndex) }
-      );
-      countIndex++;
+      // Update groups and their operations
+      for (const group of reorderableGroups) { 
+        await UpdateEntityFieldsString(
+          localStorage.getItem("name") || "", 
+          "sequencegroup", 
+          group.ID, 
+          group.UpdatedAt, 
+          { "Index": String(countIndex) }
+        );
+        countIndex++;
 
-      for (const op of group.Operations) {
+        let operationSequence = 1;
+        for (const op of group.Operations) {
+          await UpdateEntityFieldsString(
+            localStorage.getItem("name") || "", 
+            "operation", 
+            op.ID, 
+            op.UpdatedAt, 
+            { 
+              "Sequence": String(operationSequence),
+              "SequenceGroup": String(countIndex - 1), // Use the current group index
+              "GroupID": group.ID
+            }
+          );
+          operationSequence++;
+        }
+      }
+
+      // Update unassigned operations
+      for (const op of unassignedOperations) {
         await UpdateEntityFieldsString(
           localStorage.getItem("name") || "", 
           "operation", 
           op.ID, 
           op.UpdatedAt, 
           { 
-            "Sequence": String(operationSequence),
-            "SequenceGroup": group.Index, 
-            "GroupID": group.ID
+            "Sequence": "0",
+            "SequenceGroup": "", 
+            "GroupID": ""
           }
         );
-        operationSequence++;
       }
-      operationSequence = 1; // Reset sequence for each group
-    }
 
-    // Update unassigned operations
-    for (const op of unassignedOperations) {
-      await UpdateEntityFieldsString(
-        localStorage.getItem("name") || "", 
-        "operation", 
-        op.ID, 
-        op.UpdatedAt, 
-        { 
-          "Sequence": "0",
-          "SequenceGroup": "", 
-          "GroupID": ""
-        }
-      );
+      // Trigger data refresh
+      onSubmitComplete();
+      toast.success("Order changes submitted successfully!");
+    } catch (error) {
+      toast.error("Failed to submit order changes");
+      console.error("Error submitting order changes:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Button onClick={handleClick} className="w-full">
-      Submit Order Changes
+    <Button 
+      onClick={handleClick} 
+      className="w-full" 
+      disabled={isSubmitting}
+    >
+      {isSubmitting ? "Submitting..." : "Submit Order Changes"}
     </Button>
   );
 }
@@ -411,6 +493,7 @@ function SequenceGroupCard({
   entityName,
   visualIndex,
   onMoveOperation,
+  onReorderOperations,
   availableGroups,
 }: {
   entityType: string;
@@ -418,6 +501,7 @@ function SequenceGroupCard({
   entityName: string;
   visualIndex: number;
   onMoveOperation: (operationId: string, targetGroupId: string) => void;
+  onReorderOperations: (groupId: string, newOperations: Operation[]) => void;
   availableGroups: Group[];
 }) {
   const { t } = useTranslation();
@@ -472,20 +556,13 @@ function SequenceGroupCard({
           <CardTitle className="text-lg">{entityName || t("unnamed_group")}</CardTitle>
         </div>
         
-        <DropdownMenu key={key}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Ellipsis />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
             <DeleteEntityDialog
               entityType={entityType}
               entityId={group.ID}
               onClose={() => setKey((k) => k + 1)}
             />
-          </DropdownMenuContent>
-        </DropdownMenu>
+          
+        
       </div>
 
       {/* Operations within the group */}
@@ -495,28 +572,24 @@ function SequenceGroupCard({
         </div>
         
         {group.Operations.length > 0 ? (
-          <Reorder.Group
-            values={group.Operations}
-            onReorder={(newOperations) => {
-              // Update the specific group's operations
-              const updatedGroups = availableGroups.map(g => 
-                g.ID === group.ID ? { ...g, Operations: newOperations } : g
-              );
-              // Note: You'll need to pass a callback from parent to update reorderableGroups
-            }}
-            className="flex flex-col gap-2"
-          >
-            {group.Operations.map((operation) => (
-              <Reorder.Item value={operation} key={operation.ID}>
-                <OperationCard
-                  operation={operation}
-                  onMoveToGroup={onMoveOperation}
-                  currentGroupId={group.ID}
-                  availableGroups={availableGroups}
-                />
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
+          <div className="space-y-2">
+            <Reorder.Group
+              values={group.Operations}
+              onReorder={(newOperations) => onReorderOperations(group.ID, newOperations)}
+              className="flex flex-col gap-2"
+            >
+              {group.Operations.map((operation) => (
+                <Reorder.Item value={operation} key={operation.ID}>
+                  <OperationCard
+                    operation={operation}
+                    onMoveToGroup={onMoveOperation}
+                    currentGroupId={group.ID}
+                    availableGroups={availableGroups}
+                  />
+                </Reorder.Item>
+              ))}
+            </Reorder.Group>
+          </div>
         ) : (
           <div className={`text-center py-8 border-2 border-dashed rounded transition-all ${
             isDragOver 

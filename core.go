@@ -11,8 +11,8 @@ import (
 	"os"
 	"os/user"
 	"runtime"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/atotto/clipboard"
@@ -667,28 +667,28 @@ func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStrIf
 		entityToCreate = &Operation{BaseModel: base, ParentID: parentIDmssql}
 	case "sequencegroup":
 		if parentIDStrIfApplicable == "" {
-            return nil, fmt.Errorf("ParentID is required for %s", entityTypeStr)
-        }
-        parentIDmssql, err = parseMSSQLUniqueIdentifierFromString(parentIDStrIfApplicable)
-        if err != nil {
-            return nil, fmt.Errorf("invalid ParentID for %s: %w", entityTypeStr, err)
-        }
-		
-        var highest int
-        var groups []SequenceGroup
-        if err := c.DB.Where("parent_id = ?", parentIDmssql).Find(&groups).Error; err != nil {
-            return nil, fmt.Errorf("DB error reading SequenceGroups: %w", err)
-        }
-        for _, g := range groups {
+			return nil, fmt.Errorf("ParentID is required for %s", entityTypeStr)
+		}
+		parentIDmssql, err = parseMSSQLUniqueIdentifierFromString(parentIDStrIfApplicable)
+		if err != nil {
+			return nil, fmt.Errorf("invalid ParentID for %s: %w", entityTypeStr, err)
+		}
+
+		var highest int
+		var groups []SequenceGroup
+		if err := c.DB.Where("parent_id = ?", parentIDmssql).Find(&groups).Error; err != nil {
+			return nil, fmt.Errorf("DB error reading SequenceGroups: %w", err)
+		}
+		for _, g := range groups {
 			if parsed, err := strconv.Atoi(*g.Index); err == nil {
 				if parsed > highest {
 					highest = parsed
 				}
 			}
-        }
-        newIndex := strconv.Itoa(highest + 1)
+		}
+		newIndex := strconv.Itoa(highest + 1)
 		base.Name = strPtr(sequenceGroupName)
-        entityToCreate = &SequenceGroup{ BaseModel: base, ParentID: parentIDmssql, Index: &newIndex}
+		entityToCreate = &SequenceGroup{BaseModel: base, ParentID: parentIDmssql, Index: &newIndex}
 	default:
 		return nil, fmt.Errorf("unknown entity type for Create: %s", entityTypeStr)
 	}
@@ -861,7 +861,11 @@ func (c *Core) GetAllEntities(entityTypeStr string, parentIDStr_optional string)
 		if err != nil {
 			return nil, fmt.Errorf("invalid parentID for GetAllEntities: %w", err)
 		}
-		query = query.Where("parent_id = ?", parentIDmssql)
+		if c.checkIfParentIsGroup(parentIDStr_optional) {
+			query = query.Where("group_id = ?", parentIDmssql)
+		} else {
+			query = query.Where("parent_id = ?", parentIDmssql)
+		}
 	} else {
 		if strings.ToLower(entityTypeStr) != "line" {
 			return nil, errors.New("ParentID is required for non-line entities in GetAllEntities")
@@ -914,33 +918,47 @@ func (c *Core) GetAllEntities(entityTypeStr string, parentIDStr_optional string)
 	return results, nil
 }
 
+func (c *Core) checkIfParentIsGroup(parentIDStr_optional string) bool {
+	modelInstance, err := getModelInstance("sequencegroup")
+	if err != nil {
+		return false
+	}
+	if err := c.DB.Where("id = ?", parentIDStr_optional).Take(modelInstance).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false
+		}
+		return false
+	}
+	return true
+}
+
 func (c *Core) GetOperationsByStation(stationID string) ([]Operation, error) {
-    if c.DB == nil {
-        return nil, errors.New("DB not initialized")
-    }
-    stationUUID, err := parseMSSQLUniqueIdentifierFromString(stationID)
-    if err != nil {
-        return nil, fmt.Errorf("invalid stationID: %w", err)
-    }
+	if c.DB == nil {
+		return nil, errors.New("DB not initialized")
+	}
+	stationUUID, err := parseMSSQLUniqueIdentifierFromString(stationID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid stationID: %w", err)
+	}
 
-    var tools []Tool
-    if err := c.DB.Where("parent_id = ?", stationUUID).Find(&tools).Error; err != nil {
-        return nil, fmt.Errorf("error loading tools for station: %w", err)
-    }
+	var tools []Tool
+	if err := c.DB.Where("parent_id = ?", stationUUID).Find(&tools).Error; err != nil {
+		return nil, fmt.Errorf("error loading tools for station: %w", err)
+	}
 
-    var toolIDs []mssql.UniqueIdentifier
-    for _, t := range tools {
-        toolIDs = append(toolIDs, t.ID)
-    }
-    if len(toolIDs) == 0 {
-        return []Operation{}, nil
-    }
+	var toolIDs []mssql.UniqueIdentifier
+	for _, t := range tools {
+		toolIDs = append(toolIDs, t.ID)
+	}
+	if len(toolIDs) == 0 {
+		return []Operation{}, nil
+	}
 
-    var ops []Operation
-    if err := c.DB.Where("parent_id IN ?", toolIDs).Find(&ops).Error; err != nil {
-        return nil, fmt.Errorf("error loading operations for tools: %w", err)
-    }
-    return ops, nil
+	var ops []Operation
+	if err := c.DB.Where("parent_id IN ?", toolIDs).Find(&ops).Error; err != nil {
+		return nil, fmt.Errorf("error loading operations for tools: %w", err)
+	}
+	return ops, nil
 }
 
 func (c *Core) GetEntityHierarchyString(entityTypeStr string, entityIDStr string) (*HierarchyResponse, error) {
@@ -1177,12 +1195,12 @@ func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr 
 	}
 
 	if entityTypeStr == "operation" {
-        if op, ok := modelInstance.(*Operation); ok {
-            op.GroupID = nil
+		if op, ok := modelInstance.(*Operation); ok {
+			op.GroupID = nil
 			op.Sequence = nil
 			op.SequenceGroup = nil
-        }
-    }
+		}
+	}
 
 	jsonData, err := json.MarshalIndent(modelInstance, "", "  ")
 	if err != nil {
@@ -1389,11 +1407,11 @@ func importCopiedEntityRecursive(
 
 	case *Station:
 		newStation := Station{
-			BaseModel:   	createBaseFromOriginal(e.BaseModel, userName),
-			Description: 	e.Description,
-			StationType: 	e.StationType,
-			ParentID:    	newParentID,
-			Tools:       	[]Tool{},
+			BaseModel:      createBaseFromOriginal(e.BaseModel, userName),
+			Description:    e.Description,
+			StationType:    e.StationType,
+			ParentID:       newParentID,
+			Tools:          []Tool{},
 			SequenceGroups: []SequenceGroup{},
 		}
 		if err := tx.Create(&newStation).Error; err != nil {
@@ -1452,8 +1470,8 @@ func importCopiedEntityRecursive(
 			GenerationClass:    e.GenerationClass,
 			OperationDecisions: e.OperationDecisions,
 			ParentID:           newParentID,
-			GroupID:      		e.GroupID,
-			SequenceGroup: 		e.SequenceGroup,
+			GroupID:            e.GroupID,
+			SequenceGroup:      e.SequenceGroup,
 		}
 		if err := tx.Create(&newOp).Error; err != nil {
 			return newUUID, fmt.Errorf("failed to insert new Operation: %w", err)
