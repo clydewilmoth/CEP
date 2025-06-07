@@ -3,7 +3,6 @@ import {
     GetAllEntities,
     GetOperationsByStation,
     CreateEntity,
-    GetOperationsBySeqeunceGroup,
 } from "../../../wailsjs/go/main/Core";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -63,8 +62,8 @@ export function SequenceGroupView({
   const fetchGroupsWithOperations = async () => {
     const newGroups: any[] = await Promise.all(
       entitiesSequenceGroup.map(async (entity: any) => {
-        const operationFull: any[] = await GetOperationsBySeqeunceGroup(entity.ID);
-        const operations: Operation[] = operationFull.map((op: any) => ({
+        const operationFull: any[] = await GetAllEntities("operation", entity.ID);
+        const operations: Operation[] = (operationFull ?? []).map((op: any) => ({
           ID: op.ID,
           Name: op.Name,
           SequenceGroup: op.SequenceGroup,
@@ -77,7 +76,7 @@ export function SequenceGroupView({
         };
       })
     );
-
+    newGroups.sort((a, b) => a.Index - b.Index);
     setGroups(newGroups);
   };
 
