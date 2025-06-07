@@ -159,11 +159,11 @@ export function SubmitGroupsOrderButton({
     let operationSeqeunce = 1;
 
     for (const group of reorderableGroups) { 
-      await UpdateEntityFieldsString("hiii", "sequencegroup", group.ID, group.UpdatedAt, { "Index": String(countIndex) });
+      await UpdateEntityFieldsString(localStorage.getItem("name") || "", "sequencegroup", group.ID, group.UpdatedAt, { "Index": String(countIndex) });
       countIndex++;
 
       for (const op of group.Operations) {
-        await UpdateEntityFieldsString("hooo", "operation", op.ID, op.UpdatedAt, { "Sequence": String(operationSeqeunce)
+        await UpdateEntityFieldsString(localStorage.getItem("name") || "", "operation", op.ID, op.UpdatedAt, { "Sequence": String(operationSeqeunce)
           , "SequenceGroup": group.Index, "GroupID": group.ID
         });
         operationSeqeunce++;
