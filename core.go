@@ -314,7 +314,11 @@ func (c *Core) InitDB(dsn string) string {
 	if err != nil {
 		return "InitError"
 	}
-	err = c.DB.AutoMigrate(&Line{}, &Station{}, &Tool{}, &Operation{}, &AppMetadata{}, &EntityChangeLog{})
+	err = c.DB.AutoMigrate(
+		&Line{}, &Station{}, &Tool{}, &Operation{},
+		&AppMetadata{}, &EntityChangeLog{},
+		&LineHistory{}, &StationHistory{}, &ToolHistory{}, &OperationHistory{},
+	)
 	if err != nil {
 		return "InitError"
 	}
@@ -399,7 +403,6 @@ func updateGlobalLastUpdateTimestampAndLogChange(tx *gorm.DB, entityID mssql.Uni
 			logEntityType = "system"
 		}
 
-		// Convert changed fields to JSON string for UPDATE operations
 		var changedFieldsJSON *string
 		if operationType == OpTypeUpdate && changedFields != nil && len(changedFields) > 0 {
 			if jsonBytes, err := json.Marshal(changedFields); err == nil {
@@ -444,12 +447,10 @@ type ChangeResponse struct {
 	DeletedEntities        map[string][]string                 `json:"deletedEntities"`
 }
 
-// Helper: rekursiv alle Kind-IDs für eine gelöschte Entity sammeln, gruppiert nach EntityType
 func (c *Core) collectAllChildIDs(entityType string, entityID mssql.UniqueIdentifier) (map[string][]string, error) {
 	result := make(map[string][]string)
 	idStr := entityID.String()
 
-	// Füge die aktuelle Entity hinzu
 	result[entityType] = append(result[entityType], idStr)
 
 	switch entityType {
@@ -463,7 +464,6 @@ func (c *Core) collectAllChildIDs(entityType string, entityID mssql.UniqueIdenti
 			if err != nil {
 				return result, err
 			}
-			// Merge child results
 			for childType, childIDs := range childResults {
 				result[childType] = append(result[childType], childIDs...)
 			}
@@ -478,7 +478,6 @@ func (c *Core) collectAllChildIDs(entityType string, entityID mssql.UniqueIdenti
 			if err != nil {
 				return result, err
 			}
-			// Merge child results
 			for childType, childIDs := range childResults {
 				result[childType] = append(result[childType], childIDs...)
 			}
@@ -493,7 +492,6 @@ func (c *Core) collectAllChildIDs(entityType string, entityID mssql.UniqueIdenti
 			if err != nil {
 				return result, err
 			}
-			// Merge child results
 			for childType, childIDs := range childResults {
 				result[childType] = append(result[childType], childIDs...)
 			}
@@ -532,13 +530,11 @@ func (c *Core) GetChangesSince(clientLastKnownTimestampStr string) (*ChangeRespo
 				}
 				response.UpdatedEntities["system_event"] = append(response.UpdatedEntities["system_event"], map[string]interface{}{"id": idStr, "entityType": lg.EntityType})
 			} else if lg.OperationType == OpTypeDelete && !processedDeletedIDs[key] {
-				// Simply add the deleted entity to the response
 				if _, ok := response.DeletedEntities[lg.EntityType]; !ok {
 					response.DeletedEntities[lg.EntityType] = []string{}
 				}
 				response.DeletedEntities[lg.EntityType] = append(response.DeletedEntities[lg.EntityType], idStr)
 				processedDeletedIDs[key] = true
-				// Also remove from UpdatedEntities if it was there
 				delete(processedUpdatedIDs, key)
 			} else if lg.OperationType == OpTypeUpdate && !processedUpdatedIDs[key] {
 				var changedFields map[string]string
@@ -684,6 +680,121 @@ func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStrIf
 	return reloadedEntity, nil
 }
 
+// createVersion saves the current state of an entity to its history table.
+func createVersion(tx *gorm.DB, entityTypeStr string, entityData interface{}) error {
+	var nextVersion int64
+	var historyModel interface{}
+	var entityID mssql.UniqueIdentifier
+
+	switch v := entityData.(type) {
+	case *Line:
+		historyModel = &LineHistory{}
+		entityID = v.ID
+	case *Station:
+		historyModel = &StationHistory{}
+		entityID = v.ID
+	case *Tool:
+		historyModel = &ToolHistory{}
+		entityID = v.ID
+	case *Operation:
+		historyModel = &OperationHistory{}
+		entityID = v.ID
+	default:
+		return fmt.Errorf("unknown entity type for versioning: %s", entityTypeStr)
+	}
+
+	// Determine the next version number.
+	if err := tx.Model(historyModel).Where("entity_id = ?", entityID).Count(&nextVersion).Error; err != nil {
+		return fmt.Errorf("failed to count existing versions for %s: %w", entityID, err)
+	}
+	nextVersion++ // Increment to get the new version number (starts at 1).
+
+	// Populate and save the history record.
+	switch v := entityData.(type) {
+	case *Line:
+		historyRecord := LineHistory{
+			Version:      int(nextVersion),
+			EntityID:     v.ID,
+			Name:         v.Name,
+			Comment:      v.Comment,
+			StatusColor:  v.StatusColor,
+			CreatedAt:    v.CreatedAt,
+			UpdatedAt:    v.UpdatedAt,
+			CreatedBy:    v.CreatedBy,
+			UpdatedBy:    v.UpdatedBy,
+			AssemblyArea: v.AssemblyArea,
+		}
+		return tx.Create(&historyRecord).Error
+	case *Station:
+		historyRecord := StationHistory{
+			Version:     int(nextVersion),
+			EntityID:    v.ID,
+			Name:        v.Name,
+			Comment:     v.Comment,
+			StatusColor: v.StatusColor,
+			CreatedAt:   v.CreatedAt,
+			UpdatedAt:   v.UpdatedAt,
+			CreatedBy:   v.CreatedBy,
+			UpdatedBy:   v.UpdatedBy,
+			Description: v.Description,
+			StationType: v.StationType,
+			ParentID:    v.ParentID,
+		}
+		return tx.Create(&historyRecord).Error
+	case *Tool:
+		historyRecord := ToolHistory{
+			Version:               int(nextVersion),
+			EntityID:              v.ID,
+			Name:                  v.Name,
+			Comment:               v.Comment,
+			StatusColor:           v.StatusColor,
+			CreatedAt:             v.CreatedAt,
+			UpdatedAt:             v.UpdatedAt,
+			CreatedBy:             v.CreatedBy,
+			UpdatedBy:             v.UpdatedBy,
+			ToolClass:             v.ToolClass,
+			ToolType:              v.ToolType,
+			Description:           v.Description,
+			IpAddressDevice:       v.IpAddressDevice,
+			SPSPLCNameSPAService:  v.SPSPLCNameSPAService,
+			SPSDBNoSend:           v.SPSDBNoSend,
+			SPSDBNoReceive:        v.SPSDBNoReceive,
+			SPSPreCheck:           v.SPSPreCheck,
+			SPSAddressInSendDB:    v.SPSAddressInSendDB,
+			SPSAddressInReceiveDB: v.SPSAddressInReceiveDB,
+			ParentID:              v.ParentID,
+		}
+		return tx.Create(&historyRecord).Error
+	case *Operation:
+		historyRecord := OperationHistory{
+			Version:           int(nextVersion),
+			EntityID:          v.ID,
+			Name:              v.Name,
+			Comment:           v.Comment,
+			StatusColor:       v.StatusColor,
+			CreatedAt:         v.CreatedAt,
+			UpdatedAt:         v.UpdatedAt,
+			CreatedBy:         v.CreatedBy,
+			UpdatedBy:         v.UpdatedBy,
+			Description:       v.Description,
+			DecisionCriteria:  v.DecisionCriteria,
+			SerialOrParallel:  v.SerialOrParallel,
+			SequenceGroup:     v.SequenceGroup,
+			Sequence:          v.Sequence,
+			AlwaysPerform:     v.AlwaysPerform,
+			QGateRelevant:     v.QGateRelevant,
+			Template:          v.Template,
+			DecisionClass:     v.DecisionClass,
+			SavingClass:       v.SavingClass,
+			VerificationClass: v.VerificationClass,
+			GenerationClass:   v.GenerationClass,
+			ParentID:          v.ParentID,
+		}
+		return tx.Create(&historyRecord).Error
+	}
+	return fmt.Errorf("unhandled entity type in createVersion switch: %T", entityData)
+}
+
 func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, entityIDStr string, lastKnownUpdatedAtStr string, updatesMapStr map[string]string) (interface{}, error) {
 	if c.DB == nil {
 		return nil, errors.New("DB not initialized")
@@ -699,89 +810,72 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 	if err != nil {
 		return nil, fmt.Errorf("invalid updated_at format ('%s'): %w", lastKnownUpdatedAtStr, err)
 	}
-	modelToUpdate, err := getModelInstance(entityTypeStr)
-	if err != nil {
-		return nil, err
-	}
+
 	var finalModelInstance interface{}
 	err = c.DB.Transaction(func(tx *gorm.DB) error {
-		var dbEntityForCheck interface{}
-		dbEntityForCheck, err = getModelInstance(entityTypeStr)
+		// 1. Get a pointer to the correct model struct type.
+		modelToUpdate, err := getModelInstance(entityTypeStr)
 		if err != nil {
 			return err
 		}
-		if errCheck := tx.Where("id = ?", entityIDmssql).Take(dbEntityForCheck).Error; errCheck != nil {
-			if errors.Is(errCheck, gorm.ErrRecordNotFound) {
+
+		// 2. Fetch the current state of the entity from the database.
+		if err := tx.First(modelToUpdate, "id = ?", entityIDmssql).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return errors.New("record not found or already deleted")
 			}
-			return fmt.Errorf("error loading entity for update check: %w", errCheck)
+			return fmt.Errorf("error loading entity for update: %w", err)
 		}
+
+		// 3. Concurrency Check: Ensure the client is updating the version they think they are.
 		var currentDBUpdatedAt time.Time
-		switch strings.ToLower(entityTypeStr) {
-		case "line":
-			var m Line
-			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return errors.New("record not found or already deleted")
-				}
-				return fmt.Errorf("error loading entity for update check: %w", err)
-			}
-		case "station":
-			var m Station
-			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return errors.New("record not found or already deleted")
-				}
-				return fmt.Errorf("error loading entity for update check: %w", err)
-			}
-		case "tool":
-			var m Tool
-			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return errors.New("record not found or already deleted")
-				}
-				return fmt.Errorf("error loading entity for update check: %w", err)
-			}
-		case "operation":
-			var m Operation
-			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return errors.New("record not found or already deleted")
-				}
-				return fmt.Errorf("error loading entity for update check: %w", err)
-			}
+		switch e := modelToUpdate.(type) {
+		case *Line:
+			currentDBUpdatedAt = e.UpdatedAt
+		case *Station:
+			currentDBUpdatedAt = e.UpdatedAt
+		case *Tool:
+			currentDBUpdatedAt = e.UpdatedAt
+		case *Operation:
+			currentDBUpdatedAt = e.UpdatedAt
 		default:
-			return fmt.Errorf("unknown type for timestamp extraction: %s", entityTypeStr)
+			return fmt.Errorf("unknown entity type for concurrency check: %T", e)
 		}
-		// Hole den aktuellen globalen Zeitstempel wie der Client
-		currentGlobalTsStr, err := c.GetGlobalLastUpdateTimestamp()
-		if err != nil {
-			return fmt.Errorf("failed to get global last update timestamp: %w", err)
-		}
-		currentDBUpdatedAt, err = parseTimestampFlexible(currentGlobalTsStr)
-		if err != nil {
-			return fmt.Errorf("failed to parse global last update timestamp: %w", err)
-		}
-		if currentDBUpdatedAt.UTC().Before(lastKnownUpdatedAt.UTC()) {
-			log.Printf("[Concurrency] Conflict detected: DB UpdatedAt=%s | Client UpdatedAt=%s", currentDBUpdatedAt.UTC().Format(time.RFC3339Nano), lastKnownUpdatedAt.UTC().Format(time.RFC3339Nano))
+
+		// Compare timestamps with a tiny tolerance for precision differences.
+		if currentDBUpdatedAt.After(lastKnownUpdatedAt.Add(time.Millisecond)) {
+			log.Printf("[Concurrency] Conflict detected: DB UpdatedAt=%s | Client Known UpdatedAt=%s", currentDBUpdatedAt.UTC().Format(time.RFC3339Nano), lastKnownUpdatedAt.UTC().Format(time.RFC3339Nano))
 			return errors.New("conflict: record was modified by another user")
 		}
+
+		// 4. Create a history version of the entity state BEFORE the update.
+		if err := createVersion(tx, entityTypeStr, modelToUpdate); err != nil {
+			return fmt.Errorf("failed to create entity version: %w", err)
+		}
+
+		// 5. Prepare and apply the updates to the live entity.
 		gormUpdates := make(map[string]interface{})
 		for k, v := range updatesMapStr {
 			gormUpdates[k] = strPtr(v)
 		}
 		gormUpdates["updated_by"] = strPtr(userName)
-		gormUpdates["updated_at"] = time.Now()
+		gormUpdates["updated_at"] = time.Now() // Explicitly set timestamp
+
 		if errUpdate := tx.Model(modelToUpdate).Where("id = ?", entityIDmssql).Updates(gormUpdates).Error; errUpdate != nil {
 			return fmt.Errorf("error updating DB: %w", errUpdate)
 		}
+
+		// 6. Reload the entity within the transaction to return the final state.
 		reloadedEntityWithinTx, _ := getModelInstance(entityTypeStr)
 		if errLoad := tx.First(reloadedEntityWithinTx, "id = ?", entityIDmssql).Error; errLoad != nil {
 			return fmt.Errorf("error reloading entity after update within tx: %w", errLoad)
 		}
 		finalModelInstance = reloadedEntityWithinTx
+
+		// 7. Update global timestamp and log the change.
 		return updateGlobalLastUpdateTimestampAndLogChange(tx, entityIDmssql, strings.ToLower(entityTypeStr), OpTypeUpdate, strPtr(userName), updatesMapStr)
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -1063,7 +1157,6 @@ func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr 
 
 	entityTypeStr = strings.ToLower(entityTypeStr)
 
-	// Hierarchisches Preloading je nach Entity-Typ
 	var tx *gorm.DB
 	switch entityTypeStr {
 	case "line":
@@ -1073,7 +1166,7 @@ func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr 
 	case "tool":
 		tx = c.DB.Preload("Operations")
 	case "operation":
-		tx = c.DB // keine Preloads nötig
+		tx = c.DB
 	default:
 		return fmt.Errorf("unsupported entity type: %s", entityTypeStr)
 	}
@@ -1252,9 +1345,8 @@ func createBaseFromOriginal(original BaseModel, userName string) BaseModel {
 	_ = newID.Scan(uuid.New().String())
 
 	return BaseModel{
-		Name:    original.Name,
-		Comment: original.Comment,
-
+		Name:        original.Name,
+		Comment:     original.Comment,
 		StatusColor: original.StatusColor,
 		ID:          newID,
 		CreatedAt:   now,
@@ -1371,6 +1463,22 @@ func importCopiedEntityRecursive(
 	}
 }
 
+// getHistoryModelInstance returns a new zero-value instance of a history model struct.
+func getHistoryModelInstance(entityTypeStr string) (interface{}, error) {
+	switch strings.ToLower(entityTypeStr) {
+	case "line":
+		return &LineHistory{}, nil
+	case "station":
+		return &StationHistory{}, nil
+	case "tool":
+		return &ToolHistory{}, nil
+	case "operation":
+		return &OperationHistory{}, nil
+	default:
+		return nil, fmt.Errorf("unknown entity type for history model: %s", entityTypeStr)
+	}
+}
+
 func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, entityIDStr string) error {
 	if c.DB == nil {
 		return errors.New("DB not initialized")
@@ -1379,10 +1487,12 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 	if err != nil {
 		return err
 	}
+
 	modelInstance, err := getModelInstance(entityTypeStr)
 	if err != nil {
 		return err
 	}
+
 	if err := c.DB.First(modelInstance, "id = ?", entityIDmssql).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("no entity %s with ID %s found to delete", entityTypeStr, entityIDStr)
@@ -1390,13 +1500,28 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 		return fmt.Errorf("error finding entity %s with ID %s for delete: %w", entityTypeStr, entityIDStr, err)
 	}
 
-	// Before deleting, collect all child IDs that will be cascade-deleted
+	// Before deleting, collect all child IDs that will be cascade-deleted.
 	allIDsToDelete, err := c.collectAllChildIDs(strings.ToLower(entityTypeStr), entityIDmssql)
 	if err != nil {
 		return fmt.Errorf("failed to collect child IDs before delete: %w", err)
 	}
 
 	err = c.DB.Transaction(func(tx *gorm.DB) error {
+		// 1. Delete all history records for the entity and all its children.
+		for entityType, ids := range allIDsToDelete {
+			historyModel, err := getHistoryModelInstance(entityType)
+			if err != nil {
+				return err // Should not happen with validated types.
+			}
+
+			if len(ids) > 0 {
+				if err := tx.Where("entity_id IN (?)", ids).Delete(historyModel).Error; err != nil {
+					return fmt.Errorf("failed to delete history for %s: %w", entityType, err)
+				}
+			}
+		}
+
+		// 2. Delete the live record (cascades are handled by DB foreign key constraints).
 		result := tx.Delete(modelInstance)
 		if result.Error != nil {
 			return fmt.Errorf("error deleting %s with ID %s: %w", entityTypeStr, entityIDStr, result.Error)
@@ -1405,7 +1530,7 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 			return fmt.Errorf("no entity %s with ID %s actually deleted", entityTypeStr, entityIDStr)
 		}
 
-		// Log delete operations for all entities that will be deleted (including cascaded children)
+		// 3. Log delete operations for all affected entities and update global timestamp.
 		for entityType, ids := range allIDsToDelete {
 			for _, idStr := range ids {
 				entityID, parseErr := parseMSSQLUniqueIdentifierFromString(idStr)
@@ -1417,10 +1542,44 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 				}
 			}
 		}
-
 		return nil
 	})
 	return err
+}
+
+// GetEntityVersions retrieves all historical versions for a given entity, sorted from newest to oldest.
+func (c *Core) GetEntityVersions(entityTypeStr string, entityIDStr string) (interface{}, error) {
+	if c.DB == nil {
+		return nil, errors.New("DB not initialized")
+	}
+	entityIDmssql, err := parseMSSQLUniqueIdentifierFromString(entityIDStr)
+	if err != nil {
+		return nil, err
+	}
+
+	entityTypeNormalized := strings.ToLower(entityTypeStr)
+	query := c.DB.Where("entity_id = ?", entityIDmssql).Order("version desc")
+
+	switch entityTypeNormalized {
+	case "line":
+		var results []LineHistory
+		err = query.Find(&results).Error
+		return results, err
+	case "station":
+		var results []StationHistory
+		err = query.Find(&results).Error
+		return results, err
+	case "tool":
+		var results []ToolHistory
+		err = query.Find(&results).Error
+		return results, err
+	case "operation":
+		var results []OperationHistory
+		err = query.Find(&results).Error
+		return results, err
+	default:
+		return nil, fmt.Errorf("unsupported entity type for version history: %s", entityTypeStr)
+	}
 }
 
 func (c *Core) cleanupBroker() {
@@ -1494,7 +1653,6 @@ func cleanupOrphanedResources(sqlDB *sql.DB) {
 	DECLARE @serviceName NVARCHAR(256);
 	DECLARE @isOrphaned BIT;
 	
-	-- Check for orphaned services and their associated queues
 	DECLARE service_cursor CURSOR FOR
 	  SELECT s.name as service_name, sq.name as queue_name
 	  FROM sys.services s
@@ -1508,25 +1666,16 @@ func cleanupOrphanedResources(sqlDB *sql.DB) {
 	BEGIN
 	  SET @isOrphaned = 0;
 	  
-	  -- Try to peek at the queue to see if it's accessible
-	  -- If there's an error, it might be orphaned
 	  BEGIN TRY
 	    DECLARE @dummy_body VARBINARY(MAX);
 	    SELECT TOP(1) @dummy_body = message_body 
 	    FROM [dbo].[' + @queueName + ']
 	    WITH (NOLOCK);
-	    -- If we get here without error, queue is accessible (not orphaned)
 	  END TRY
 	  BEGIN CATCH
-	    -- Queue might be orphaned, but be conservative
-	    -- Only mark as orphaned if it's a specific access error
-	    IF ERROR_NUMBER() = 208 -- Invalid object name
+	    IF ERROR_NUMBER() = 208
 	      SET @isOrphaned = 1;
 	  END CATCH
-	  
-	  -- Only clean up if we're confident it's orphaned
-	  -- For now, we'll be very conservative and not auto-cleanup
-	  -- This prevents interfering with other running instances
 	  
 	  FETCH NEXT FROM service_cursor INTO @serviceName, @queueName;
 	END;
@@ -1534,7 +1683,6 @@ func cleanupOrphanedResources(sqlDB *sql.DB) {
 	CLOSE service_cursor;
 	DEALLOCATE service_cursor;
 	
-	-- Clean up only truly orphaned queues (those without any associated service)
 	DECLARE orphan_queue_cursor CURSOR FOR
 	  SELECT name FROM sys.service_queues 
 	  WHERE name LIKE 'DataChangeQueue_%'
@@ -1550,7 +1698,6 @@ func cleanupOrphanedResources(sqlDB *sql.DB) {
 	    PRINT 'Cleaned up truly orphaned queue: ' + @queueName;
 	  END TRY
 	  BEGIN CATCH
-	    -- Ignore errors
 	  END CATCH
 	  
 	  FETCH NEXT FROM orphan_queue_cursor INTO @queueName;
