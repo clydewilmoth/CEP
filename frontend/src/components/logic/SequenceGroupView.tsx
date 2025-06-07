@@ -3,8 +3,9 @@ import {
   GetAllEntities,
   GetOperationsByStation,
   CreateEntity,
+  UpdateEntityFieldsString
 } from "../../../wailsjs/go/main/Core";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useParams } from "wouter";
@@ -20,6 +21,23 @@ import {
 import { Ellipsis } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Reorder } from "framer-motion";
+import { set } from "react-hook-form";
+
+type Group = {
+    ID: string;
+    Name: string;
+    Index: string;
+    UpdatedAt: string;
+    Operations: Operation[];
+  };
+
+  type Operation = {
+    ID: string;
+    Name: string;
+    SequenceGroup: string;
+    Sequence: number;
+    UpdatedAt: string;
+  };
 
 export function SequenceGroupView({
   entityType,
@@ -30,20 +48,6 @@ export function SequenceGroupView({
 }) {
   const { suuid } = useParams<{ luuid: string; suuid: string; tuuid: string }>();
   const { t } = useTranslation();
-
-  type Operation = {
-    ID: string;
-    Name: string;
-    SequenceGroup: string;
-    Sequence: number;
-  };
-
-  type Group = {
-    ID: string;
-    Name: string;
-    Index: string;
-    Operations: Operation[];
-  };
 
   const { data: entitiesOp } = useQuery({
     queryKey: ["entitiesOp", entityType, parentId],
@@ -62,12 +66,14 @@ export function SequenceGroupView({
             Name: op.Name,
             SequenceGroup: op.SequenceGroup,
             Sequence: op.Sequence,
+            UpdatedAt : op.UpdatedAt,
           })).sort((a, b) => a.Sequence - b.Sequence);
 
           return {
             ID: group.ID,
             Name: group.Name ?? "Unnamed",
             Index: group.Index,
+            UpdatedAt: group.UpdatedAt,
             Operations: operations,
           };
         })
@@ -75,6 +81,13 @@ export function SequenceGroupView({
       return groupsWithOperations.sort((a, b) => parseInt(a.Index) - parseInt(b.Index));
     },
   });
+
+  const [reorderableGroups, setReorderableGroups] = useState<any[]>([]);
+  useEffect(() => {
+    if (entitiesSequenceGroup) {
+      setReorderableGroups(entitiesSequenceGroup);
+    }
+  }, [entitiesSequenceGroup]);
 
   const [inputValue, setInputValue] = useState("");
 
@@ -98,14 +111,14 @@ export function SequenceGroupView({
       <ScrollArea className="h-[87.5vh]">
         <div className="flex flex-col gap-3 p-8">
           <Reorder.Group
-            values={entitiesSequenceGroup ?? []}
-            onReorder={() => {}}
+            values={reorderableGroups}
+            onReorder={setReorderableGroups}
             className="flex flex-col gap-3"
           >
-            {entitiesSequenceGroup?.map((group, index) => (
-              <Reorder.Item value={group} key={index}>
+            {reorderableGroups.map((group, index) => (
+              <Reorder.Item value={group} key={group.ID}>
                 <SequenceGroupCard
-                  key={index}
+                  key={group.ID}
                   entityType={entityType}
                   entityId={group.ID}
                   entityName={group.Name || t("unnamed_group")}
@@ -125,9 +138,44 @@ export function SequenceGroupView({
             parentId={parentId}
             sequenceGroupName={inputValue}
           />
+          <SubmitGroupsOrderButton 
+            reorderableGroups={reorderableGroups} 
+          />
         </div>
       </ScrollArea>
     </div>
+  );
+}
+
+
+
+export function SubmitGroupsOrderButton({
+  reorderableGroups
+}: {
+  reorderableGroups: Group[]}) {
+
+  const handleClick = async () => {
+    let countIndex = 1;
+    let operationSeqeunce = 1;
+
+    for (const group of reorderableGroups) { 
+      await UpdateEntityFieldsString("hiii", "sequencegroup", group.ID, group.UpdatedAt, { "Index": String(countIndex) });
+      countIndex++;
+
+      for (const op of group.Operations) {
+        await UpdateEntityFieldsString("hooo", "operation", op.ID, op.UpdatedAt, { "Sequence": String(operationSeqeunce)
+          , "SequenceGroup": group.Index, "GroupID": group.ID
+        });
+        operationSeqeunce++;
+      }
+      operationSeqeunce = 0;
+    }
+  };
+
+  return (
+    <button onClick={handleClick}>
+      Submit
+    </button>
   );
 }
 
