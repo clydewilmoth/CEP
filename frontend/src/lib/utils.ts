@@ -27,3 +27,15 @@ export function formatTimestamp(timestamp: string): string[] {
     return ["", ""];
   }
 }
+
+export function StringNullToBlank(value: string) {
+  return value ? String(value) : "";
+}
+
+export function stringToBoolean(value: string | undefined | null): boolean {
+  return value?.toLowerCase() === "true";
+}
+
+export function booleanToString(value: boolean): string {
+  return value ? "true" : "false";
+}

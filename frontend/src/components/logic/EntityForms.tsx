@@ -46,7 +46,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { formatTimestamp } from "@/lib/utils";
+import { booleanToString, formatTimestamp, stringToBoolean } from "@/lib/utils";
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -3759,12 +3759,4 @@ export function OperationForm({
       </Form>
     )
   );
-}
-
-export function stringToBoolean(value: string | undefined | null): boolean {
-  return value?.toLowerCase() === "true";
-}
-
-export function booleanToString(value: boolean): string {
-  return value ? "true" : "false";
 }

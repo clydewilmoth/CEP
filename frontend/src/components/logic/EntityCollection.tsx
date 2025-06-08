@@ -61,6 +61,7 @@ import {
   SelectContent,
   SelectItem,
 } from "../ui/select";
+import { StringNullToBlank } from "@/lib/utils";
 
 export function EntityCollection({
   entityType,
@@ -609,8 +610,4 @@ function PasteEntityHierarchyFromClipboard({
       </Button>
     </div>
   );
-}
-
-export function StringNullToBlank(value: string) {
-  return value ? String(value) : "";
 }
