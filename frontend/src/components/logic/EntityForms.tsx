@@ -9,6 +9,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,7 +22,7 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   GetAllEntities,
@@ -66,6 +67,7 @@ export function LineForm({ entityId }: { entityId: string }) {
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
   const { dbState, lastUpdate } = useContext();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     (async () => {
@@ -84,13 +86,16 @@ export function LineForm({ entityId }: { entityId: string }) {
         queryKey: ["line", entityId],
       });
     })();
-  }, [observer, dbState]);
+  }, [observer, dbState, i18n.language]);
 
   const formSchema = z.object({
     Name: z.string().optional(),
     Comment: z.string().optional(),
     StatusColor: z.string().optional(),
-    AssemblyArea: z.string().max(3).optional(),
+    AssemblyArea: z
+      .string()
+      .max(3, { message: t("AssemblyArea ValidationFailed") })
+      .optional(),
   });
 
   function clearDrafts() {
@@ -101,8 +106,6 @@ export function LineForm({ entityId }: { entityId: string }) {
   function checkDraftsAvailable() {
     return localStorage.getItem(entityId) != null ? true : false;
   }
-
-  const { t } = useTranslation();
 
   const queryClient = useQueryClient();
 
@@ -506,6 +509,7 @@ export function LineForm({ entityId }: { entityId: string }) {
                     }}
                   />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -544,6 +548,7 @@ export function StationForm({ entityId }: { entityId: string }) {
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
   const { dbState, lastUpdate } = useContext();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     (async () => {
@@ -563,7 +568,7 @@ export function StationForm({ entityId }: { entityId: string }) {
         queryKey: ["station", entityId],
       });
     })();
-  }, [observer, dbState]);
+  }, [observer, dbState, i18n.language]);
 
   const formSchema = z.object({
     Name: z.string().optional(),
@@ -581,8 +586,6 @@ export function StationForm({ entityId }: { entityId: string }) {
   function checkDraftsAvailable() {
     return localStorage.getItem(entityId) != null ? true : false;
   }
-
-  const { t } = useTranslation();
 
   const queryClient = useQueryClient();
 
@@ -1126,6 +1129,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
   const { dbState, lastUpdate } = useContext();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     (async () => {
@@ -1170,7 +1174,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
         queryKey: ["tool", entityId],
       });
     })();
-  }, [observer, dbState]);
+  }, [observer, dbState, i18n.language]);
 
   function resetSps() {
     const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
@@ -1197,7 +1201,8 @@ export function ToolForm({ entityId }: { entityId: string }) {
           ip === "" ||
           /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
             ip ?? ""
-          )
+          ),
+        { message: t("IpAddressDevice ValidationFailed") }
       ),
     SPSPLCNameSPAService: z.string().optional(),
     SPSDBNoSend: z.string().optional(),
@@ -1217,8 +1222,6 @@ export function ToolForm({ entityId }: { entityId: string }) {
   function checkDraftsAvailable() {
     return localStorage.getItem(entityId) != null ? true : false;
   }
-
-  const { t } = useTranslation();
 
   const queryClient = useQueryClient();
 
@@ -1953,6 +1956,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                     }}
                   />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -2299,6 +2303,7 @@ export function OperationForm({
   const [observer, setObserver] = useState(0);
   const [formReady, setFormReady] = useState(false);
   const { dbState, lastUpdate } = useContext();
+  const { t, i18n } = useTranslation();
 
   const [parentTool, setParentTool] = useState<any>();
 
@@ -2350,7 +2355,7 @@ export function OperationForm({
         queryKey: ["operation", entityId],
       });
     })();
-  }, [observer, dbState]);
+  }, [observer, dbState, i18n]);
 
   const formSchema = z.object({
     Name: z.string().optional(),
@@ -2378,8 +2383,6 @@ export function OperationForm({
   function checkDraftsAvailable() {
     return localStorage.getItem(entityId) != null ? true : false;
   }
-
-  const { t } = useTranslation();
 
   const queryClient = useQueryClient();
 
