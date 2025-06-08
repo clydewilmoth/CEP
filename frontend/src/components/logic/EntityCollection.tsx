@@ -471,6 +471,7 @@ function DeleteEntityDialog({
             setOpen(false),
             onClose && onClose()
           )}
+          className="w-1/2 mx-auto"
         >
           {t("Confirm")}
         </Button>

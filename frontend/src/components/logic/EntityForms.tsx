@@ -205,38 +205,42 @@ export function LineForm({ entityId }: { entityId: string }) {
                   <span className="font-semibold">{t("VersionHistory")}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="p-0 ml-[5.8rem]">
-                <DropdownMenuItem className="p-0 m-0">
-                  <ScrollArea className="p-1">
-                    <div className="max-h-[30vh]">
-                      {versions.map((version) => (
-                        <React.Fragment
-                          key={version.EntityID + version.Version}
-                        >
-                          <Button
-                            variant="ghost"
-                            className="w-full h-fit justify-start"
-                            onClick={() => {
-                              setSelectedVersion(version);
-                              setVersionDialogOpen(true);
-                            }}
+              <DropdownMenuContent className="p-0">
+                {versions.length == 0 ? (
+                  "sda"
+                ) : (
+                  <DropdownMenuItem className="p-0 m-0">
+                    <ScrollArea className="p-1">
+                      <div className="max-h-[30vh]">
+                        {versions.map((version) => (
+                          <React.Fragment
+                            key={version.EntityID + version.Version}
                           >
-                            <span className="max-w-sm text-wrap break-words text-left">
-                              {`${version.Version} ${t("by")} ${
-                                version.UpdatedBy
-                              } 
+                            <Button
+                              variant="ghost"
+                              className="w-full h-fit justify-start"
+                              onClick={() => {
+                                setSelectedVersion(version);
+                                setVersionDialogOpen(true);
+                              }}
+                            >
+                              <span className="max-w-sm text-wrap break-words text-left">
+                                {`${version.Version} ${t("by")} ${
+                                  version.UpdatedBy
+                                } 
                     ${t("on")} ${formatTimestamp(version.UpdatedAt)[0]} 
                     ${t("at")} ${formatTimestamp(version.UpdatedAt)[1]}`}
-                            </span>
-                          </Button>
-                          {version.Version != 1 && (
-                            <DropdownMenuSeparator className="bg-accent h-px my-1" />
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </DropdownMenuItem>
+                              </span>
+                            </Button>
+                            {version.Version != 1 && (
+                              <DropdownMenuSeparator className="bg-accent h-px my-1" />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             <Dialog
