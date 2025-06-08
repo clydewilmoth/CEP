@@ -1097,7 +1097,7 @@ export function StationForm({ entityId }: { entityId: string }) {
             </Button>
           </div>
           <div className="flex justify-center items-center">
-            <div className="max-w-80 text-center italic text-sm">
+            <div className="max-w-80 text-left italic text-sm">
               {t("EntityMetaData", {
                 name: meta?.UpdatedBy,
                 date: formatTimestamp(meta.UpdatedAt ?? "")[0],
@@ -2094,7 +2094,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
             </Button>
           </div>
           <div className="flex justify-center items-center">
-            <div className="max-w-80 text-center italic text-sm">
+            <div className="max-w-80 text-left italic text-sm">
               {t("EntityMetaData", {
                 name: meta?.UpdatedBy,
                 date: formatTimestamp(meta.UpdatedAt ?? "")[0],
@@ -3354,7 +3354,7 @@ export function OperationForm({
           </div>
 
           <div className="flex justify-center items-center">
-            <div className="max-w-80 text-center italic text-sm">
+            <div className="max-w-80 text-left italic text-sm">
               {t("EntityMetaData", {
                 name: meta?.UpdatedBy,
                 date: formatTimestamp(meta.UpdatedAt ?? "")[0],
