@@ -44,9 +44,15 @@ import { Checkbox } from "../ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { formatTimestamp } from "@/lib/utils";
+import {
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@radix-ui/react-dropdown-menu";
+import React from "react";
+import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -186,21 +192,48 @@ export function LineForm({ entityId }: { entityId: string }) {
                 }}
               >
                 <History />
-                <span>{t("VersionDraft")}</span>
+                <span className="font-semibold">{t("VersionHistory")}</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {versions.map((version) => {
-                return (
-                  <DropdownMenuItem key={version.EntityID + version.Version}>
-                    {version.Version +
-                      " " +
-                      version.UpdatedBy +
-                      " " +
-                      version.UpdatedAt}
-                  </DropdownMenuItem>
-                );
-              })}
+            <DropdownMenuContent className="p-0">
+              <DropdownMenuItem className="p-0 m-0">
+                <ScrollArea className="px-4 py-2">
+                  <div className="max-h-[50vh] max-w-3xl">
+                    {versions.map((version) => (
+                      <React.Fragment key={version.EntityID + version.Version}>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => {
+                            const json = JSON.parse(
+                              localStorage.getItem(entityId) ?? "{}"
+                            );
+                            json.StatusColor = version.StatusColor ?? "";
+                            json.Comment = version.Comment ?? "";
+                            json.Name = version.Name ?? "";
+                            json.AssemblyArea = version.AssemblyArea ?? "";
+                            console.log(json);
+                            localStorage.setItem(
+                              entityId,
+                              JSON.stringify(json)
+                            );
+                            setObserver((prev) => prev + 1);
+                            toast.success(t("VersionHistory Toast"));
+                          }}
+                        >
+                          {`${version.Version} ${t("by")} ${version.UpdatedBy} 
+                    ${t("on")} ${formatTimestamp(version.UpdatedAt)[0]} 
+                    ${t("at")} ${formatTimestamp(version.UpdatedAt)[1]}`}
+                        </Button>
+                        {version.Version != 1 && (
+                          <DropdownMenuSeparator className="bg-accent h-px my-1" />
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" className="h-3.5" />
+                </ScrollArea>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
