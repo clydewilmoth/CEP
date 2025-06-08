@@ -212,7 +212,6 @@ export function LineForm({ entityId }: { entityId: string }) {
                             json.Comment = version.Comment ?? "";
                             json.Name = version.Name ?? "";
                             json.AssemblyArea = version.AssemblyArea ?? "";
-                            console.log(json);
                             localStorage.setItem(
                               entityId,
                               JSON.stringify(json)
@@ -501,6 +500,7 @@ export function StationForm({ entityId }: { entityId: string }) {
         StationType: json.StationType ?? station.StationType ?? "",
       });
       setFormReady(true);
+      setVersions(await GetEntityVersions("station", entityId));
       queryClient.invalidateQueries({
         queryKey: ["station", entityId],
       });
@@ -630,6 +630,7 @@ export function StationForm({ entityId }: { entityId: string }) {
   }
 
   const [commentOpen, setCommentOpen] = useState(false);
+  const [versions, setVersions] = useState<any[]>([]);
 
   return (
     formReady && (
@@ -638,6 +639,66 @@ export function StationForm({ entityId }: { entityId: string }) {
           onSubmit={form.handleSubmit(() => submitForm())}
           className="py-3  flex flex-col gap-5"
         >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex gap-3 items-center w-fit px-2.5"
+                onClick={async () => {
+                  console.log(await GetEntityVersions("station", entityId));
+                }}
+              >
+                <History />
+                <span className="font-semibold">{t("VersionHistory")}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="p-0 ml-[5.8rem]">
+              <DropdownMenuItem className="p-0 m-0">
+                <ScrollArea className="p-1">
+                  <div className="max-h-[30vh]">
+                    {versions.map((version) => (
+                      <React.Fragment key={version.EntityID + version.Version}>
+                        <Button
+                          variant="ghost"
+                          className="w-full h-fit justify-start"
+                          onClick={() => {
+                            const json = JSON.parse(
+                              localStorage.getItem(entityId) ?? "{}"
+                            );
+                            json.StatusColor = version.StatusColor ?? "";
+                            json.Comment = version.Comment ?? "";
+                            json.Name = version.Name ?? "";
+                            json.AssemblyArea = version.AssemblyArea ?? "";
+                            json.Description = version.Description ?? "";
+                            json.StationType = version.StationType ?? "";
+                            localStorage.setItem(
+                              entityId,
+                              JSON.stringify(json)
+                            );
+                            setObserver((prev) => prev + 1);
+                            toast.success(t("VersionHistory Toast"));
+                          }}
+                        >
+                          <span className="max-w-sm text-wrap text-left">
+                            {`${version.Version} ${t("by")} ${
+                              version.UpdatedBy
+                            } 
+                    ${t("on")} ${formatTimestamp(version.UpdatedAt)[0]} 
+                    ${t("at")} ${formatTimestamp(version.UpdatedAt)[1]}`}
+                          </span>
+                        </Button>
+                        {version.Version != 1 && (
+                          <DropdownMenuSeparator className="bg-accent h-px my-1" />
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <div className="flex gap-3 items-center justify-between">
             <Button
               variant="ghost"
