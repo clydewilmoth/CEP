@@ -153,56 +153,52 @@ export function DraftConflictDialog() {
   let prevKey = "";
 
   return (
-    <>
-      {Object.keys(draftConflicts).length !== 0 && (
-        <AlertDialog open={open} onOpenChange={setOpen}>
-          <AlertDialogContent className="p-0 w-1/2">
-            <ScrollArea className="max-h-[90vh]">
-              <div className="p-6 py-9 flex flex-col gap-5">
-                <AlertDialogTitle className="font-bold">
-                  {t("DraftConflicts Title")}
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t("DraftConflicts Description")}
-                </AlertDialogDescription>{" "}
-                <div className="pb-5 flex flex-col gap-2">
-                  {Object.entries(draftConflicts).map(([key, value]) => {
-                    const keyWithoutCounter = key.split("<|||>")[1];
-                    const showKey = keyWithoutCounter != prevKey;
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogContent className="p-0 w-1/2">
+        <ScrollArea className="max-h-[90vh]">
+          <div className="p-6 py-9 flex flex-col gap-5">
+            <AlertDialogTitle className="font-bold">
+              {t("DraftConflicts Title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("DraftConflicts Description")}
+            </AlertDialogDescription>{" "}
+            <div className="pb-5 flex flex-col gap-2">
+              {Object.entries(draftConflicts).map(([key, value]) => {
+                const keyWithoutCounter = key.split("<|||>")[1];
+                const showKey = keyWithoutCounter != prevKey;
 
-                    if (showKey) {
-                      prevKey = keyWithoutCounter;
-                    }
-                    return (
-                      <>
-                        {showKey && (
-                          <div
-                            key={key}
-                            className="font-semibold mt-4"
-                          >{`${keyWithoutCounter}`}</div>
-                        )}
-                        <div key={key + value} className="text-sm">
-                          {`${value.split("<|||>")[0]} → ${
-                            value.split("<|||>")[1]
-                          }`}
-                        </div>
-                      </>
-                    );
-                  })}
-                </div>
-                <Button
-                  variant="outline"
-                  type="submit"
-                  className="w-1/3 mx-auto"
-                  onClick={() => setOpen(false)}
-                >
-                  {t("Understood")}
-                </Button>
-              </div>
-            </ScrollArea>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-    </>
+                if (showKey) {
+                  prevKey = keyWithoutCounter;
+                }
+                return (
+                  <>
+                    {showKey && (
+                      <div
+                        key={key}
+                        className="font-semibold mt-4"
+                      >{`${keyWithoutCounter}`}</div>
+                    )}
+                    <div key={key + value} className="text-sm">
+                      {`${value.split("<|||>")[0]} → ${
+                        value.split("<|||>")[1]
+                      }`}
+                    </div>
+                  </>
+                );
+              })}
+            </div>
+            <Button
+              variant="outline"
+              type="submit"
+              className="w-1/3 mx-auto"
+              onClick={() => setOpen(false)}
+            >
+              {t("Understood")}
+            </Button>
+          </div>
+        </ScrollArea>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
