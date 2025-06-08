@@ -1766,6 +1766,12 @@ export function ToolForm({ entityId }: { entityId: string }) {
                       localStorage.getItem(entityId) ?? "{}"
                     );
                     json.ToolClass = value;
+
+                    if (value == "none" || value == "") {
+                      json.ToolType = value;
+                      setObserver((prev) => prev + 1);
+                    }
+
                     localStorage.setItem(entityId, JSON.stringify(json));
                     queryClient.invalidateQueries({
                       queryKey: ["tool", entityId],
@@ -1866,21 +1872,9 @@ export function ToolForm({ entityId }: { entityId: string }) {
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="none">-</SelectItem>
-                    {data.ToolTypes.map((tooltype) => {
-                      let skip = true;
-
-                      if (
-                        !form.getValues().ToolClass ||
-                        form.getValues().ToolClass == "none"
-                      )
-                        skip = false;
-                      else if (
-                        form.getValues().ToolClass == tooltype.toolClassId
-                      )
-                        skip = false;
-
-                      return (
-                        !skip && (
+                    {data.ToolTypes.map(
+                      (tooltype) =>
+                        form.getValues().ToolClass == tooltype.toolClassId && (
                           <TooltipProvider key={"TT_" + tooltype.id}>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -1909,8 +1903,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                             </Tooltip>
                           </TooltipProvider>
                         )
-                      );
-                    })}
+                    )}
                   </SelectContent>
                 </Select>
               </FormItem>
@@ -3233,12 +3226,11 @@ export function OperationForm({
                       localStorage.getItem(entityId) ?? "{}"
                     );
                     json.Template = value;
-                    if (value == "none") {
+                    if (value == "none" || value == "") {
                       json.DecisionClass = value;
                       json.VerificationClass = value;
                       json.GenerationClass = value;
                       json.SavingClass = value;
-                      localStorage.setItem(entityId, JSON.stringify(json));
                       setObserver((prev) => prev + 1);
                     }
                     localStorage.setItem(entityId, JSON.stringify(json));
