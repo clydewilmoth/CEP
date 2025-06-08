@@ -37,6 +37,7 @@ import {
   DialogContent,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "../ui/dialog";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -47,7 +48,6 @@ import {
   SearchFieldInput,
 } from "../ui/searchfield";
 import { FieldGroup } from "../ui/field";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -456,9 +456,7 @@ function DeleteEntityDialog({
       <DialogContent className="py-10 grid grid-cols-1 gap-5 w-80">
         <DialogTitle>{t("DeleteDialog Title")}</DialogTitle>
         <DialogDescription>
-          {`${t("DeleteDialog Description1")} ${t(entityType)}${t(
-            "DeleteDialog Description2"
-          )}`}
+          {t("DeleteDialog Description", { Entity: t(entityType) })}
         </DialogDescription>
         <Button
           variant="outline"

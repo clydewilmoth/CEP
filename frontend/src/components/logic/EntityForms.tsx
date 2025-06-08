@@ -207,7 +207,9 @@ export function LineForm({ entityId }: { entityId: string }) {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="p-0">
                 {versions.length == 0 ? (
-                  "sda"
+                  <div className="flex justify-center items-center text-sm p-3">
+                    {t("VersionHistory NoVersions")}
+                  </div>
                 ) : (
                   <DropdownMenuItem className="p-0 m-0">
                     <ScrollArea className="p-1">
@@ -297,6 +299,7 @@ export function LineForm({ entityId }: { entityId: string }) {
               </DialogContent>
             </Dialog>
           </div>
+
           <div className="flex gap-3 items-center justify-between">
             <Button
               variant="ghost"
