@@ -64,11 +64,15 @@ export function DraftConflictDialog() {
                     ] = `${t(field)}<|||>${
                       field == "StatusColor"
                         ? t(String(value))
-                        : field == "StationType"
+                        : field == "StationType" && value != "none"
                         ? t("ST_" + String(value) + "_Name")
-                        : field == "ToolClass"
+                        : field == "StationType"
+                        ? ""
+                        : field == "ToolClass" && value != "none"
                         ? t("TC_" + String(value) + "_ToolClassName")
-                        : field == "ToolType"
+                        : field == "ToolClass"
+                        ? ""
+                        : field == "ToolType" && value != "none"
                         ? t(
                             "TT_" +
                               String(value) +
@@ -76,19 +80,29 @@ export function DraftConflictDialog() {
                               String(ToolClass) +
                               "_Description"
                           )
-                        : field == "SerialOrParallel"
+                        : field == "ToolType"
+                        ? ""
+                        : field == "SerialOrParallel" && value != "none"
                         ? t("SOP_" + String(value) + "_name")
+                        : field == "SerialOrParallel"
+                        ? ""
                         : field == "AlwaysPerform"
                         ? t(String(value))
-                        : field == "QGateRelevant"
+                        : field == "QGateRelevant" && value != "none"
                         ? t("QR_" + String(value) + "_name")
-                        : field == "Template"
+                        : field == "QGateRelevant"
+                        ? ""
+                        : field == "Template" && value != "none"
                         ? t("T_" + String(value) + "_Description")
-                        : field == "DecisionClass"
+                        : field == "Template"
+                        ? ""
+                        : field == "DecisionClass" && value != "none"
                         ? t(
                             "OC_DECISION_" + String(value) + "_ClassDescription"
                           )
-                        : field == "VerificationClass"
+                        : field == "DecisionClass"
+                        ? ""
+                        : field == "VerificationClass" && value != "none"
                         ? t(
                             "OC_VERIFICATION_" +
                               String(value) +
@@ -96,7 +110,9 @@ export function DraftConflictDialog() {
                               String(Template) +
                               "_ClassDescription"
                           )
-                        : field == "GenerationClass"
+                        : field == "VerificationClass"
+                        ? ""
+                        : field == "GenerationClass" && value != "none"
                         ? t(
                             "OC_GENERATION_" +
                               String(value) +
@@ -104,7 +120,9 @@ export function DraftConflictDialog() {
                               String(Template) +
                               "_ClassDescription"
                           )
-                        : field == "SavingClass"
+                        : field == "GenerationClass"
+                        ? ""
+                        : field == "SavingClass" && value != "none"
                         ? t(
                             "OC_SAVING_" +
                               String(value) +
@@ -112,6 +130,8 @@ export function DraftConflictDialog() {
                               String(Template) +
                               "_ClassDescription"
                           )
+                        : field == "SavingClass"
+                        ? ""
                         : field == "DecisionCriteria"
                         ? String(value).split("<|||>").join("; ")
                         : value
