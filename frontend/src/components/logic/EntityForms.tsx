@@ -778,9 +778,15 @@ export function StationForm({ entityId }: { entityId: string }) {
                       selectedVersion?.Comment
                     )}`}</span>
                     <span>{`${t("Name")} → ${t(selectedVersion?.Name)}`}</span>
-                    <span>{`${t("StationType")} → ${t(
-                      "ST_" + selectedVersion?.StationType + "_Name"
+                    <span>{`${t("Description")} → ${t(
+                      selectedVersion?.Description
                     )}`}</span>
+                    <span>{`${t("StationType")} → ${
+                      selectedVersion?.StationType &&
+                      selectedVersion?.StationType != "none"
+                        ? t("ST_" + selectedVersion?.StationType + "_Name")
+                        : ""
+                    }`}</span>
                   </div>
                 </ScrollArea>
                 <Button
@@ -1329,6 +1335,171 @@ export function ToolForm({ entityId }: { entityId: string }) {
           onSubmit={form.handleSubmit(() => submitForm())}
           className="py-3  flex flex-col gap-5"
         >
+          <div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="flex gap-3 items-center w-fit px-2.5"
+                >
+                  <History />
+                  <span className="font-semibold">{t("VersionHistory")}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="p-0">
+                {versions.length == 0 ? (
+                  <div className="flex justify-center items-center text-sm p-3">
+                    {t("VersionHistory NoVersions")}
+                  </div>
+                ) : (
+                  <DropdownMenuItem className="p-0 m-0">
+                    <ScrollArea className="p-1">
+                      <div className="max-h-[30vh]">
+                        {versions.map((version) => (
+                          <React.Fragment
+                            key={version.EntityID + version.Version}
+                          >
+                            <Button
+                              variant="ghost"
+                              className="w-full h-fit justify-start"
+                              onClick={() => {
+                                setSelectedVersion(version);
+                                setVersionDialogOpen(true);
+                              }}
+                            >
+                              <span className="max-w-sm text-wrap break-words text-left">
+                                {`${version.Version} ${t("by")} ${
+                                  version.UpdatedBy
+                                } 
+                    ${t("on")} ${formatTimestamp(version.UpdatedAt)[0]} 
+                    ${t("at")} ${formatTimestamp(version.UpdatedAt)[1]}`}
+                              </span>
+                            </Button>
+                            {version.Version != 1 && (
+                              <DropdownMenuSeparator className="bg-accent h-px my-1" />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Dialog
+              open={versionDialogOpen}
+              onOpenChange={setVersionDialogOpen}
+            >
+              <DialogContent className="py-10 grid grid-cols-1 gap-5 w-80">
+                <DialogTitle>{t("VersionHistory DialogTitle")}</DialogTitle>
+                <DialogDescription>
+                  {t("VersionHistory DialogDescription", {
+                    Version: selectedVersion?.Version,
+                    UpdatedBy: selectedVersion?.UpdatedBy,
+                    UpdatedAtDate: formatTimestamp(
+                      selectedVersion?.UpdatedAt
+                    )[0],
+                    UpdatedAtTime: formatTimestamp(
+                      selectedVersion?.UpdatedAt
+                    )[1],
+                  })}
+                </DialogDescription>
+                <ScrollArea className="pr-4">
+                  <div className="flex flex-col gap-3 font-semibold max-h-[50vh] break-words">
+                    <span>{`${t("StatusColor")} → ${t(
+                      selectedVersion?.StatusColor
+                    )}`}</span>
+                    <span>{`${t("Comment")} → ${t(
+                      selectedVersion?.Comment
+                    )}`}</span>
+                    <span>{`${t("Name")} → ${t(selectedVersion?.Name)}`}</span>
+                    <span>{`${t("Description")} → ${t(
+                      selectedVersion?.Description
+                    )}`}</span>
+                    <span>{`${t("ToolClass")} → ${
+                      selectedVersion?.ToolClass &&
+                      selectedVersion?.ToolClass != "none"
+                        ? t(
+                            "TC_" +
+                              selectedVersion?.ToolClass +
+                              "_ToolClassName"
+                          )
+                        : ""
+                    }`}</span>
+                    <span>{`${t("ToolType")} → ${
+                      selectedVersion?.ToolType &&
+                      selectedVersion?.ToolClass &&
+                      selectedVersion?.ToolType != "none" &&
+                      selectedVersion?.ToolClass != "none"
+                        ? t(
+                            "TT_" +
+                              selectedVersion?.ToolType +
+                              "_" +
+                              selectedVersion?.ToolClass +
+                              "_Description"
+                          )
+                        : ""
+                    }`}</span>
+                    <span>{`${t("IpAddressDevice")} → ${t(
+                      selectedVersion?.IpAddressDevice
+                    )}`}</span>
+                    <span>{`${t("SPSPLCNameSPAService")} → ${t(
+                      selectedVersion?.SPSPLCNameSPAService
+                    )}`}</span>
+                    <span>{`${t("SPSDBNoSend")} → ${t(
+                      selectedVersion?.SPSDBNoSend
+                    )}`}</span>
+                    <span>{`${t("SPSDBNoReceive")} → ${t(
+                      selectedVersion?.SPSDBNoReceive
+                    )}`}</span>
+                    <span>{`${t("SPSPreCheck")} → ${t(
+                      selectedVersion?.SPSPreCheck
+                    )}`}</span>
+                    <span>{`${t("SPSAddressInSendDB")} → ${t(
+                      selectedVersion?.SPSAddressInSendDB
+                    )}`}</span>
+                    <span>{`${t("SPSAddressInReceiveDB")} → ${t(
+                      selectedVersion?.SPSAddressInReceiveDB
+                    )}`}</span>
+                  </div>
+                </ScrollArea>
+                <Button
+                  variant="outline"
+                  className="w-1/2 mx-auto"
+                  onClick={() => {
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.StatusColor = selectedVersion.StatusColor ?? "";
+                    json.Comment = selectedVersion.Comment ?? "";
+                    json.Name = selectedVersion.Name ?? "";
+                    json.Description = selectedVersion.Description ?? "";
+                    json.ToolClass = selectedVersion.ToolClass ?? "";
+                    json.ToolType = selectedVersion.ToolType ?? "";
+                    json.IpAddressDevice =
+                      selectedVersion.IpAddressDevice ?? "";
+                    json.SPSPLCNameSPAService =
+                      selectedVersion.SPSPLCNameSPAService ?? "";
+                    json.SPSDBNoSend = selectedVersion.SPSDBNoSend ?? "";
+                    json.SPSDBNoReceive = selectedVersion.SPSDBNoReceive ?? "";
+                    json.SPSPreCheck = selectedVersion.SPSPreCheck ?? "";
+                    json.SPSAddressInSendDB =
+                      selectedVersion.SPSAddressInSendDB ?? "";
+                    json.SPSAddressInReceiveDB =
+                      selectedVersion.SPSAddressInReceiveDB ?? "";
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    setObserver((prev) => prev + 1);
+                    toast.success(t("VersionHistory Toast"));
+                    setVersionDialogOpen(false);
+                  }}
+                >
+                  {t("Confirm")}
+                </Button>
+              </DialogContent>
+            </Dialog>
+          </div>
+
           <div className="flex gap-3 items-center justify-between">
             <Button
               variant="ghost"
