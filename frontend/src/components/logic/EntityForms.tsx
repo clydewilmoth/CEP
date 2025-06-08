@@ -51,11 +51,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@radix-ui/react-dropdown-menu";
-import React from "react";
 import { ScrollArea } from "../ui/scroll-area";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogTitle,
   DialogDescription,
@@ -212,9 +210,7 @@ export function LineForm({ entityId }: { entityId: string }) {
                     <ScrollArea className="p-1">
                       <div className="max-h-[30vh]">
                         {versions.map((version) => (
-                          <React.Fragment
-                            key={version.EntityID + version.Version}
-                          >
+                          <div key={version.EntityID + version.Version}>
                             <Button
                               variant="ghost"
                               className="w-full h-fit justify-start"
@@ -234,7 +230,7 @@ export function LineForm({ entityId }: { entityId: string }) {
                             {version.Version != 1 && (
                               <DropdownMenuSeparator className="bg-accent h-px my-1" />
                             )}
-                          </React.Fragment>
+                          </div>
                         ))}
                       </div>
                     </ScrollArea>
@@ -725,9 +721,7 @@ export function StationForm({ entityId }: { entityId: string }) {
                     <ScrollArea className="p-1">
                       <div className="max-h-[30vh]">
                         {versions.map((version) => (
-                          <React.Fragment
-                            key={version.EntityID + version.Version}
-                          >
+                          <div key={version.EntityID + version.Version}>
                             <Button
                               variant="ghost"
                               className="w-full h-fit justify-start"
@@ -747,7 +741,7 @@ export function StationForm({ entityId }: { entityId: string }) {
                             {version.Version != 1 && (
                               <DropdownMenuSeparator className="bg-accent h-px my-1" />
                             )}
-                          </React.Fragment>
+                          </div>
                         ))}
                       </div>
                     </ScrollArea>
@@ -1365,9 +1359,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                     <ScrollArea className="p-1">
                       <div className="max-h-[30vh]">
                         {versions.map((version) => (
-                          <React.Fragment
-                            key={version.EntityID + version.Version}
-                          >
+                          <div key={version.EntityID + version.Version}>
                             <Button
                               variant="ghost"
                               className="w-full h-fit justify-start"
@@ -1387,7 +1379,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                             {version.Version != 1 && (
                               <DropdownMenuSeparator className="bg-accent h-px my-1" />
                             )}
-                          </React.Fragment>
+                          </div>
                         ))}
                       </div>
                     </ScrollArea>
@@ -2506,9 +2498,7 @@ export function OperationForm({
                     <ScrollArea className="p-1">
                       <div className="max-h-[30vh]">
                         {versions.map((version) => (
-                          <React.Fragment
-                            key={version.EntityID + version.Version}
-                          >
+                          <div key={version.EntityID + version.Version}>
                             <Button
                               variant="ghost"
                               className="w-full h-fit justify-start"
@@ -2528,7 +2518,7 @@ export function OperationForm({
                             {version.Version != 1 && (
                               <DropdownMenuSeparator className="bg-accent h-px my-1" />
                             )}
-                          </React.Fragment>
+                          </div>
                         ))}
                       </div>
                     </ScrollArea>

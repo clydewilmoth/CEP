@@ -172,19 +172,16 @@ export function DraftConflictDialog() {
                   prevKey = keyWithoutCounter;
                 }
                 return (
-                  <>
+                  <div key={key}>
                     {showKey && (
-                      <div
-                        key={key}
-                        className="font-semibold mt-4"
-                      >{`${keyWithoutCounter}`}</div>
+                      <div className="font-semibold mt-4">{`${keyWithoutCounter}`}</div>
                     )}
-                    <div key={key + value} className="text-sm">
+                    <div className="text-sm">
                       {`${value.split("<|||>")[0]} → ${
                         value.split("<|||>")[1]
                       }`}
                     </div>
-                  </>
+                  </div>
                 );
               })}
             </div>
