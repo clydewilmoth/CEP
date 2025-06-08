@@ -37,6 +37,7 @@ import {
   DialogContent,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "../ui/dialog";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -47,7 +48,6 @@ import {
   SearchFieldInput,
 } from "../ui/searchfield";
 import { FieldGroup } from "../ui/field";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +61,7 @@ import {
   SelectContent,
   SelectItem,
 } from "../ui/select";
+import { StringNullToBlank } from "@/lib/utils";
 
 export function EntityCollection({
   entityType,
@@ -275,9 +276,11 @@ function CreateEntityCard({
               parentId={parentId}
               onClick={() => setKey((k) => k + 1)}
             />
-            <DropdownMenuSeparator className="bg-accent" />
             {entityType == "line" && (
-              <ImportJSON onClick={() => setKey((k) => k + 1)} />
+              <>
+                <DropdownMenuSeparator className="bg-accent" />
+                <ImportJSON onClick={() => setKey((k) => k + 1)} />
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -454,9 +457,7 @@ function DeleteEntityDialog({
       <DialogContent className="py-10 grid grid-cols-1 gap-5 w-80">
         <DialogTitle>{t("DeleteDialog Title")}</DialogTitle>
         <DialogDescription>
-          {`${t("DeleteDialog Description1")} ${t(entityType)}${t(
-            "DeleteDialog Description2"
-          )}`}
+          {t("DeleteDialog Description", { Entity: t(entityType) })}
         </DialogDescription>
         <Button
           variant="outline"
@@ -469,6 +470,7 @@ function DeleteEntityDialog({
             setOpen(false),
             onClose && onClose()
           )}
+          className="w-1/2 mx-auto"
         >
           {t("Confirm")}
         </Button>
@@ -608,8 +610,4 @@ function PasteEntityHierarchyFromClipboard({
       </Button>
     </div>
   );
-}
-
-export function StringNullToBlank(value: string) {
-  return value ? String(value) : "";
 }

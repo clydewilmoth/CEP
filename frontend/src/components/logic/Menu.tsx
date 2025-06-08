@@ -40,7 +40,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Sidebar, SidebarBody, SidebarMenu, useSidebar } from "../ui/sidebar";
 import { t } from "i18next";
 import { Checkbox } from "../ui/checkbox";
-import { booleanToString, stringToBoolean } from "./EntityForms";
+import { booleanToString, stringToBoolean } from "@/lib/utils";
 
 export function UserDialog({
   onDialogStateChange,
