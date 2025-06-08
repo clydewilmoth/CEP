@@ -195,15 +195,15 @@ export function LineForm({ entityId }: { entityId: string }) {
                 <span className="font-semibold">{t("VersionHistory")}</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="p-0">
+            <DropdownMenuContent className="p-0 ml-[5.8rem]">
               <DropdownMenuItem className="p-0 m-0">
-                <ScrollArea className="px-4 py-2">
-                  <div className="max-h-[50vh] max-w-3xl">
+                <ScrollArea className="p-1">
+                  <div className="max-h-[30vh]">
                     {versions.map((version) => (
                       <React.Fragment key={version.EntityID + version.Version}>
                         <Button
                           variant="ghost"
-                          className="w-full justify-start"
+                          className="w-full h-fit justify-start"
                           onClick={() => {
                             const json = JSON.parse(
                               localStorage.getItem(entityId) ?? "{}"
@@ -221,9 +221,13 @@ export function LineForm({ entityId }: { entityId: string }) {
                             toast.success(t("VersionHistory Toast"));
                           }}
                         >
-                          {`${version.Version} ${t("by")} ${version.UpdatedBy} 
+                          <span className="max-w-sm text-wrap text-left">
+                            {`${version.Version} ${t("by")} ${
+                              version.UpdatedBy
+                            } 
                     ${t("on")} ${formatTimestamp(version.UpdatedAt)[0]} 
                     ${t("at")} ${formatTimestamp(version.UpdatedAt)[1]}`}
+                          </span>
                         </Button>
                         {version.Version != 1 && (
                           <DropdownMenuSeparator className="bg-accent h-px my-1" />
@@ -231,7 +235,6 @@ export function LineForm({ entityId }: { entityId: string }) {
                       </React.Fragment>
                     ))}
                   </div>
-                  <ScrollBar orientation="horizontal" className="h-3.5" />
                 </ScrollArea>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -463,18 +466,11 @@ export function LineForm({ entityId }: { entityId: string }) {
             </Button>
           </div>
           <div className="flex justify-center items-center">
-            <div className="max-w-80 text-center italic text-sm">
+            <div className="max-w-80 text-left italic text-sm">
               {t("EntityMetaData", {
                 name: meta?.UpdatedBy,
-                date: meta?.UpdatedAt?.split("T")[0]
-                  .split("-")
-                  .reverse()
-                  .join("."),
-                time: meta?.UpdatedAt?.split("T")[1]
-                  .split(".")[0]
-                  .split(":")
-                  .slice(0, 2)
-                  .join(":"),
+                date: formatTimestamp(meta.UpdatedAt ?? "")[0],
+                time: formatTimestamp(meta.UpdatedAt ?? "")[1],
               })}
             </div>
           </div>
