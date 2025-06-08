@@ -931,15 +931,8 @@ export function StationForm({ entityId }: { entityId: string }) {
             <div className="max-w-80 text-center italic text-sm">
               {t("EntityMetaData", {
                 name: meta?.UpdatedBy,
-                date: meta?.UpdatedAt?.split("T")[0]
-                  .split("-")
-                  .reverse()
-                  .join("."),
-                time: meta?.UpdatedAt?.split("T")[1]
-                  .split(".")[0]
-                  .split(":")
-                  .slice(0, 2)
-                  .join(":"),
+                date: formatTimestamp(meta.UpdatedAt ?? "")[0],
+                time: formatTimestamp(meta.UpdatedAt ?? "")[1],
               })}
             </div>
           </div>
@@ -1931,15 +1924,8 @@ export function ToolForm({ entityId }: { entityId: string }) {
             <div className="max-w-80 text-center italic text-sm">
               {t("EntityMetaData", {
                 name: meta?.UpdatedBy,
-                date: meta?.UpdatedAt?.split("T")[0]
-                  .split("-")
-                  .reverse()
-                  .join("."),
-                time: meta?.UpdatedAt?.split("T")[1]
-                  .split(".")[0]
-                  .split(":")
-                  .slice(0, 2)
-                  .join(":"),
+                date: formatTimestamp(meta.UpdatedAt ?? "")[0],
+                time: formatTimestamp(meta.UpdatedAt ?? "")[1],
               })}
             </div>
           </div>
@@ -3194,15 +3180,8 @@ export function OperationForm({
             <div className="max-w-80 text-center italic text-sm">
               {t("EntityMetaData", {
                 name: meta?.UpdatedBy,
-                date: meta?.UpdatedAt?.split("T")[0]
-                  .split("-")
-                  .reverse()
-                  .join("."),
-                time: meta?.UpdatedAt?.split("T")[1]
-                  .split(".")[0]
-                  .split(":")
-                  .slice(0, 2)
-                  .join(":"),
+                date: formatTimestamp(meta.UpdatedAt ?? "")[0],
+                time: formatTimestamp(meta.UpdatedAt ?? "")[1],
               })}
             </div>
           </div>
