@@ -197,9 +197,6 @@ export function LineForm({ entityId }: { entityId: string }) {
                   type="button"
                   variant="ghost"
                   className="flex gap-3 items-center w-fit px-2.5"
-                  onClick={async () => {
-                    console.log(await GetEntityVersions("line", entityId));
-                  }}
                 >
                   <History />
                   <span className="font-semibold">{t("VersionHistory")}</span>
@@ -692,6 +689,8 @@ export function StationForm({ entityId }: { entityId: string }) {
 
   const [commentOpen, setCommentOpen] = useState(false);
   const [versions, setVersions] = useState<any[]>([]);
+  const [selectedVersion, setSelectedVersion] = useState<any>(null);
+  const [versionDialogOpen, setVersionDialogOpen] = useState(false);
 
   return (
     formReady && (
@@ -700,65 +699,113 @@ export function StationForm({ entityId }: { entityId: string }) {
           onSubmit={form.handleSubmit(() => submitForm())}
           className="py-3  flex flex-col gap-5"
         >
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                className="flex gap-3 items-center w-fit px-2.5"
-                onClick={async () => {
-                  console.log(await GetEntityVersions("station", entityId));
-                }}
-              >
-                <History />
-                <span className="font-semibold">{t("VersionHistory")}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="p-0 ml-[5.8rem]">
-              <DropdownMenuItem className="p-0 m-0">
-                <ScrollArea className="p-1">
-                  <div className="max-h-[30vh]">
-                    {versions.map((version) => (
-                      <React.Fragment key={version.EntityID + version.Version}>
-                        <Button
-                          variant="ghost"
-                          className="w-full h-fit justify-start"
-                          onClick={() => {
-                            const json = JSON.parse(
-                              localStorage.getItem(entityId) ?? "{}"
-                            );
-                            json.StatusColor = version.StatusColor ?? "";
-                            json.Comment = version.Comment ?? "";
-                            json.Name = version.Name ?? "";
-                            json.AssemblyArea = version.AssemblyArea ?? "";
-                            json.Description = version.Description ?? "";
-                            json.StationType = version.StationType ?? "";
-                            localStorage.setItem(
-                              entityId,
-                              JSON.stringify(json)
-                            );
-                            setObserver((prev) => prev + 1);
-                            toast.success(t("VersionHistory Toast"));
-                          }}
-                        >
-                          <span className="max-w-sm text-wrap text-left">
-                            {`${version.Version} ${t("by")} ${
-                              version.UpdatedBy
-                            } 
+          <div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="flex gap-3 items-center w-fit px-2.5"
+                >
+                  <History />
+                  <span className="font-semibold">{t("VersionHistory")}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="p-0">
+                {versions.length == 0 ? (
+                  <div className="flex justify-center items-center text-sm p-3">
+                    {t("VersionHistory NoVersions")}
+                  </div>
+                ) : (
+                  <DropdownMenuItem className="p-0 m-0">
+                    <ScrollArea className="p-1">
+                      <div className="max-h-[30vh]">
+                        {versions.map((version) => (
+                          <React.Fragment
+                            key={version.EntityID + version.Version}
+                          >
+                            <Button
+                              variant="ghost"
+                              className="w-full h-fit justify-start"
+                              onClick={() => {
+                                setSelectedVersion(version);
+                                setVersionDialogOpen(true);
+                              }}
+                            >
+                              <span className="max-w-sm text-wrap break-words text-left">
+                                {`${version.Version} ${t("by")} ${
+                                  version.UpdatedBy
+                                } 
                     ${t("on")} ${formatTimestamp(version.UpdatedAt)[0]} 
                     ${t("at")} ${formatTimestamp(version.UpdatedAt)[1]}`}
-                          </span>
-                        </Button>
-                        {version.Version != 1 && (
-                          <DropdownMenuSeparator className="bg-accent h-px my-1" />
-                        )}
-                      </React.Fragment>
-                    ))}
+                              </span>
+                            </Button>
+                            {version.Version != 1 && (
+                              <DropdownMenuSeparator className="bg-accent h-px my-1" />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Dialog
+              open={versionDialogOpen}
+              onOpenChange={setVersionDialogOpen}
+            >
+              <DialogContent className="py-10 grid grid-cols-1 gap-5 w-80">
+                <DialogTitle>{t("VersionHistory DialogTitle")}</DialogTitle>
+                <DialogDescription>
+                  {t("VersionHistory DialogDescription", {
+                    Version: selectedVersion?.Version,
+                    UpdatedBy: selectedVersion?.UpdatedBy,
+                    UpdatedAtDate: formatTimestamp(
+                      selectedVersion?.UpdatedAt
+                    )[0],
+                    UpdatedAtTime: formatTimestamp(
+                      selectedVersion?.UpdatedAt
+                    )[1],
+                  })}
+                </DialogDescription>
+                <ScrollArea className="pr-4">
+                  <div className="flex flex-col gap-3 font-semibold max-h-[50vh] break-words">
+                    <span>{`${t("StatusColor")} → ${t(
+                      selectedVersion?.StatusColor
+                    )}`}</span>
+                    <span>{`${t("Comment")} → ${t(
+                      selectedVersion?.Comment
+                    )}`}</span>
+                    <span>{`${t("Name")} → ${t(selectedVersion?.Name)}`}</span>
+                    <span>{`${t("StationType")} → ${t(
+                      "ST_" + selectedVersion?.StationType + "_Name"
+                    )}`}</span>
                   </div>
                 </ScrollArea>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <Button
+                  variant="outline"
+                  className="w-1/2 mx-auto"
+                  onClick={() => {
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.StatusColor = selectedVersion.StatusColor ?? "";
+                    json.Comment = selectedVersion.Comment ?? "";
+                    json.Name = selectedVersion.Name ?? "";
+                    json.Description = selectedVersion.Description ?? "";
+                    json.StationType = selectedVersion.StationType ?? "";
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    setObserver((prev) => prev + 1);
+                    toast.success(t("VersionHistory Toast"));
+                    setVersionDialogOpen(false);
+                  }}
+                >
+                  {t("Confirm")}
+                </Button>
+              </DialogContent>
+            </Dialog>
+          </div>
 
           <div className="flex gap-3 items-center justify-between">
             <Button
@@ -1110,6 +1157,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
           tool.SPSAddressInSendDB
       );
       setFormReady(true);
+      setVersions(await GetEntityVersions("tool", entityId));
       queryClient.invalidateQueries({
         queryKey: ["tool", entityId],
       });
@@ -1269,6 +1317,9 @@ export function ToolForm({ entityId }: { entityId: string }) {
   }
 
   const [commentOpen, setCommentOpen] = useState(false);
+  const [versions, setVersions] = useState<any[]>([]);
+  const [selectedVersion, setSelectedVersion] = useState<any>(null);
+  const [versionDialogOpen, setVersionDialogOpen] = useState(false);
   const [spsChecked, setSpsChecked] = useState(false);
 
   return (
@@ -2116,6 +2167,7 @@ export function OperationForm({
       });
 
       setFormReady(true);
+      setVersions(await GetEntityVersions("operation", entityId));
       queryClient.invalidateQueries({
         queryKey: ["operation", entityId],
       });
@@ -2228,6 +2280,9 @@ export function OperationForm({
   }
 
   const [commentOpen, setCommentOpen] = useState(false);
+  const [versions, setVersions] = useState<any[]>([]);
+  const [selectedVersion, setSelectedVersion] = useState<any>(null);
+  const [versionDialogOpen, setVersionDialogOpen] = useState(false);
 
   return (
     formReady && (
