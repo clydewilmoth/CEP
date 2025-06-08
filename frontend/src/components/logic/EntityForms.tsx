@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, ChevronUp, SquarePen } from "lucide-react";
+import { ChevronDown, ChevronUp, SquarePen, History } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -26,6 +26,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   GetAllEntities,
   GetEntityDetails,
+  GetEntityVersions,
   UpdateEntityFieldsString,
 } from "../../../wailsjs/go/main/Core";
 import {
@@ -40,6 +41,12 @@ import data from "@/assets/dependency.json";
 import { TagsInput } from "../ui/tags-input";
 import { useContext } from "@/store";
 import { Checkbox } from "../ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -61,6 +68,7 @@ export function LineForm({ entityId }: { entityId: string }) {
         AssemblyArea: json.AssemblyArea ?? line.AssemblyArea ?? "",
       });
       setFormReady(true);
+      setVersions(await GetEntityVersions("line", entityId));
       queryClient.invalidateQueries({
         queryKey: ["line", entityId],
       });
@@ -158,14 +166,44 @@ export function LineForm({ entityId }: { entityId: string }) {
   }
 
   const [commentOpen, setCommentOpen] = useState(false);
+  const [versions, setVersions] = useState<any[]>([]);
 
   return (
     formReady && (
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(() => submitForm())}
-          className="py-3  flex flex-col gap-5"
+          className="py-3 flex flex-col gap-5"
         >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex gap-3 items-center w-fit px-2.5"
+                onClick={async () => {
+                  console.log(await GetEntityVersions("line", entityId));
+                }}
+              >
+                <History />
+                <span>{t("VersionDraft")}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {versions.map((version) => {
+                return (
+                  <DropdownMenuItem key={version.EntityID + version.Version}>
+                    {version.Version +
+                      " " +
+                      version.UpdatedBy +
+                      " " +
+                      version.UpdatedAt}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <div className="flex gap-3 items-center justify-between">
             <Button
               variant="ghost"

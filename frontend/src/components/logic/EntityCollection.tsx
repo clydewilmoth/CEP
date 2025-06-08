@@ -275,9 +275,11 @@ function CreateEntityCard({
               parentId={parentId}
               onClick={() => setKey((k) => k + 1)}
             />
-            <DropdownMenuSeparator className="bg-accent" />
             {entityType == "line" && (
-              <ImportJSON onClick={() => setKey((k) => k + 1)} />
+              <>
+                <DropdownMenuSeparator className="bg-accent" />
+                <ImportJSON onClick={() => setKey((k) => k + 1)} />
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
