@@ -68,7 +68,6 @@ type Tool struct {
 type Operation struct {
 	BaseModel
 	Description       *string                `gorm:"default:null"`
-	DecisionCriteria  *string                `gorm:"default:null"`
 	SerialOrParallel  *string                `gorm:"default:null"`
 	SequenceGroup     *string                `gorm:"default:null"`
 	Sequence          *string                `gorm:"default:null"`
@@ -76,9 +75,10 @@ type Operation struct {
 	QGateRelevant     *string                `gorm:"default:null"`
 	Template          *string                `gorm:"default:null"`
 	DecisionClass     *string                `gorm:"default:null"`
-	SavingClass       *string                `gorm:"default:null"`
 	VerificationClass *string                `gorm:"default:null"`
 	GenerationClass   *string                `gorm:"default:null"`
+	SavingClass       *string                `gorm:"default:null"`
+	DecisionCriteria  *string                `gorm:"default:null"`
 	ParentID          mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
 }
 
