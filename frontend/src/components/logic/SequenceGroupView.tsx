@@ -5,7 +5,6 @@ import {
   CreateEntity,
   UpdateEntityFieldsString
 } from "../../../wailsjs/go/main/Core";
-import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useParams } from "wouter";
@@ -13,29 +12,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardTitle } from "@/components/ui/card";
 import { DeleteEntityDialog } from "./EntityCollection";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { Ellipsis } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Reorder } from "framer-motion";
+import React from "react";
+import { ChevronUp, ChevronDown } from "lucide-react"; // Added for up/down buttons
 
 type Group = {
   ID: string;
   Name: string;
   Index: string;
   UpdatedAt: string;
-  Operations: Operation[];
+  SerialOperations: Operation[];
+  ParallelOperations: Operation[];
 };
 
 type Operation = {
   ID: string;
   Name: string;
   SequenceGroup: string;
-  Sequence: number;
+  Sequence: string;
   UpdatedAt: string;
+  SerialOrParallel: string;
+  GroupID: string;
+};
+
+type ReorderState = {
+  groups: Group[];
+  unassignedSerialOperations: Operation[];
+  unassignedParallelOperations: Operation[];
+  unassignedNoneOperations: Operation[];
+  inputValue: string;
 };
 
 export function SequenceGroupView({
@@ -49,182 +55,408 @@ export function SequenceGroupView({
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  const { data: entitiesOp } = useQuery({
-    queryKey: ["entitiesOp", entityType, parentId],
-    queryFn: async () => await GetOperationsByStation(suuid),
-  });
+  const { data: processedData } = useQuery({
+    queryKey: ["sequenceGroupsWithOperations", entityType, parentId, suuid],
+    queryFn: async (): Promise<ReorderState> => {
+      const [groupsData, allOperationsData] = await Promise.all([
+        GetAllEntities(entityType, String(parentId)),
+        GetOperationsByStation(String(suuid))
+      ]);
 
-  const { data: entitiesSequenceGroup } = useQuery({
-    queryKey: ["entitiesSequenceGroup", entityType, parentId],
-    queryFn: async (): Promise<Group[]> => {
-      const groups = await GetAllEntities(entityType, String(parentId));
-      // Get all operations for this station
-      const allOperations = await GetOperationsByStation(suuid);
-      
-      const groupsWithOperations: Group[] = (groups ?? []).map((group: any) => {
-        // Find operations that belong to this group
-        const operations: Operation[] = (allOperations ?? [])
-          .filter((op: any) => op.GroupID === group.ID || op.SequenceGroup === group.Index)
-          .map((op: any) => ({
-            ID: op.ID,
-            Name: op.Name,
-            SequenceGroup: op.SequenceGroup,
-            Sequence: op.Sequence,
-            UpdatedAt: op.UpdatedAt,
-          }))
-          .sort((a, b) => a.Sequence - b.Sequence);
+      const groups: any[] = groupsData ?? [];
+      const allOperations: any[] = allOperationsData ?? [];
 
-        return {
-          ID: group.ID,
-          Name: group.Name ?? "Unnamed",
-          Index: group.Index,
-          UpdatedAt: group.UpdatedAt,
-          Operations: operations,
-        };
-      });
-      
-      return groupsWithOperations.sort((a, b) => parseInt(a.Index) - parseInt(b.Index));
-    },
-  });
+      const groupsWithOperations: Group[] = groups.map((group: any) => {
+          const operationsForGroup: Operation[] = allOperations
+            .filter((op: any) => op.GroupID === group.ID)
+            .map((op: any) => ({
+              ID: op.ID,
+              Name: op.Name,
+              SequenceGroup: op.SequenceGroup || "",
+              Sequence: op.Sequence,
+              UpdatedAt: op.UpdatedAt,
+              SerialOrParallel: op.SerialOrParallel,
+              GroupID: op.GroupID || "",
+            }))
 
-  const [reorderableGroups, setReorderableGroups] = useState<Group[]>([]);
-  const [unassignedOperations, setUnassignedOperations] = useState<Operation[]>([]);
+          return {
+            ID: group.ID,
+            Name: group.Name ?? t("unnamed_group"),
+            Index: group.Index,
+            UpdatedAt: group.UpdatedAt,
+            SerialOperations: operationsForGroup.filter(op => op.SerialOrParallel === "0")
+                  .sort((a, b) => parseInt(a.Sequence) - parseInt(b.Sequence)),
+            ParallelOperations: operationsForGroup.filter(op => op.SerialOrParallel === "1")
+          };
+        })
+        .sort((a, b) => parseInt(a.Index) - parseInt(b.Index));
 
-  useEffect(() => {
-    if (entitiesSequenceGroup) {
-      setReorderableGroups(entitiesSequenceGroup);
-    }
-  }, [entitiesSequenceGroup]);
-
-  useEffect(() => {
-    if (entitiesOp) {
-      const operations: Operation[] = entitiesOp
-        .filter((op: any) => !op.SequenceGroup && !op.GroupID)
+      const unassignedSerialOperations: Operation[] = allOperations
+        .filter((op: any) => !op.GroupID && !op.SequenceGroup).filter((op: any) => op.SerialOrParallel === "0")
         .map((op: any) => ({
           ID: op.ID,
           Name: op.Name,
           SequenceGroup: op.SequenceGroup || "",
-          Sequence: op.Sequence || 0,
+          Sequence: op.Sequence || "",
           UpdatedAt: op.UpdatedAt || "",
+          SerialOrParallel: op.SerialOrParallel || "",
+          GroupID: op.GroupID || "",
         }));
 
-      setUnassignedOperations(operations);
-    }
-  }, [entitiesOp]);
+      const unassignedParallelOperations: Operation[] = allOperations
+        .filter((op: any) => !op.GroupID && !op.SequenceGroup).filter((op: any) => op.SerialOrParallel === "1")
+        .map((op: any) => ({
+          ID: op.ID,
+          Name: op.Name,
+          SequenceGroup: op.SequenceGroup || "",
+          Sequence: op.Sequence || "",
+          UpdatedAt: op.UpdatedAt || "",
+          SerialOrParallel: op.SerialOrParallel || "",
+          GroupID: op.GroupID || "",
+        }));
 
-  const [inputValue, setInputValue] = useState("");
+      const unassignedNoneOperations: Operation[] = allOperations
+        .filter((op: any) => !op.GroupID && !op.SequenceGroup).filter((op: any) => op.SerialOrParallel === null || op.SerialOrParallel === "none")
+        .map((op: any) => ({
+          ID: op.ID,
+          Name: op.Name,
+          SequenceGroup: op.SequenceGroup || "",
+          Sequence: op.Sequence || "",
+          UpdatedAt: op.UpdatedAt || "",
+          SerialOrParallel: op.SerialOrParallel || "",
+          GroupID: op.GroupID || "",
+        }));
 
-  // Handle moving operations between groups and unassigned
-  const moveOperationToGroup = (operationId: string, targetGroupId: string) => {
-    // Find the operation in unassigned or other groups
-    let operation: Operation | undefined;
-    
-    // Check unassigned operations first
-    const unassignedIndex = unassignedOperations.findIndex(op => op.ID === operationId);
-    if (unassignedIndex !== -1) {
-      operation = unassignedOperations[unassignedIndex];
-      setUnassignedOperations(prev => prev.filter(op => op.ID !== operationId));
-    } else {
-      // Check in groups
-      setReorderableGroups(prev => prev.map(group => {
-        const opIndex = group.Operations.findIndex(op => op.ID === operationId);
-        if (opIndex !== -1) {
-          operation = group.Operations[opIndex];
-          return {
-            ...group,
-            Operations: group.Operations.filter(op => op.ID !== operationId)
-          };
+      return {
+        groups: groupsWithOperations,
+        unassignedSerialOperations: unassignedSerialOperations,
+        unassignedParallelOperations: unassignedParallelOperations,
+        unassignedNoneOperations: unassignedNoneOperations,
+        inputValue: "",
+      };
+    },
+  });
+
+  const moveOperationMutation = useMutation({
+    mutationFn: async ({
+      operationId,
+      targetGroupId,
+      sourceData
+    }: {
+      operationId: string;
+      targetGroupId: string;
+      sourceData: ReorderState;
+    }) => {
+      let operation: Operation | undefined;
+
+      const unassignedSerialIndex = sourceData.unassignedSerialOperations.findIndex(op => op.ID === operationId)
+      const unassignedParalelIndex = sourceData.unassignedParallelOperations.findIndex(op => op.ID === operationId)
+
+      if (unassignedSerialIndex !== -1) {
+        operation = sourceData.unassignedSerialOperations[unassignedSerialIndex];
+      } else if( unassignedParalelIndex !== -1) {
+        operation = sourceData.unassignedParallelOperations[unassignedParalelIndex];
+      }
+      else {
+        for (const group of sourceData.groups) {
+          let opIndex = group.SerialOperations.findIndex(op => op.ID === operationId);
+          if (opIndex !== -1) {
+            operation = group.SerialOperations[opIndex];
+            break;
+          }
+          opIndex = group.ParallelOperations.findIndex(op => op.ID === operationId);
+          if (opIndex !== -1) {
+            operation = group.ParallelOperations[opIndex];
+            break;
+          }
+        }
+      }
+
+      if (!operation) throw new Error("Operation not found for moving");
+
+      let newUnassignedSerialOperations = sourceData.unassignedSerialOperations.filter(op => op.ID !== operationId);
+      let newUnassignedParallelOperations = sourceData.unassignedParallelOperations.filter(op => op.ID !== operationId);
+      let newGroups = sourceData.groups.map(group => ({
+        ...group,
+        SerialOperations: group.SerialOperations.filter(op => op.ID !== operationId),
+        ParallelOperations: group.ParallelOperations.filter(op => op.ID !== operationId)
+      }));
+
+      if (targetGroupId === "") {
+        if( operation.SerialOrParallel === "0") {
+          newUnassignedSerialOperations = [...newUnassignedSerialOperations, { ...operation, SequenceGroup: "", GroupID: "" }];
+        } else if (operation.SerialOrParallel === "1") {
+          newUnassignedParallelOperations = [...newUnassignedParallelOperations, { ...operation, SequenceGroup: "", GroupID: "" }];
+        }
+      } else {
+        const targetGroup = newGroups.find(g => g.ID === targetGroupId);
+        if (targetGroup) {
+          if (operation.SerialOrParallel === "1") {
+            targetGroup.ParallelOperations.push({ ...operation, SequenceGroup: targetGroup.Index, GroupID: targetGroup.ID });
+          } else if (operation.SerialOrParallel === "0") {
+            targetGroup.SerialOperations.push({ ...operation, SequenceGroup: targetGroup.Index, GroupID: targetGroup.ID });
+          }
+        }
+      }
+
+      return {
+        groups: newGroups,
+        unassignedSerialOperations: newUnassignedSerialOperations,
+        unassignedParallelOperations: newUnassignedParallelOperations,
+        unassignedNoneOperations: sourceData.unassignedNoneOperations,
+        inputValue: sourceData.inputValue,
+      };
+    },
+    onSuccess: (newData) => {
+      queryClient.setQueryData(
+        ["sequenceGroupsWithOperations", entityType, parentId, suuid],
+        newData
+      );
+    },
+  });
+
+  const reorderOperationsMutation = useMutation({
+    mutationFn: async ({
+      groupId,
+      newOperations,
+      type,
+      sourceData
+    }: {
+      groupId: string;
+      newOperations: Operation[];
+      type: string;
+      sourceData: ReorderState;
+    }) => {
+      const newGroups = sourceData.groups.map(group => {
+        if (group.ID === groupId) {
+          if (type === "0") {
+            return { ...group, SerialOperations: newOperations.map((op, index) => ({...op, Sequence: String(index + 1)})) };
+          } else if (type === "1") {
+            return { ...group, ParallelOperations: newOperations.map(op => ({...op, Sequence: "0"})) };
+          }
         }
         return group;
-      }));
-    }
+      });
 
-    if (operation) {
-      if (targetGroupId === 'unassigned') {
-        // Move to unassigned
-        setUnassignedOperations(prev => [...prev, { ...operation!, SequenceGroup: "" }]);
+      return {
+        ...sourceData,
+        groups: newGroups,
+      };
+    },
+    onSuccess: (newData) => {
+      queryClient.setQueryData(
+        ["sequenceGroupsWithOperations", entityType, parentId, suuid],
+        newData
+      );
+    },
+  });
+
+  const reorderGroupsMutation = useMutation({
+    mutationFn: async ({
+      newGroups,
+      sourceData
+    }: {
+      newGroups: Group[];
+      sourceData: ReorderState;
+    }) => {
+      const updatedGroupsWithIndex = newGroups.map((group, index) => ({
+        ...group,
+        Index: String(index + 1),
+        SerialOperations: group.SerialOperations.map(op => ({ ...op, SequenceGroup: String(index + 1) })),
+        ParallelOperations: group.ParallelOperations.map(op => ({ ...op, SequenceGroup: String(index + 1) })),
+      }));
+      return {
+        ...sourceData,
+        groups: updatedGroupsWithIndex,
+      };
+    },
+    onSuccess: (newData) => {
+      queryClient.setQueryData(
+        ["sequenceGroupsWithOperations", entityType, parentId, suuid],
+        newData
+      );
+    },
+  });
+
+  const reorderUnassignedMutation = useMutation({
+    mutationFn: async ({
+      newOperations,
+      type,
+      sourceData,
+    }: {
+      newOperations: Operation[];
+      type: "serial" | "parallel";
+      sourceData: ReorderState;
+    }) => {
+      if (type === "serial") {
+        return {
+          ...sourceData,
+          unassignedSerialOperations: newOperations,
+        };
       } else {
-        // Move to specific group
-        setReorderableGroups(prev => prev.map(group => {
-          if (group.ID === targetGroupId) {
-            return {
-              ...group,
-              Operations: [...group.Operations, { ...operation!, SequenceGroup: group.Index }]
-            };
-          }
-          return group;
-        }));
+        return {
+          ...sourceData,
+          unassignedParallelOperations: newOperations,
+        };
       }
-    }
-  };
+    },
+    onSuccess: (newData) => {
+      queryClient.setQueryData(
+        ["sequenceGroupsWithOperations", entityType, parentId, suuid],
+        newData
+      );
+    },
+  });
 
-  // Handle reordering operations within a group
-  const reorderOperationsInGroup = (groupId: string, newOperations: Operation[]) => {
-    setReorderableGroups(prev => prev.map(group => 
-      group.ID === groupId ? { ...group, Operations: newOperations } : group
-    ));
-  };
+  const updateInputMutation = useMutation({
+    mutationFn: async ({
+      newInputValue,
+      sourceData
+    }: {
+      newInputValue: string;
+      sourceData: ReorderState;
+    }) => {
+      return {
+        ...sourceData,
+        inputValue: newInputValue,
+      };
+    },
+    onSuccess: (newData) => {
+      queryClient.setQueryData(
+        ["sequenceGroupsWithOperations", entityType, parentId, suuid],
+        newData
+      );
+    },
+  });
 
-  // Handle group deletion and move its operations to unassigned
-  const handleGroupDelete = async (groupId: string) => {
-    // Find the group being deleted
-    const groupToDelete = reorderableGroups.find(group => group.ID === groupId);
-    
-    if (groupToDelete && groupToDelete.Operations.length > 0) {
-      // Move all operations from this group to unassigned
-      const operationsToMove = groupToDelete.Operations.map(op => ({
-        ...op,
-        SequenceGroup: "",
-        Sequence: 0
-      }));
-      
-      // Update operations in the database to unassign them
-      for (const op of operationsToMove) {
-        try {
-          await UpdateEntityFieldsString(
-            localStorage.getItem("name") || "", 
-            "operation", 
-            op.ID, 
-            op.UpdatedAt, 
-            { 
-              "Sequence": "0",
-              "SequenceGroup": "", 
-              "GroupID": ""
+  const deleteGroupMutation = useMutation({
+    mutationFn: async ({
+      groupId,
+      sourceData
+    }: {
+      groupId: string;
+      sourceData: ReorderState;
+    }) => {
+      const groupToDelete = sourceData.groups.find(group => group.ID === groupId);
+      let newUnassignedSerialOperations = [...sourceData.unassignedSerialOperations];
+      let newUnassignedParallelOperations = [...sourceData.unassignedParallelOperations];
+
+      if (groupToDelete) {
+        const opsToMove = [
+          ...groupToDelete.SerialOperations.map(op => ({ ...op, SequenceGroup: "", Sequence: "", GroupID: "" })),
+          ...groupToDelete.ParallelOperations.map(op => ({ ...op, SequenceGroup: "", Sequence: "", GroupID: "" }))
+        ];
+
+        if (opsToMove.length > 0) {
+          for (const op of opsToMove) {
+            try {
+              await UpdateEntityFieldsString(
+                localStorage.getItem("name") || "",
+                "operation",
+                op.ID,
+                op.UpdatedAt, {
+                  "Sequence": "",
+                  "SequenceGroup": "",
+                  "GroupID": ""
+                }
+              );
+            } catch (error) {
+              console.error("Error unassigning operation on group delete:", error);
+
             }
-          );
-        } catch (error) {
-          console.error("Error unassigning operation:", error);
+          }
+          newUnassignedSerialOperations.push(...opsToMove.filter(op => op.SerialOrParallel === "0"));
+          newUnassignedParallelOperations.push(...opsToMove.filter(op => op.SerialOrParallel === "1"));
         }
       }
-      
-      // Update local state
-      setUnassignedOperations(prev => [...prev, ...operationsToMove]);
+
+      const newGroups = sourceData.groups.filter(group => group.ID !== groupId)
+                                        .map((group, index) => ({
+                                          ...group,
+                                          Index: String(index + 1),
+                                          SerialOperations: group.SerialOperations.map(op => ({ ...op, SequenceGroup: String(index + 1) })),
+                                          ParallelOperations: group.ParallelOperations.map(op => ({ ...op, SequenceGroup: String(index + 1) })),
+                                        }));
+
+      return {
+        ...sourceData,
+        groups: newGroups,
+        unassignedSerialOperations: newUnassignedSerialOperations,
+        unassignedParallelOperations: newUnassignedParallelOperations,
+      };
+    },
+    onSuccess: (newData, variables) => {
+      queryClient.setQueryData(
+        ["sequenceGroupsWithOperations", entityType, parentId, suuid],
+        newData
+      );
+      queryClient.invalidateQueries({
+        queryKey: ["sequenceGroupsWithOperations", entityType, parentId, suuid]
+      });
+      toast.success(t("group_deleted_successfully"));
+    },
+    onError: (error) => {
+        toast.error(t("failed_to_delete_group"));
+        console.error("Error deleting group:", error);
     }
-    
-    // Remove the group from local state
-    setReorderableGroups(prev => prev.filter(group => group.ID !== groupId));
-    
-    // Refresh queries to ensure data consistency
-    queryClient.invalidateQueries({ queryKey: ["entitiesOp", entityType, parentId] });
-    queryClient.invalidateQueries({ queryKey: ["entitiesSequenceGroup", entityType, parentId] });
+  });
+
+  const handleMoveOperation = (operationId: string, targetGroupId: string) => {
+    if (processedData) {
+      moveOperationMutation.mutate({ operationId, targetGroupId, sourceData: processedData });
+    }
   };
 
+  const handleReorderOperationsInGroup = (groupId: string, newOperations: Operation[], type: string) => {
+    if (processedData) {
+      reorderOperationsMutation.mutate({ groupId, newOperations, type, sourceData: processedData });
+    }
+  };
+
+  const handleReorderGroups = (newGroups: Group[]) => {
+    if (processedData) {
+      reorderGroupsMutation.mutate({ newGroups, sourceData: processedData });
+    }
+  };
+
+  const handleReorderUnassigned = (newOperations: Operation[], type: "serial" | "parallel") => {
+    if (processedData) {
+      reorderUnassignedMutation.mutate({ newOperations, type, sourceData: processedData });
+    }
+  };
+
+  const handleInputChange = (newInputValue: string) => {
+    if (processedData) {
+      updateInputMutation.mutate({ newInputValue, sourceData: processedData });
+    }
+  };
+
+  const handleGroupDelete = (groupId: string) => {
+    if (processedData) {
+      deleteGroupMutation.mutate({ groupId, sourceData: processedData });
+    }
+  };
+
+  if (!processedData) {
+    return <div>{t("loading")}...</div>;
+  }
+
   return (
-    <div className="grid grid-cols-2 px-5">
-      <ScrollArea className="h-[87.5vh]">
-        <div className="flex flex-col gap-3 p-8">
-          <h3 className="text-lg font-semibold mb-4">Unassigned Operations</h3>
-          
-          {/* Drop zone for unassigned operations */}
-          <div 
+    <div className="grid grid-cols-1 md:grid-cols-2 px-5 gap-x-5">
+      <ScrollArea className="h-[calc(100vh-var(--header-height,100px)-var(--footer-height,50px))]">
+        <div className="flex flex-col gap-3 p-4 md:p-8">
+          <h3 className="text-lg font-semibold mb-4">{t("unassigned_operations")}</h3>
+
+          <div
             className="min-h-[100px] border-2 border-dashed border-gray-300 rounded-lg p-4 mb-4 transition-all hover:border-gray-400"
             onDrop={(e) => {
               e.preventDefault();
+              e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
               const operationId = e.dataTransfer.getData('operationId');
               const sourceGroupId = e.dataTransfer.getData('sourceGroupId');
-              
-              if (operationId && sourceGroupId !== 'unassigned') {
-                moveOperationToGroup(operationId, 'unassigned');
+
+              if (operationId && sourceGroupId !== "") {
+                handleMoveOperation(operationId, "");
               }
             }}
             onDragOver={(e) => {
@@ -242,75 +474,134 @@ export function SequenceGroupView({
               }
             }}
           >
-            <Reorder.Group
-              values={unassignedOperations}
-              onReorder={setUnassignedOperations}
-              className="flex flex-col gap-3"
-            >
-              {unassignedOperations?.map((entity) => (
-                <Reorder.Item value={entity} key={entity.ID}>
-                  <OperationCard
-                    operation={entity}
-                    onMoveToGroup={moveOperationToGroup}
-                    currentGroupId="unassigned"
-                    availableGroups={reorderableGroups}
-                  />
-                </Reorder.Item>
-              ))}
-            </Reorder.Group>
-            
-            {unassignedOperations.length === 0 && (
-              <div className="text-center text-gray-400 py-8">
-                Drag operations here to unassign them
+            <div className="flex flex-col gap-4">
+              {/* Serial Operations Section */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2 border-b pb-1">
+                  {t("serial_operations")}
+                </h4>
+                {processedData.unassignedSerialOperations.length > 0 ? (
+                  <Reorder.Group
+                    axis="y"
+                    values={processedData.unassignedSerialOperations}
+                    onReorder={(newOrder) => handleReorderUnassigned(newOrder, "serial")}
+                    className="flex flex-col gap-2"
+                  >
+                    {processedData.unassignedSerialOperations.map((entity) => (
+                      <Reorder.Item value={entity} key={entity.ID} dragListener={true}>
+                        <OperationCard operation={entity} currentGroupId="" />
+                      </Reorder.Item>
+                    ))}
+                  </Reorder.Group>
+                ) : (
+                  <div className="text-center text-gray-400 py-4">
+                    {t("drag_serial_operations_here")}
+                  </div>
+                )}
               </div>
-            )}
+              {/* Parallel Operations Section */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2 border-b pb-1">
+                  {t("parallel_operations")}
+                </h4>
+                {processedData.unassignedParallelOperations.length > 0 ? (
+                  <Reorder.Group
+                    axis="y"
+                    values={processedData.unassignedParallelOperations}
+                    onReorder={(newOrder) => handleReorderUnassigned(newOrder, "parallel")}
+                    className="flex flex-col gap-2"
+                  >
+                    {processedData.unassignedParallelOperations.map((entity) => (
+                      <Reorder.Item value={entity} key={entity.ID} dragListener={true}>
+                        <OperationCard operation={entity} currentGroupId="" />
+                      </Reorder.Item>
+                    ))}
+                  </Reorder.Group>
+                ) : (
+                  <div className="text-center text-gray-400 py-4">
+                    {t("drag_parallel_operations_here")}
+                  </div>
+                )}
+              </div>
+              {/* "none" Operations Section */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2 border-b pb-1">
+                  {t("neither_operations")}
+                </h4>
+                {processedData.unassignedNoneOperations.length > 0 ? (
+                  <Reorder.Group
+                    axis="y"
+                    values={processedData.unassignedNoneOperations}
+                    onReorder={(newOrder) => handleReorderUnassigned(newOrder, "parallel")}
+                    className="flex flex-col gap-2"
+                    visibility="disabled"
+                  >
+                    {processedData.unassignedNoneOperations.map((entity) => (
+                      <Reorder.Item value={entity} key={entity.ID} dragListener={true}>
+                        <OperationCard operation={entity} currentGroupId="" />
+                      </Reorder.Item>
+                    ))}
+                  </Reorder.Group>
+                ) : (
+                  <div className="text-center text-gray-400 py-4">
+                    {t("drag_parallel_operations_here")}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </ScrollArea>
 
-      <ScrollArea className="h-[87.5vh]">
-        <div className="flex flex-col gap-3 p-8">
+      <ScrollArea className="h-[calc(100vh-var(--header-height,100px)-var(--footer-height,50px))]">
+        <div className="flex flex-col gap-3 p-4 md:p-8">
+          <h3 className="text-lg font-semibold mb-4">{t("sequence_groups")}</h3>
           <Reorder.Group
-            values={reorderableGroups}
-            onReorder={setReorderableGroups}
+            axis="y"
+            values={processedData.groups || []}
+            onReorder={handleReorderGroups}
             className="flex flex-col gap-3"
           >
-            {reorderableGroups.map((group, index) => (
-              <Reorder.Item value={group} key={group.ID}>
+            {(processedData.groups || []).map((group, index) => (
+              <Reorder.Item value={group} key={group.ID}
+                dragListener={true}
+              >
                 <SequenceGroupCard
-                  key={group.ID}
                   entityType={entityType}
                   group={group}
                   entityName={group.Name || t("unnamed_group")}
                   visualIndex={index + 1}
-                  onMoveOperation={moveOperationToGroup}
-                  onReorderOperations={reorderOperationsInGroup}
-                  availableGroups={reorderableGroups}
+                  onMoveOperation={handleMoveOperation}
+                  onReorderOperations={handleReorderOperationsInGroup}
+                  onDelete={handleGroupDelete}
                 />
               </Reorder.Item>
             ))}
           </Reorder.Group>
 
           <Input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Enter group name"
+            value={processedData.inputValue}
+            onChange={(e) => handleInputChange(e.target.value)}
+            placeholder={t("enter_group_name_placeholder")}
+            className="my-4"
           />
 
           <CreateSequenceGroupCard
-            name={t("Create Sequencegroup")}
+            name={t("create_sequence_group_button")}
             entityType={entityType}
             parentId={parentId}
-            sequenceGroupName={inputValue}
+            sequenceGroupName={processedData.inputValue}
+            currentGroupsCount={processedData.groups.length}
+            onGroupCreated={() => handleInputChange("")}
           />
-          <SubmitGroupsOrderButton 
-            reorderableGroups={reorderableGroups} 
-            unassignedOperations={unassignedOperations}
-            onSubmitComplete={() => {
-              // Refresh the data after submission
-              queryClient.invalidateQueries({ queryKey: ["entitiesOp", entityType, parentId] });
-              queryClient.invalidateQueries({ queryKey: ["entitiesSequenceGroup", entityType, parentId] });
-            }}
+
+          <SubmitGroupsOrderButton
+            reorderableGroups={processedData.groups || []}
+            unassignedSerialOperations={processedData.unassignedSerialOperations || []}
+            unassignedParallelOperations={processedData.unassignedParallelOperations || []}
+            entityType={entityType}
+            parentId={parentId}
+            stationSuuid={suuid}
           />
         </div>
       </ScrollArea>
@@ -320,33 +611,45 @@ export function SequenceGroupView({
 
 function OperationCard({
   operation,
-  onMoveToGroup,
   currentGroupId,
-  availableGroups,
 }: {
   operation: Operation;
-  onMoveToGroup: (operationId: string, targetGroupId: string) => void;
   currentGroupId: string;
-  availableGroups: Group[];
 }) {
   const { t } = useTranslation();
-  const [isDragging, setIsDragging] = useState(false);
+  const queryClient = useQueryClient();
+  const dragStateKey = ["dragState", operation.ID];
+
+  const { data: isDragging = false, refetch: refetchDragState } = useQuery({
+    queryKey: dragStateKey,
+    queryFn: () => false,
+    enabled: false,
+    staleTime: Infinity,
+  });
+
+  const setDragState = (dragging: boolean) => {
+    queryClient.setQueryData(dragStateKey, dragging);
+    refetchDragState();
+  };
+
 
   return (
     <Card
-      className={`w-full max-w-xs h-fit flex relative justify-center items-center hover:cursor-grab active:cursor-grabbing transition-all p-3 ${
-        isDragging ? 'opacity-50 scale-95' : 'hover:shadow-md'
+      className={`w-full max-w-md h-fit flex relative justify-center items-center hover:cursor-grab active:cursor-grabbing transition-all p-3 ${
+        isDragging ? 'opacity-50 scale-95 shadow-xl z-50' : 'hover:shadow-md'
       }`}
       draggable
       onDragStart={(e) => {
-        setIsDragging(true);
+        setDragState(true);
         e.dataTransfer.setData('operationId', operation.ID);
         e.dataTransfer.setData('sourceGroupId', currentGroupId);
         e.dataTransfer.effectAllowed = 'move';
       }}
-      onDragEnd={() => setIsDragging(false)}
+      onDragEnd={() => {
+        setDragState(false);
+      }}
     >
-      <div className="font-bold text-sm text-center">
+      <div className="font-semibold text-sm text-center truncate px-2">
         {operation.Name || t("unnamed_entity")}
       </div>
     </Card>
@@ -355,81 +658,120 @@ function OperationCard({
 
 export function SubmitGroupsOrderButton({
   reorderableGroups,
-  unassignedOperations,
-  onSubmitComplete
+  unassignedSerialOperations,
+  unassignedParallelOperations,
+  entityType,
+  parentId,
+  stationSuuid,
 }: {
   reorderableGroups: Group[];
-  unassignedOperations: Operation[];
-  onSubmitComplete: () => void;
+  unassignedSerialOperations: Operation[];
+  unassignedParallelOperations: Operation[];
+  entityType: string;
+  parentId: string;
+  stationSuuid: string;
 }) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
-  const handleClick = async () => {
-    setIsSubmitting(true);
-    try {
-      let countIndex = 1;
+  const submitMutation = useMutation({
+    mutationFn: async () => {
+      const promises = [];
 
-      // Update groups and their operations
-      for (const group of reorderableGroups) { 
-        await UpdateEntityFieldsString(
-          localStorage.getItem("name") || "", 
-          "sequencegroup", 
-          group.ID, 
-          group.UpdatedAt, 
-          { "Index": String(countIndex) }
+      for (const [groupIndex, group] of reorderableGroups.entries()) {
+        promises.push(
+          UpdateEntityFieldsString(
+            localStorage.getItem("name") || "",
+            "sequencegroup",
+            group.ID,
+            group.UpdatedAt,
+            { "Index": String(groupIndex + 1) }
+          )
         );
-        countIndex++;
 
-        let operationSequence = 1;
-        for (const op of group.Operations) {
-          await UpdateEntityFieldsString(
-            localStorage.getItem("name") || "", 
-            "operation", 
-            op.ID, 
-            op.UpdatedAt, 
-            { 
-              "Sequence": String(operationSequence),
-              "SequenceGroup": String(countIndex - 1), // Use the current group index
-              "GroupID": group.ID
-            }
+        for (const [opIndex, op] of group.SerialOperations.entries()) {
+          promises.push(
+            UpdateEntityFieldsString(
+              localStorage.getItem("name") || "",
+              "operation",
+              op.ID,
+              op.UpdatedAt,
+              {
+                "Sequence": String(opIndex + 1),
+                "SequenceGroup": String(groupIndex + 1),
+                "GroupID": group.ID
+              }
+            )
           );
-          operationSequence++;
+        }
+        for (const op of group.ParallelOperations) {
+          promises.push(
+            UpdateEntityFieldsString(
+              localStorage.getItem("name") || "",
+              "operation",
+              op.ID,
+              op.UpdatedAt,
+              {
+                "Sequence": "0",
+                "SequenceGroup": String(groupIndex + 1),
+                "GroupID": group.ID
+              }
+            )
+          );
         }
       }
 
-      // Update unassigned operations
-      for (const op of unassignedOperations) {
-        await UpdateEntityFieldsString(
-          localStorage.getItem("name") || "", 
-          "operation", 
-          op.ID, 
-          op.UpdatedAt, 
-          { 
-            "Sequence": "0",
-            "SequenceGroup": "", 
-            "GroupID": ""
-          }
+      for (const op of unassignedSerialOperations) {
+        promises.push(
+          UpdateEntityFieldsString(
+            localStorage.getItem("name") || "",
+            "operation",
+            op.ID,
+            op.UpdatedAt,
+            {
+              "Sequence": "",
+              "SequenceGroup": "",
+              "GroupID": ""
+            }
+          )
         );
       }
-
-      // Trigger data refresh
-      onSubmitComplete();
-      toast.success("Order changes submitted successfully!");
-    } catch (error) {
-      toast.error("Failed to submit order changes");
+      for (const op of unassignedParallelOperations) {
+        promises.push(
+          UpdateEntityFieldsString(
+            localStorage.getItem("name") || "",
+            "operation",
+            op.ID,
+            op.UpdatedAt,
+            {
+              "Sequence": "",
+              "SequenceGroup": "",
+              "GroupID": ""
+            }
+          )
+        );
+      }
+      await Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["sequenceGroupsWithOperations", entityType, parentId, stationSuuid]
+      });
+      toast.success(t("order_changes_submitted_successfully"));
+    },
+    onError: (error) => {
+      toast.error(t("failed_to_submit_order_changes"));
       console.error("Error submitting order changes:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+  });
 
   return (
-    <Button 
-      onClick={handleClick} 
-      className="w-full" 
-      disabled={isSubmitting}
+    <Button
+      onClick={() => submitMutation.mutate()}
+      className="w-full mt-6"
+      disabled={submitMutation.isPending}
     >
-      {isSubmitting ? "Submitting..." : "Submit Order Changes"}
+      {submitMutation.isPending ? t("submitting") + "..." : t("submit_order_changes_button")}
     </Button>
   );
 }
@@ -439,112 +781,162 @@ function CreateSequenceGroupCard({
   entityType,
   parentId,
   sequenceGroupName,
+  currentGroupsCount,
+  onGroupCreated
 }: {
-  name: string;
+  name:string;
   entityType: string;
   parentId: string;
   sequenceGroupName: string;
+  currentGroupsCount: number;
+  onGroupCreated: () => void;
 }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const { suuid } = useParams<{ suuid: string }>();
 
-  const { mutateAsync: createEntity } = useMutation({
-    mutationFn: ({
-      username,
-      entityType,
-      parentId,
-      sequenceGroupName,
-    }: {
+
+  const { mutateAsync: createEntity, isPending } = useMutation({
+    mutationFn: (data: {
       username: string;
       entityType: string;
       parentId: string;
       sequenceGroupName: string;
+      index: string;
     }) => {
-      return CreateEntity(username, entityType, parentId, sequenceGroupName);
+
+      return CreateEntity(data.username, data.entityType, data.parentId, data.sequenceGroupName);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries();
-      toast.success(`${t(entityType)} ${t("CreateToast")}`);
+      queryClient.invalidateQueries({
+        queryKey: ["sequenceGroupsWithOperations", entityType, parentId, suuid]
+      });
+      toast.success(`${t(entityType)} ${t("create_toast")}`);
+      onGroupCreated();
     },
+    onError: (error: any) => {
+        toast.error(`${t("failed_to_create")} ${t(entityType)}: ${error.message || t("unknown_error")}`);
+    }
   });
 
+  const handleCreate = async () => {
+    if (!sequenceGroupName.trim()) {
+        toast.info(t("please_enter_group_name"));
+        return;
+    }
+    await createEntity({
+      username: String(localStorage.getItem("name")),
+      entityType: entityType,
+      parentId: parentId,
+      sequenceGroupName: sequenceGroupName,
+      index: String(currentGroupsCount + 1)
+    });
+  };
+
   return (
-    <Card
-      className="w-36 h-fit flex relative justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all"
-      onClick={async () =>
-        await createEntity({
-          username: String(localStorage.getItem("name")),
-          entityType: entityType,
-          parentId: parentId,
-          sequenceGroupName: sequenceGroupName,
-        })
-      }
+    <Button
+      variant="outline"
+      className="w-full"
+      onClick={handleCreate}
+      disabled={isPending}
     >
-      <Button variant="ghost" size="icon" className="hover:bg-card">
-        {name}
-      </Button>
-    </Card>
+      {isPending ? t("creating") + "..." : name}
+    </Button>
   );
 }
 
 function SequenceGroupCard({
-  entityType,
   group,
   entityName,
   visualIndex,
   onMoveOperation,
   onReorderOperations,
-  availableGroups,
+  onDelete,
 }: {
   entityType: string;
   group: Group;
   entityName: string;
   visualIndex: number;
   onMoveOperation: (operationId: string, targetGroupId: string) => void;
-  onReorderOperations: (groupId: string, newOperations: Operation[]) => void;
-  availableGroups: Group[];
+  onReorderOperations: (groupId: string, newOperations: Operation[], type: string) => void;
+  onDelete: (groupId: string) => void;
 }) {
   const { t } = useTranslation();
-  const [key, setKey] = useState(0);
-  const [isDragOver, setIsDragOver] = useState(false);
+  const queryClient = useQueryClient();
+  const dragOverStateKey = ["dragOverState", group.ID];
 
-  const handleDrop = (e: React.DragEvent) => {
+  const { data: isDragOver = false } = useQuery({
+    queryKey: dragOverStateKey,
+    queryFn: () => false,
+    staleTime: Infinity,
+    enabled: false,
+  });
+
+  const setDragOverState = (dragOver: boolean) => {
+    queryClient.setQueryData(dragOverStateKey, dragOver);
+  };
+
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragOver(false);
-    
+    e.stopPropagation();
+    setDragOverState(false);
+    e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+
+
     const operationId = e.dataTransfer.getData('operationId');
     const sourceGroupId = e.dataTransfer.getData('sourceGroupId');
-    
+
     if (operationId && sourceGroupId !== group.ID) {
       onMoveOperation(operationId, group.ID);
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
   };
 
-  const handleDragEnter = (e: React.DragEvent) => {
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    // Only set drag over to false if we're leaving the card entirely
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setIsDragOver(false);
+    e.stopPropagation();
+    if (e.target === e.currentTarget) {
+        setDragOverState(true);
+        e.currentTarget.classList.add('border-blue-400', 'bg-blue-50');
     }
   };
 
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+        setDragOverState(false);
+        e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+    }
+  };
+
+  // NEW: Handler for moving operations up or down with buttons
+  const handleMoveOperationUpDown = (direction: 'up' | 'down', index: number) => {
+    const newOperations = [...group.SerialOperations];
+    const opToMove = newOperations[index];
+
+    if (direction === 'up' && index > 0) {
+      newOperations[index] = newOperations[index - 1];
+      newOperations[index - 1] = opToMove;
+    } else if (direction === 'down' && index < newOperations.length - 1) {
+      newOperations[index] = newOperations[index + 1];
+      newOperations[index + 1] = opToMove;
+    } else {
+      return;
+    }
+    onReorderOperations(group.ID, newOperations, "0");
+  };
+
+
   return (
-    <Card 
-      className={`w-full h-fit flex flex-col relative p-4 transition-all border-2 ${
-        isDragOver 
-          ? 'border-blue-400 bg-blue-50 shadow-lg scale-[1.02]' 
-          : 'border-dashed border-gray-300 hover:border-gray-400'
-      }`}
+    <Card
+      className="w-full h-fit flex flex-col relative p-4 transition-all border-2 border-dashed border-gray-300 hover:border-gray-400"
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
@@ -552,51 +944,115 @@ function SequenceGroupCard({
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="text-lg font-bold">{visualIndex}</div>
+          <div className="text-xl font-bold bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center">
+            {visualIndex}
+          </div>
           <CardTitle className="text-lg">{entityName || t("unnamed_group")}</CardTitle>
         </div>
-        
-            <DeleteEntityDialog
-              entityType={entityType}
-              entityId={group.ID}
-              onClose={() => setKey((k) => k + 1)}
-            />
-          
-        
+
+        <DeleteEntityDialog
+          entityType={"sequencegroup"}
+          entityId={group.ID}
+          onClose={() => onDelete(group.ID)}
+        />
       </div>
 
-      {/* Operations within the group */}
-      <div className="flex flex-col gap-2">
-        <div className="text-sm text-gray-600 mb-2">
-          Operations ({group.Operations.length})
+      {/* Serial Operations */}
+      <div className="mb-6">
+        <div className="text-sm font-medium text-gray-700 mb-2 border-b pb-1">
+          {t("serial_operations")} ({group.SerialOperations.length})
         </div>
-        
-        {group.Operations.length > 0 ? (
-          <div className="space-y-2">
-            <Reorder.Group
-              values={group.Operations}
-              onReorder={(newOperations) => onReorderOperations(group.ID, newOperations)}
-              className="flex flex-col gap-2"
-            >
-              {group.Operations.map((operation) => (
-                <Reorder.Item value={operation} key={operation.ID}>
+        {group.SerialOperations.length > 0 ? (
+          <Reorder.Group
+            axis="y"
+            values={group.SerialOperations}
+            onReorder={(newOperations) => onReorderOperations(group.ID, newOperations, "0")}
+            className="flex flex-col gap-2 pl-2"
+          >
+            {group.SerialOperations.map((operation, opIndex) => (
+              <Reorder.Item value={operation} key={operation.ID}
+                dragListener={true}
+              >
+                {/* MODIFIED: Flex container for order number, card, and buttons */}
+                <div className="flex items-center gap-2 w-full">
+                  <span className="text-xs text-gray-500 w-4 text-right">{opIndex + 1}.</span>
+                  <div className="flex-grow">
+                    <OperationCard
+                      operation={operation}
+                      currentGroupId={group.ID}
+                    />
+                  </div>
+                  {/* NEW: Up and Down buttons */}
+                  <div className="flex flex-col">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleMoveOperationUpDown('up', opIndex)}
+                      disabled={opIndex === 0}
+                      aria-label={t('move_up')}
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleMoveOperationUpDown('down', opIndex)}
+                      disabled={opIndex === group.SerialOperations.length - 1}
+                      aria-label={t('move_down')}
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Reorder.Item>
+            ))}
+          </Reorder.Group>
+        ) : (
+          <div className={`text-center py-6 border-2 border-dashed rounded transition-all text-gray-400 ${
+            isDragOver && !group.SerialOperations.length
+              ? 'border-blue-400 bg-blue-100 text-blue-600'
+              : 'border-gray-200'
+          }`}>
+            {isDragOver && !group.SerialOperations.length ? t("drop_operation_here") : t("drag_serial_operations_here")}
+          </div>
+        )}
+      </div>
+
+      {/* Parallel Operations */}
+      <div>
+        <div className="text-sm font-medium text-gray-700 mb-2 border-b pb-1">
+          {t("parallel_operations")} ({group.ParallelOperations.length})
+        </div>
+        {group.ParallelOperations.length > 0 ? (
+          <Reorder.Group
+            axis="y"
+            values={group.ParallelOperations}
+            onReorder={(newOperations) => onReorderOperations(group.ID, newOperations, 'parallel')}
+            className="flex flex-col gap-2 pl-2"
+          >
+            {group.ParallelOperations.map((operation) => (
+              <Reorder.Item value={operation} key={operation.ID}
+                dragListener={true}
+              >
+                 <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 w-4 text-center">||</span> {/* Parallel icon */}
                   <OperationCard
                     operation={operation}
-                    onMoveToGroup={onMoveOperation}
                     currentGroupId={group.ID}
-                    availableGroups={availableGroups}
                   />
-                </Reorder.Item>
-              ))}
-            </Reorder.Group>
-          </div>
+                </div>
+              </Reorder.Item>
+            ))}
+          </Reorder.Group>
         ) : (
-          <div className={`text-center py-8 border-2 border-dashed rounded transition-all ${
-            isDragOver 
-              ? 'border-blue-400 bg-blue-100 text-blue-600' 
-              : 'border-gray-200 text-gray-400'
+          <div className={`text-center py-6 border-2 border-dashed rounded transition-all text-gray-400 ${
+            isDragOver && !group.ParallelOperations.length
+              ? 'border-blue-400 bg-blue-100 text-blue-600'
+              : 'border-gray-200'
           }`}>
-            {isDragOver ? 'Drop operation here' : 'Drag operations here'}
+            {isDragOver && !group.ParallelOperations.length ? t("drop_operation_here") : t("drag_parallel_operations_here")}
           </div>
         )}
       </div>
