@@ -676,22 +676,25 @@ export function SubmitGroupsOrderButton({
 
   const submitMutation = useMutation({
     mutationFn: async () => {
-      const promises = [];
 
-      for (const [groupIndex, group] of reorderableGroups.entries()) {
-        promises.push(
-          UpdateEntityFieldsString(
+
+      // Process groups and their operations
+      reorderableGroups.forEach(async(group, groupIndex) => {
+        // Update group index
+        
+          await UpdateEntityFieldsString(
             localStorage.getItem("name") || "",
             "sequencegroup",
             group.ID,
             group.UpdatedAt,
             { "Index": String(groupIndex + 1) }
-          )
+          
         );
 
-        for (const [opIndex, op] of group.SerialOperations.entries()) {
-          promises.push(
-            UpdateEntityFieldsString(
+        // Process serial operations
+        group.SerialOperations.forEach(async(op, opIndex) => {
+          
+            await UpdateEntityFieldsString(
               localStorage.getItem("name") || "",
               "operation",
               op.ID,
@@ -702,11 +705,13 @@ export function SubmitGroupsOrderButton({
                 "GroupID": group.ID
               }
             )
-          );
-        }
-        for (const op of group.ParallelOperations) {
-          promises.push(
-            UpdateEntityFieldsString(
+          
+        });
+
+        // Process parallel operations
+        group.ParallelOperations.forEach(async op => {
+          
+            await UpdateEntityFieldsString(
               localStorage.getItem("name") || "",
               "operation",
               op.ID,
@@ -717,13 +722,14 @@ export function SubmitGroupsOrderButton({
                 "GroupID": group.ID
               }
             )
-          );
-        }
-      }
+          
+        });
+      });
 
-      for (const op of unassignedSerialOperations) {
-        promises.push(
-          UpdateEntityFieldsString(
+      // Process unassigned operations
+      unassignedSerialOperations.forEach(async op => {
+        
+          await UpdateEntityFieldsString(
             localStorage.getItem("name") || "",
             "operation",
             op.ID,
@@ -734,11 +740,12 @@ export function SubmitGroupsOrderButton({
               "GroupID": ""
             }
           )
-        );
-      }
-      for (const op of unassignedParallelOperations) {
-        promises.push(
-          UpdateEntityFieldsString(
+        
+      });
+
+      unassignedParallelOperations.forEach(async op => {
+        
+          await UpdateEntityFieldsString(
             localStorage.getItem("name") || "",
             "operation",
             op.ID,
@@ -749,9 +756,9 @@ export function SubmitGroupsOrderButton({
               "GroupID": ""
             }
           )
-        );
-      }
-      await Promise.all(promises);
+        
+      });
+
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
