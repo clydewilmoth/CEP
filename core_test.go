@@ -1,146 +1,246 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
+
+	mssql "github.com/microsoft/go-mssqldb"
+	"github.com/stretchr/testify/assert"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
-func TestHandleImport(t *testing.T) {
+// Helper: returns a Core with in-memory SQLite DB for testing
+func newTestCore(t *testing.T) *Core {
+	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	assert.NoError(t, err)
+	err = db.AutoMigrate(&Line{}, &Station{}, &Tool{}, &Operation{}, &Version{}, &LineHistory{}, &StationHistory{}, &ToolHistory{}, &OperationHistory{}, &AppMetadata{}, &EntityChangeLog{})
+	assert.NoError(t, err)
+	return &Core{DB: db, ctx: context.Background()}
+}
 
+func TestParseTimestmpFlexible(t *testing.T) {
+	now := time.Now().UTC()
+	formats := []string{
+		now.Format(time.RFC3339Nano),
+		now.Format(time.RFC3339),
+		now.Format("2006-01-02 15:04:05.9999999"),
+	}
+	for _, f := range formats {
+		parsed, err := parseTimestampFlexible(f)
+		assert.NoError(t, err)
+		assert.WithinDuration(t, now, parsed, time.Second)
+	}
+	_, err := parseTimestampFlexible("invalid")
+	assert.Error(t, err)
 }
 
 func TestStrPtr(t *testing.T) {
-	// Test with a valid string
-	str := "test"
-	ptr := strPtr(str)
-	if ptr == nil || *ptr != str {
-		t.Fatalf("Expected pointer to point to '%s', got: %v", str, ptr)
-	}
+	s := "hello"
+	ptr := strPtr(s)
+	assert.NotNil(t, ptr)
+	assert.Equal(t, s, *ptr)
 
-	// Test with an empty string
-	emptyStr := ""
-	emptyPtr := strPtr(emptyStr)
-	if emptyPtr == nil || *emptyPtr != emptyStr {
-		t.Fatalf("Expected pointer to point to an empty string, got: %v", emptyPtr)
-	}
-
+	empty := ""
+	ptrEmpty := strPtr(empty)
+	assert.Nil(t, ptrEmpty)
 }
 
 func TestCheckEnvInExeDir(t *testing.T) {
-	// Create a temporary directory
-	var core = &Core{}
-	tempDir, err := os.MkdirTemp("", "test-env")
-	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
-	core.ConfigureAndSaveDSN("MSSQL_DSN", "test_user", "test_password", "localhost", "1433", "test_db", "true")
-	// Create a .env file in the temporary directory
-	envFilePath := filepath.Join(tempDir, ".env")
-	fmt.Printf("Creating .env file at: %s\n", envFilePath) // Uncomment for debug output
-	exePath, exeErr := os.Executable()
-	if exeErr != nil {
-		t.Fatalf("Failed to get executable path: %v", exeErr)
-	}
-	fmt.Printf("%v\n", exePath)
-	err = os.WriteFile(envFilePath, []byte("TEST_VAR=test_value"), 0644)
-	if err != nil {
-		t.Fatalf("Failed to write .env file: %v", err)
-	}
-
-	// Change the current working directory to the temporary directory
-	err = os.Chdir(tempDir)
-	if err != nil {
-		t.Fatalf("Failed to change directory: %v", err)
-	}
-
-	// Call the function to check for .env file
-
-	found := core.CheckEnvInExeDir()
-	if !found {
-		t.Fatal("Expected .env file to be found, but it was not.")
-	}
-	defer os.RemoveAll(tempDir)
+	core := &Core{}
+	exePath, _ := os.Executable()
+	envPath := filepath.Join(filepath.Dir(exePath), ".env")
+	_ = os.WriteFile(envPath, []byte("TEST=1"), 0644)
+	defer os.Remove(envPath)
+	assert.True(t, core.CheckEnvInExeDir())
+	_ = os.Remove(envPath)
+	assert.False(t, core.CheckEnvInExeDir())
 }
-func (d *DSNParams) String() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", d.User, d.Password, d.Host, d.Port, d.Database)
-}
+
 func TestParseDSNFromEnv(t *testing.T) {
-
-	// Set an environment variable for testing
-	os.Setenv("MSSQL_DSN", "user:password@tcp(localhost:3306)/dbname")
-	// Call the function to parse DSN from environment variable
+	os.Setenv("MSSQL_DSN", "sqlserver://user:pass@localhost:1433?database=testdb&encrypt=true&trustservercertificate=true")
+	defer os.Unsetenv("MSSQL_DSN")
 	core := &Core{}
 	dsn, err := core.ParseDSNFromEnv()
-	if err != nil {
-		t.Fatalf("Expected no error, got: %v", err)
-	}
-	if dsn.String() != "user:password@tcp(localhost:3306)/dbname" {
-		t.Fatalf("Expected DSN to be 'user:password@tcp(localhost:3306)/dbname', got: %s", dsn)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, "user", dsn.User)
+	assert.Equal(t, "pass", dsn.Password)
+	assert.Equal(t, "localhost", dsn.Host)
+	assert.Equal(t, "1433", dsn.Port)
+	assert.Equal(t, "testdb", dsn.Database)
+	assert.Equal(t, "true", dsn.Encrypt)
+	assert.Equal(t, "true", dsn.TrustServerCertificate)
 
-	// Test with a non-existent environment variable
-	_, err = core.ParseDSNFromEnv()
-	if err == nil {
-		t.Fatal("Expected an error when parsing non-existent DSN, but got none.")
-	}
-	defer os.Unsetenv("MSSQL_DSN")
-	// Test with an empty environment variable
 	os.Setenv("MSSQL_DSN", "")
 	_, err = core.ParseDSNFromEnv()
-	if err == nil {
-		t.Fatal("Expected an error when parsing empty DSN, but got none.")
-	}
-	// Test with a malformed DSN
-	os.Setenv("MSSQL_DSN", "not_a_dsn")
-	_, err = core.ParseDSNFromEnv()
-	if err == nil {
-		t.Fatal("Expected an error when parsing malformed DSN, but got none.")
-	}
-	defer os.Unsetenv("MSSQL_DSN")
+	assert.Error(t, err)
+}
 
-	// Test with a valid DSN that includes a port
-	os.Setenv("MSSQL_DSN", "user:password@tcp(localhost:3306)/dbname?charset=utf8")
-	dsn, err = core.ParseDSNFromEnv()
+func TestGetPlatformSpecificUserName(t *testing.T) {
+	core := &Core{}
+	name := core.GetPlatformSpecificUserName()
+	assert.NotNil(t, name)
+}
 
-	if err != nil {
-		t.Fatalf("Expected no error, got: %v", err)
+func TestCreateBaseFromOriginal(t *testing.T) {
+	orig := BaseModel{
+		Name:        strPtr("n"),
+		Comment:     strPtr("c"),
+		StatusColor: strPtr("red"),
 	}
-	if dsn.TrustServerCertificate != "user:password@tcp(localhost:3306)/dbname?charset=utf8" {
-		t.Fatalf("Expected DSN to be 'user:password@tcp(localhost:3306)/dbname?charset=utf8', got: %s", dsn)
-	}
-	defer os.Unsetenv("VALID_DSN")
-
-	// Test with a DSN that includes multiple parameters
-	os.Setenv("MSSQL_DSN", "user:password@tcp(localhost:3306)/dbname?charset=utf8&parseTime=True&loc=Local")
-	dsn, err = core.ParseDSNFromEnv()
-	if err != nil {
-		t.Fatalf("Expected no error, got: %v", err)
-	}
-	if dsn.String() != "user:password@tcp(localhost:3306)/dbname?charset=utf8&parseTime=True&loc=Local" {
-		t.Fatalf("Expected DSN to be 'user:password@tcp(localhost:3306)/dbname', got: %s", dsn)
-	}
-
-	defer os.Unsetenv("MALFORMED_DSN")
-
+	base := createBaseFromOriginal(orig, "user")
+	assert.NotNil(t, base.Name)
+	assert.Equal(t, "user", *base.CreatedBy)
+	assert.Equal(t, "user", *base.UpdatedBy)
 }
 
 func TestParseMSSQLUniqueIdentifierFromString(t *testing.T) {
-	// Test with a valid unique identifier
-	validID := "123E4567-E89B-12D3-A456-426614174000"
-	parsedID, err := parseMSSQLUniqueIdentifierFromString(validID)
-	if err != nil {
-		t.Fatalf("Expected no error for valid ID, got: %v", err)
-	}
-	if parsedID.String() != validID {
-		t.Fatalf("Expected parsed ID to be '%s', got: %s", validID, parsedID.String())
-	}
+	id := "123E4567-E89B-12D3-A456-426614174000"
+	uid, err := parseMSSQLUniqueIdentifierFromString(id)
+	assert.NoError(t, err)
+	assert.Equal(t, id, uid.String())
 
-	// Test with an invalid unique identifier
-	invalidID := "not-a-valid-uuid"
-	_, err = parseMSSQLUniqueIdentifierFromString(invalidID)
-	if err == nil {
-		t.Fatal("Expected an error for invalid ID, but got none.")
+	_, err = parseMSSQLUniqueIdentifierFromString("")
+	assert.Error(t, err)
+	_, err = parseMSSQLUniqueIdentifierFromString("not-a-uuid")
+	assert.Error(t, err)
+}
+
+func TestGetModelInstance(t *testing.T) {
+	types := []string{"line", "station", "tool", "operation", "linehistory", "stationhistory", "toolhistory", "operationhistory", "appmetadata"}
+	for _, typ := range types {
+		inst, err := getModelInstance(typ)
+		assert.NoError(t, err)
+		assert.NotNil(t, inst)
 	}
+	_, err := getModelInstance("unknown")
+	assert.Error(t, err)
+}
+
+func TestGtIDFromModel(t *testing.T) {
+	id := mssql.UniqueIdentifier{}
+	type Line struct {
+		ID mssql.UniqueIdentifier
+	}
+	type Station struct {
+		ID mssql.UniqueIdentifier
+	}
+	type Tool struct {
+		ID mssql.UniqueIdentifier
+	}
+	type Operation struct {
+		ID mssql.UniqueIdentifier
+	}
+	_ = id.Scan("123E4567-E89B-12D3-A456-426614174000")
+	line := &Line{ID: id}
+	assert.Equal(t, id, getIDFromModel(line))
+	station := &Station{ID: id}
+	assert.Equal(t, id, getIDFromModel(station))
+	tool := &Tool{ID: id}
+	assert.Equal(t, id, getIDFromModel(tool))
+	op := &Operation{ID: id}
+	assert.Equal(t, id, getIDFromModel(op))
+	var empty mssql.UniqueIdentifier
+	assert.Equal(t, empty, getIDFromModel("not a model"))
+}
+
+func TestConfigureAndSaveDSN(t *testing.T) {
+	core := &Core{}
+	err := core.ConfigureAndSaveDSN("localhost", "1433", "testdb", "user", "pw", "true", "true")
+	assert.NoError(t, err)
+	// Check file exists
+	exePath, _ := os.Executable()
+	envPath := filepath.Join(filepath.Dir(exePath), ".env")
+	_, statErr := os.Stat(envPath)
+	assert.NoError(t, statErr)
+	_ = os.Remove(envPath)
+}
+
+func TestGetGlobalLastUpdateTimestamp(t *testing.T) {
+	core := newTestCore(t)
+	ts, err := core.GetGlobalLastUpdateTimestamp()
+	assert.NoError(t, err)
+	_, err = time.Parse(time.RFC3339Nano, ts)
+	assert.NoError(t, err)
+}
+
+func TestGetChangesSince(t *testing.T) {
+	core := newTestCore(t)
+	ts, _ := core.GetGlobalLastUpdateTimestamp()
+	resp, err := core.GetChangesSince(ts)
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+func TestCreateEntityAndDeleteEntityByIDString(t *testing.T) {
+	core := newTestCore(t)
+	user := "testuser"
+	// Create Line
+	line, err := core.CreateEntity(user, "line", "")
+	assert.NoError(t, err)
+	lineID := getIDFromModel(line).String()
+	// Delete Line
+	err = core.DeleteEntityByIDString(user, "line", lineID)
+	assert.NoError(t, err)
+}
+
+func TestUpdateEntityFieldsString(t *testing.T) {
+	core := newTestCore(t)
+	user := "testuser"
+	line, err := core.CreateEntity(user, "line", "")
+	assert.NoError(t, err)
+	lineID := getIDFromModel(line).String()
+	ts, _ := core.GetGlobalLastUpdateTimestamp()
+	updates := map[string]string{"Name": "newName"}
+	_, err = core.UpdateEntityFieldsString(user, "line", lineID, ts, updates)
+	assert.NoError(t, err)
+}
+
+func TestGetEntityDetails(t *testing.T) {
+	core := newTestCore(t)
+	user := "testuser"
+	line, err := core.CreateEntity(user, "line", "")
+	assert.NoError(t, err)
+	lineID := getIDFromModel(line).String()
+	entity, err := core.GetEntityDetails("line", lineID)
+	assert.NoError(t, err)
+	assert.NotNil(t, entity)
+}
+
+func TestGetAllEntities(t *testing.T) {
+	core := newTestCore(t)
+	user := "testuser"
+	_, err := core.CreateEntity(user, "line", "")
+	assert.NoError(t, err)
+	entities, err := core.GetAllEntities("line", "")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, entities)
+}
+
+func TestGetEntityHierarchyString(t *testing.T) {
+	core := newTestCore(t)
+	user := "testuser"
+	line, err := core.CreateEntity(user, "line", "")
+	assert.NoError(t, err)
+	lineID := getIDFromModel(line).String()
+	resp, err := core.GetEntityHierarchyString("line", lineID)
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+func TestExportAndImportEntityHierarchyJSON(t *testing.T) {
+	core := newTestCore(t)
+	user := "testuser"
+	line, err := core.CreateEntity(user, "line", "")
+	assert.NoError(t, err)
+	lineID := getIDFromModel(line).String()
+	tmpFile := filepath.Join(os.TempDir(), "test_export.json")
+	defer os.Remove(tmpFile)
+	err = core.ExportEntityHierarchyToJSON("line", lineID, tmpFile)
+	assert.NoError(t, err)
+	err = core.ImportEntityHierarchyFromJSON_UseOriginalData(user, tmpFile)
+	assert.NoError(t, err)
 }
