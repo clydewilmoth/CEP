@@ -290,7 +290,24 @@ func TestGetEntityHierarchyString(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 }
-
+func TestDeleteEntityByIDString(t *testing.T) {
+	core := newTestCore(t)
+	user := "testuser"
+	line, err := core.CreateEntity(user, "line", "")
+	lineID := getIDFromModel(line).String()
+	assert.NoError(t, err)
+	core.DeleteEntityByIDString(user, "line", lineID)
+	assert.NoError(t, err)
+	// Check if the entity is deleted
+	_, err = core.GetEntityDetails("line", lineID)
+	assert.Error(t, err, "Expected error when fetching deleted entity")
+	// Check if the entity is not in the list of all entities
+	entities, err := core.GetAllEntities("line", "")
+	assert.NoError(t, err)
+	for _, entity := range entities {
+		assert.NotEqual(t, lineID, getIDFromModel(entity).String(), "Deleted entity should not be in the list")
+	}
+}
 func TestExportAndImportEntityHierarchyJSON(t *testing.T) {
 	core := newTestCore(t)
 	user := "testuser"
@@ -311,4 +328,58 @@ func TestExportAndImportEntityHierarchyJSON(t *testing.T) {
 	err = core.ExportEntityHierarchyToJSON("line", lineID2, tmpFile2)
 	core.DeleteEntityByIDString(user, "line", lineID2)
 	assert.NoError(t, err)
+}
+func TestSetupBroker_Success(t *testing.T) {
+	// This test assumes a running SQL Server instance and correct DB credentials in env.
+	core := newTestCore(t)
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		t.Skip("DB_NAME not set in environment, skipping integration test")
+	}
+	queue, service, err := setupBroker(core.DB, dbName)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, queue)
+	assert.NotEmpty(t, service)
+}
+
+func TestCore_InitDB_Success(t *testing.T) {
+	core := newTestCore(t)
+	// Set a logger level
+	os.Setenv("GORM_LOGGER_LEVEL", "silent")
+	defer os.Unsetenv("GORM_LOGGER_LEVEL")
+
+	core.ctx = context.Background()
+
+	result := core.InitDB()
+	assert.NotEmpty(t, result)
+
+	// Check if the environment variables are set correctly
+	assert.Equal(t, "InitSuccess", result)
+	// Check if the DB connection is established
+	db, err := core.DB.DB()
+	assert.NoError(t, err)
+	assert.NotNil(t, db)
+}
+
+func TestCore_InitDB_MissingDSN(t *testing.T) {
+	core := &Core{}
+	os.Unsetenv("MSSQL_DSN")
+	result := core.InitDB()
+	assert.Equal(t, "InitError", result)
+}
+
+func TestCore_InitDB_InvalidDSN(t *testing.T) {
+	core := &Core{}
+	os.Setenv("MSSQL_DSN", "invalid_dsn")
+	defer os.Unsetenv("MSSQL_DSN")
+	result := core.InitDB()
+	assert.Equal(t, "InitError", result)
+}
+func TestCore_InitDB_DBError(t *testing.T) {
+	core := &Core{}
+	// Set a bad DSN to simulate a DB connection error
+	os.Setenv("MSSQL_DSN", "sqlserver://baduser:badpass@localhost:1433?database=doesnotexist")
+	defer os.Unsetenv("MSSQL_DSN")
+	result := core.InitDB()
+	assert.Equal(t, "InitError", result)
 }
