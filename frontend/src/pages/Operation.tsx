@@ -48,11 +48,7 @@ export default function Operations() {
       </ResizablePanel>
       <ResizableHandle disabled />
       <ResizablePanel>
-        <div className="p-8 bg-muted h-screen w-full flex flex-col gap-5">
-          <div className="grid grid-cols-2">
-            <h1 className="text-xl font-bold">{t("Operations Unassigned")}</h1>
-            <h1 className="text-xl font-bold">{t("SequenceGroups")}</h1>
-          </div>
+        <div className="p-8 bg-muted h-screen w-full">
           <SequenceGroupView entityType="sequencegroup" parentId={suuid} />
         </div>
       </ResizablePanel>

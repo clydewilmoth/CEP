@@ -4,6 +4,7 @@ import {
   GetOperationsByStation,
   CreateEntitySequenceGroup,
   UpdateEntityFieldsStringSequenceGroup,
+  GetEntityDetails,
 } from "../../../wailsjs/go/main/Core";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -14,8 +15,9 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { DeleteEntityDialog } from "./EntityCollection";
 import { ScrollArea } from "../ui/scroll-area";
 import { Reorder } from "framer-motion";
-import React from "react";
-import { ChevronUp, ChevronDown } from "lucide-react"; // Added for up/down buttons
+import React, { useEffect, useState } from "react";
+import { ChevronUp, ChevronDown, Info } from "lucide-react"; // Added for up/down buttons
+import { Loader } from "../ui/loader";
 
 type Group = {
   ID: string;
@@ -554,197 +556,249 @@ export function SequenceGroupView({
     }
   };
 
+  const [stationType, setStationType] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const { StationType } = await GetEntityDetails("station", suuid);
+      setStationType(StationType ?? "");
+      setLoading(false);
+    })();
+  }, []);
+
   if (!processedData) {
     return <div>{t("loading")}...</div>;
   }
 
   return (
-    <div className="grid grid-cols-2">
-      <ScrollArea className="h-[calc(100vh-var(--header-height,100px)-var(--footer-height,50px))]">
-        <div className="flex flex-col gap-3 w-[90%]">
-          <div
-            className="min-h-[100px] border-2 border-dashed border-gray-300 rounded-lg p-4 mb-4 transition-all hover:border-gray-400"
-            onDrop={(e) => {
-              e.preventDefault();
-              e.currentTarget.classList.remove("border-blue-400", "bg-blue-50");
-              const operationId = e.dataTransfer.getData("operationId");
-              const sourceGroupId = e.dataTransfer.getData("sourceGroupId");
+    <>
+      {loading ? (
+        <Loader />
+      ) : stationType == "" || stationType == "none" ? (
+        <div className="text-sm font-semibold max-w-lg bg-card border p-4 flex flex-col gap-3 rounded-lg">
+          {t("StationType Unassigned")}
+        </div>
+      ) : stationType == "0" ? (
+        <div className="text-sm font-semibold max-w-lg bg-card border p-4 flex flex-col gap-3 rounded-lg">
+          {t("StationType Datapump")}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2">
+          <ScrollArea className="h-[90vh]">
+            <div className="flex flex-col gap-5 w-[90%]">
+              <h1 className="text-xl font-bold">
+                {t("Operations Unassigned")}
+              </h1>
+              <div
+                className="min-h-[100px] border-2 border-dashed border-gray-300 rounded-lg p-4 mb-4 transition-all hover:border-gray-400"
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.remove(
+                    "border-blue-400",
+                    "bg-blue-50"
+                  );
+                  const operationId = e.dataTransfer.getData("operationId");
+                  const sourceGroupId = e.dataTransfer.getData("sourceGroupId");
 
-              if (operationId && sourceGroupId !== "") {
-                handleMoveOperation(operationId, "");
-              }
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.dataTransfer.dropEffect = "move";
-            }}
-            onDragEnter={(e) => {
-              e.preventDefault();
-              e.currentTarget.classList.add("border-blue-400", "bg-blue-50");
-            }}
-            onDragLeave={(e) => {
-              e.preventDefault();
-              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                e.currentTarget.classList.remove(
-                  "border-blue-400",
-                  "bg-blue-50"
-                );
-              }
-            }}
-          >
-            <div className="flex flex-col gap-4">
-              {/* Serial Operations Section */}
-              <div>
-                <h4 className="text-sm font-medium mb-2 border-b pb-1">
-                  {t("serial_operations")}
-                </h4>
-                {processedData.unassignedSerialOperations.length > 0 ? (
-                  <Reorder.Group
-                    axis="y"
-                    values={processedData.unassignedSerialOperations}
-                    onReorder={(newOrder) =>
-                      handleReorderUnassigned(newOrder, "serial")
-                    }
-                    className="flex flex-col gap-2"
-                  >
-                    {processedData.unassignedSerialOperations.map((entity) => (
-                      <Reorder.Item
-                        value={entity}
-                        key={entity.ID}
-                        dragListener={true}
+                  if (operationId && sourceGroupId !== "") {
+                    handleMoveOperation(operationId, "");
+                  }
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                }}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.add(
+                    "border-blue-400",
+                    "bg-blue-50"
+                  );
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                    e.currentTarget.classList.remove(
+                      "border-blue-400",
+                      "bg-blue-50"
+                    );
+                  }
+                }}
+              >
+                <div className="flex flex-col gap-4">
+                  {/* Serial Operations Section */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-2 border-b pb-1">
+                      {t("serial_operations")}
+                    </h4>
+                    {processedData.unassignedSerialOperations.length > 0 ? (
+                      <Reorder.Group
+                        axis="y"
+                        values={processedData.unassignedSerialOperations}
+                        onReorder={(newOrder) =>
+                          handleReorderUnassigned(newOrder, "serial")
+                        }
+                        className="flex flex-col gap-2"
                       >
-                        <OperationCard operation={entity} currentGroupId="" />
-                      </Reorder.Item>
-                    ))}
-                  </Reorder.Group>
-                ) : (
-                  <div className="text-center py-4">
-                    {t("drag_serial_operations_here")}
-                  </div>
-                )}
-              </div>
-              {/* Parallel Operations Section */}
-              <div>
-                <h4 className="text-sm font-medium mb-2 border-b pb-1">
-                  {t("parallel_operations")}
-                </h4>
-                {processedData.unassignedParallelOperations.length > 0 ? (
-                  <Reorder.Group
-                    axis="y"
-                    values={processedData.unassignedParallelOperations}
-                    onReorder={(newOrder) =>
-                      handleReorderUnassigned(newOrder, "parallel")
-                    }
-                    className="flex flex-col gap-2"
-                  >
-                    {processedData.unassignedParallelOperations.map(
-                      (entity) => (
-                        <Reorder.Item
-                          value={entity}
-                          key={entity.ID}
-                          dragListener={true}
-                        >
-                          <OperationCard operation={entity} currentGroupId="" />
-                        </Reorder.Item>
-                      )
+                        {processedData.unassignedSerialOperations.map(
+                          (entity) => (
+                            <Reorder.Item
+                              value={entity}
+                              key={entity.ID}
+                              dragListener={true}
+                            >
+                              <OperationCard
+                                operation={entity}
+                                currentGroupId=""
+                              />
+                            </Reorder.Item>
+                          )
+                        )}
+                      </Reorder.Group>
+                    ) : (
+                      <div className="text-center py-4">
+                        {t("drag_serial_operations_here")}
+                      </div>
                     )}
-                  </Reorder.Group>
-                ) : (
-                  <div className="text-center py-4">
-                    {t("drag_parallel_operations_here")}
                   </div>
-                )}
-              </div>
-              {/* "none" Operations Section */}
-              <div>
-                <h4 className="text-sm font-medium mb-2 border-b pb-1">
-                  {t("neither_operations")}
-                </h4>
-                {processedData.unassignedNoneOperations.length > 0 ? (
-                  <Reorder.Group
-                    axis="y"
-                    values={processedData.unassignedNoneOperations}
-                    onReorder={(newOrder) =>
-                      handleReorderUnassigned(newOrder, "parallel")
-                    }
-                    className="flex flex-col gap-2"
-                    visibility="disabled"
-                  >
-                    {processedData.unassignedNoneOperations.map((entity) => (
-                      <Reorder.Item
-                        value={entity}
-                        key={entity.ID}
-                        dragListener={true}
+                  {/* Parallel Operations Section */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-2 border-b pb-1">
+                      {t("parallel_operations")}
+                    </h4>
+                    {processedData.unassignedParallelOperations.length > 0 ? (
+                      <Reorder.Group
+                        axis="y"
+                        values={processedData.unassignedParallelOperations}
+                        onReorder={(newOrder) =>
+                          handleReorderUnassigned(newOrder, "parallel")
+                        }
+                        className="flex flex-col gap-2"
                       >
-                        <OperationCard operation={entity} currentGroupId="" />
-                      </Reorder.Item>
-                    ))}
-                  </Reorder.Group>
-                ) : (
-                  <div className="text-center py-4">
-                    {t("drag_parallel_operations_here")}
+                        {processedData.unassignedParallelOperations.map(
+                          (entity) => (
+                            <Reorder.Item
+                              value={entity}
+                              key={entity.ID}
+                              dragListener={true}
+                            >
+                              <OperationCard
+                                operation={entity}
+                                currentGroupId=""
+                              />
+                            </Reorder.Item>
+                          )
+                        )}
+                      </Reorder.Group>
+                    ) : (
+                      <div className="text-center py-4">
+                        {t("drag_parallel_operations_here")}
+                      </div>
+                    )}
                   </div>
-                )}
+                  {/* "none" Operations Section */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-2 border-b pb-1">
+                      {t("neither_operations")}
+                    </h4>
+                    {processedData.unassignedNoneOperations.length > 0 ? (
+                      <Reorder.Group
+                        axis="y"
+                        values={processedData.unassignedNoneOperations}
+                        onReorder={(newOrder) =>
+                          handleReorderUnassigned(newOrder, "parallel")
+                        }
+                        className="flex flex-col gap-2"
+                        visibility="disabled"
+                      >
+                        {processedData.unassignedNoneOperations.map(
+                          (entity) => (
+                            <Reorder.Item
+                              value={entity}
+                              key={entity.ID}
+                              dragListener={true}
+                            >
+                              <OperationCard
+                                operation={entity}
+                                currentGroupId=""
+                              />
+                            </Reorder.Item>
+                          )
+                        )}
+                      </Reorder.Group>
+                    ) : (
+                      <div className="text-center py-4">
+                        {t("drag_parallel_operations_here")}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </ScrollArea>
+
+          <ScrollArea className="h-[90vh]">
+            <div className="flex flex-col gap-5 w-[90%]">
+              <h1 className="text-xl font-bold">{t("SequenceGroups")}</h1>
+              <Reorder.Group
+                axis="y"
+                values={processedData.groups || []}
+                onReorder={handleReorderGroups}
+                className="flex flex-col gap-3"
+              >
+                {(processedData.groups || []).map((group, index) => (
+                  <Reorder.Item
+                    value={group}
+                    key={group.ID}
+                    dragListener={true}
+                  >
+                    <SequenceGroupCard
+                      entityType={entityType}
+                      group={group}
+                      entityName={group.Name || t("unnamed_group")}
+                      visualIndex={index + 1}
+                      onMoveOperation={handleMoveOperation}
+                      onReorderOperations={handleReorderOperationsInGroup}
+                      onDelete={handleGroupDelete}
+                    />
+                  </Reorder.Item>
+                ))}
+              </Reorder.Group>
+
+              <Input
+                value={processedData.inputValue}
+                onChange={(e) => handleInputChange(e.target.value)}
+                placeholder={t("enter_group_name_placeholder")}
+                className="my-4"
+              />
+
+              <CreateSequenceGroupCard
+                name={t("create_sequence_group_button")}
+                entityType={entityType}
+                parentId={parentId}
+                sequenceGroupName={processedData.inputValue}
+                currentGroupsCount={processedData.groups.length}
+                onGroupCreated={() => handleInputChange("")}
+              />
+
+              <SubmitGroupsOrderButton
+                reorderableGroups={processedData.groups || []}
+                unassignedSerialOperations={
+                  processedData.unassignedSerialOperations || []
+                }
+                unassignedParallelOperations={
+                  processedData.unassignedParallelOperations || []
+                }
+                entityType={entityType}
+                parentId={parentId}
+                stationSuuid={suuid}
+              />
+            </div>
+          </ScrollArea>
         </div>
-      </ScrollArea>
-
-      <ScrollArea className="h-[calc(100vh-var(--header-height,100px)-var(--footer-height,50px))]">
-        <div className="flex flex-col gap-3 w-[90%]">
-          <Reorder.Group
-            axis="y"
-            values={processedData.groups || []}
-            onReorder={handleReorderGroups}
-            className="flex flex-col gap-3"
-          >
-            {(processedData.groups || []).map((group, index) => (
-              <Reorder.Item value={group} key={group.ID} dragListener={true}>
-                <SequenceGroupCard
-                  entityType={entityType}
-                  group={group}
-                  entityName={group.Name || t("unnamed_group")}
-                  visualIndex={index + 1}
-                  onMoveOperation={handleMoveOperation}
-                  onReorderOperations={handleReorderOperationsInGroup}
-                  onDelete={handleGroupDelete}
-                />
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
-
-          <Input
-            value={processedData.inputValue}
-            onChange={(e) => handleInputChange(e.target.value)}
-            placeholder={t("enter_group_name_placeholder")}
-            className="my-4"
-          />
-
-          <CreateSequenceGroupCard
-            name={t("create_sequence_group_button")}
-            entityType={entityType}
-            parentId={parentId}
-            sequenceGroupName={processedData.inputValue}
-            currentGroupsCount={processedData.groups.length}
-            onGroupCreated={() => handleInputChange("")}
-          />
-
-          <SubmitGroupsOrderButton
-            reorderableGroups={processedData.groups || []}
-            unassignedSerialOperations={
-              processedData.unassignedSerialOperations || []
-            }
-            unassignedParallelOperations={
-              processedData.unassignedParallelOperations || []
-            }
-            entityType={entityType}
-            parentId={parentId}
-            stationSuuid={suuid}
-          />
-        </div>
-      </ScrollArea>
-    </div>
+      )}
+    </>
   );
 }
 
