@@ -15,14 +15,43 @@ import (
 	"gorm.io/gorm"
 )
 
+func setup() {
+	envContent := `DB_USER=Testuser
+DB_PASSWORD=Sich3resPassw0rt!
+DB_HOST=localhost
+DB_PORT=1433
+DB_NAME=testDB
+DB_ENCRYPT=true
+DB_TRUSTSERVERCERTIFICATE=true
+`
+	// Schreibe die .env-Datei ins aktuelle Verzeichnis
+	if err := os.WriteFile(".env", []byte(envContent), 0644); err != nil {
+		panic(fmt.Sprintf("failed to write .env file: %v", err))
+	}
+	// Lade die .env-Datei
+	_ = godotenv.Load(".env")
+
+	// Baue den DSN-String und setze MSSQL_DSN
+	user := os.Getenv("DB_USER")
+	pass := os.Getenv("DB_PASSWORD")
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+	encrypt := os.Getenv("DB_ENCRYPT")
+	trust := os.Getenv("DB_TRUSTSERVERCERTIFICATE")
+	dsn := fmt.Sprintf(
+		"sqlserver://%s:%s@%s:%s?database=%s&encrypt=%s&trustservercertificate=%s",
+		user, pass, host, port, dbName, encrypt, trust,
+	)
+	os.Setenv("MSSQL_DSN", dsn)
+}
+
 // Helper: returns a Core with in-memory SQLite DB for testing
 func newTestCore(t *testing.T) *Core {
-	exePath, err := os.Executable()
-	if err != nil {
-		t.Fatalf("Failed to get executable path: %v", err)
-	}
-	envPath := filepath.Join(filepath.Dir(exePath), ".env")
-	_, err = os.Stat(envPath)
+	setup()
+	wd, _ := os.Getwd()
+	envPath := filepath.Join(wd, "test.env")
+	_, err := os.Stat(envPath)
 	if os.IsNotExist(err) {
 		t.Fatalf("Environment file not found: %s", envPath)
 	}
@@ -33,7 +62,7 @@ func newTestCore(t *testing.T) *Core {
 	port := os.Getenv("DB_PORT")
 	encrypt := os.Getenv("DB_ENCRYPT")
 	trust := os.Getenv("DB_TRUSTSERVERCERTIFICATE")
-	dbName := "testDB"
+	dbName := os.Getenv("DB_NAME")
 	if encrypt == "" {
 		encrypt = "true"
 	}
@@ -41,10 +70,12 @@ func newTestCore(t *testing.T) *Core {
 		trust = "true"
 	}
 
+	// ... wie gehabt ...
 	dsn := fmt.Sprintf(
 		"sqlserver://%s:%s@%s:%s?database=%s&encrypt=%s&trustservercertificate=%s",
 		user, pass, host, port, dbName, encrypt, trust,
 	)
+	os.Setenv("MSSQL_DSN", dsn) // falls im Code benötigt
 	assert.NotEmpty(t, dsn)
 	db, err := gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
 	assert.NoError(t, err)
@@ -101,7 +132,7 @@ func TestParseDSNFromEnv(t *testing.T) {
 	assert.Equal(t, "pass", dsn.Password)
 	assert.Equal(t, "localhost", dsn.Host)
 	assert.Equal(t, "1433", dsn.Port)
-	assert.Equal(t, "testdb", dsn.Database)
+	assert.Equal(t, "testDB", dsn.Database)
 	assert.Equal(t, "true", dsn.Encrypt)
 	assert.Equal(t, "true", dsn.TrustServerCertificate)
 
@@ -270,5 +301,13 @@ func TestExportAndImportEntityHierarchyJSON(t *testing.T) {
 	err = core.ExportEntityHierarchyToJSON("line", lineID, tmpFile)
 	assert.NoError(t, err)
 	err = core.ImportEntityHierarchyFromJSON_UseOriginalData(user, tmpFile)
+	assert.Error(t, err)
+	line2, err := core.CreateEntity(user, "line", "")
+	assert.NoError(t, err)
+	lineID2 := getIDFromModel(line2).String()
+	tmpFile2 := filepath.Join(os.TempDir(), "test_import.json")
+	defer os.Remove(tmpFile2)
+	err = core.ExportEntityHierarchyToJSON("line", lineID2, tmpFile2)
+	core.DeleteEntityByIDString(user, "line", lineID2)
 	assert.NoError(t, err)
 }
