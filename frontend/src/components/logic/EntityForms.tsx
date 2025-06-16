@@ -643,7 +643,11 @@ export function StationForm({ entityId }: { entityId: string }) {
     if (!station) return;
     Object.entries(station).forEach(([key, value]) => {
       if (value.draft && stationDb.key != value.data) {
-        if (key == "StationType") resetChildTemplate = true;
+        if (
+          key == "StationType" &&
+          (value == "" || value == "none" || value == "0")
+        )
+          resetChildTemplate = true;
         changesRecord[key] = value.data;
       }
     });
@@ -663,13 +667,12 @@ export function StationForm({ entityId }: { entityId: string }) {
                 SerialOrParallel: "none",
                 SequenceGroup: "",
                 Sequence: "",
+                GroupID: "",
               }
             );
             const json = JSON.parse(localStorage.getItem(ID) ?? "{}");
 
             delete json.SerialOrParallel;
-            delete json.SequenceGroup;
-            delete json.Sequence;
             if (JSON.stringify(json) != "{}") {
               localStorage.setItem(ID, JSON.stringify(json));
             }
@@ -2334,8 +2337,6 @@ export function OperationForm({
         StationType: station.StationType ?? "",
         SerialOrParallel:
           json.SerialOrParallel ?? operation.SerialOrParallel ?? "",
-        SequenceGroup: json.SequenceGroup ?? operation.SequenceGroup ?? "",
-        Sequence: json.Sequence ?? operation.Sequence ?? "",
         AlwaysPerform: json.AlwaysPerform ?? operation.AlwaysPerform ?? "",
         QGateRelevant: json.QGateRelevant ?? operation.QGateRelevant ?? "",
         Template: json.Template ?? operation.Template ?? "",
@@ -2364,8 +2365,6 @@ export function OperationForm({
     Description: z.string().optional(),
     StationType: z.string().optional(),
     SerialOrParallel: z.string().optional(),
-    SequenceGroup: z.string().optional(),
-    Sequence: z.string().optional(),
     AlwaysPerform: z.string().optional(),
     QGateRelevant: z.string().optional(),
     Template: z.string().optional(),
@@ -2564,14 +2563,6 @@ export function OperationForm({
                           )
                         : ""
                     }`}</span>
-                    <span>{`${t("SequenceGroup")} → ${
-                      selectedVersion?.SequenceGroup
-                        ? selectedVersion?.SequenceGroup
-                        : ""
-                    }`}</span>
-                    <span>{`${t("Sequence")} → ${
-                      selectedVersion?.Sequence ? selectedVersion?.Sequence : ""
-                    }`}</span>
                     <span>{`${t("AlwaysPerform")} → ${t(
                       selectedVersion?.AlwaysPerform
                     )}`}</span>
@@ -2655,8 +2646,6 @@ export function OperationForm({
                     json.Description = selectedVersion.Description ?? "";
                     json.SerialOrParallel =
                       selectedVersion.SerialOrParallel ?? "";
-                    json.SequenceGroup = selectedVersion.SequenceGroup ?? "";
-                    json.Sequence = selectedVersion.Sequence ?? "";
                     json.AlwaysPerform = selectedVersion.AlwaysPerform ?? "";
                     json.QGateRelevant = selectedVersion.QGateRelevant ?? "";
                     json.Template = selectedVersion.Template ?? "";
@@ -2980,100 +2969,6 @@ export function OperationForm({
                     })}
                   </SelectContent>
                 </Select>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="SequenceGroup"
-            render={({ field }) => (
-              <FormItem>
-                {operation && operation.SequenceGroup?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("SequenceGroup")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {t(operationDb.SequenceGroup)}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("SequenceGroup")}
-                  </FormLabel>
-                )}
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      const json = JSON.parse(
-                        localStorage.getItem(entityId) ?? "{}"
-                      );
-                      json.SequenceGroup = e.target.value;
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      queryClient.invalidateQueries({
-                        queryKey: ["operation", entityId],
-                      });
-                    }}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="Sequence"
-            render={({ field }) => (
-              <FormItem>
-                {operation && operation.Sequence?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("Sequence")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {t(operationDb.Sequence)}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("Sequence")}
-                  </FormLabel>
-                )}
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      const json = JSON.parse(
-                        localStorage.getItem(entityId) ?? "{}"
-                      );
-                      json.Sequence = e.target.value;
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      queryClient.invalidateQueries({
-                        queryKey: ["operation", entityId],
-                      });
-                    }}
-                  />
-                </FormControl>
               </FormItem>
             )}
           />

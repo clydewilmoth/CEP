@@ -1203,16 +1203,10 @@ function SequenceGroupCard({
                 key={operation.ID}
                 dragListener={true}
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 w-4 text-center">
-                    ||
-                  </span>{" "}
-                  {/* Parallel icon */}
-                  <OperationCard
-                    operation={operation}
-                    currentGroupId={group.ID}
-                  />
-                </div>
+                <OperationCard
+                  operation={operation}
+                  currentGroupId={group.ID}
+                />
               </Reorder.Item>
             ))}
           </Reorder.Group>

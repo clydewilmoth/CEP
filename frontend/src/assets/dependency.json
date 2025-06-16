@@ -364,7 +364,7 @@
   "StationTypes": [
     {
       "id": "0",
-      "name": "Datadump",
+      "name": "Datapump",
       "serialOrParallel": []
     },
     {
