@@ -1072,11 +1072,7 @@ func (c *Core) GetAllEntities(entityTypeStr string, parentIDStr_optional string)
 		if err != nil {
 			return nil, fmt.Errorf("invalid parentID for GetAllEntities: %w", err)
 		}
-		if c.checkIfParentIsGroup(parentIDStr_optional) {
-			query = query.Where("group_id = ?", parentIDmssql)
-		} else {
-			query = query.Where("parent_id = ?", parentIDmssql)
-		}
+		query = query.Where("parent_id = ?", parentIDmssql)
 	} else {
 		if strings.ToLower(entityTypeStr) != "line" {
 			return nil, errors.New("ParentID is required for non-line entities in GetAllEntities")
@@ -1127,20 +1123,6 @@ func (c *Core) GetAllEntities(entityTypeStr string, parentIDStr_optional string)
 		return nil, fmt.Errorf("GetAllEntities not implemented for type: %s", entityTypeStr)
 	}
 	return results, nil
-}
-
-func (c *Core) checkIfParentIsGroup(parentIDStr_optional string) bool {
-	modelInstance, err := getModelInstance("sequencegroup")
-	if err != nil {
-		return false
-	}
-	if err := c.DB.Where("id = ?", parentIDStr_optional).Take(modelInstance).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false
-		}
-		return false
-	}
-	return true
 }
 
 func (c *Core) GetOperationsByStation(stationID string) ([]Operation, error) {
