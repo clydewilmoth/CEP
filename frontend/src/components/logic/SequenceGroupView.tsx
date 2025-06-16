@@ -492,7 +492,6 @@ export function SequenceGroupView({
       queryClient.invalidateQueries({
         queryKey: ["sequenceGroupsWithOperations", entityType, parentId, suuid],
       });
-      toast.success(t("group_deleted_successfully"));
     },
     onError: (error) => {
       toast.error(t("failed_to_delete_group"));

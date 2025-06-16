@@ -1700,6 +1700,28 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 		return err
 	}
 
+	// Sonderfall: sequencegroup - nur die Entität selbst löschen, keine History, keine Kinder
+	if strings.ToLower(entityTypeStr) == "sequencegroup" {
+		modelInstance, err := getModelInstance(entityTypeStr)
+		if err != nil {
+			return err
+		}
+		if err := c.DB.First(modelInstance, "id = ?", entityIDmssql).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return fmt.Errorf("no entity %s with ID %s found to delete", entityTypeStr, entityIDStr)
+			}
+			return fmt.Errorf("error finding entity %s with ID %s for delete: %w", entityTypeStr, entityIDStr, err)
+		}
+		result := c.DB.Delete(modelInstance)
+		if result.Error != nil {
+			return fmt.Errorf("error deleting %s with ID %s: %w", entityTypeStr, entityIDStr, result.Error)
+		}
+		if result.RowsAffected == 0 {
+			return fmt.Errorf("no entity %s with ID %s actually deleted", entityTypeStr, entityIDStr)
+		}
+		return nil
+	}
+
 	modelInstance, err := getModelInstance(entityTypeStr)
 	if err != nil {
 		return err
@@ -1861,6 +1883,7 @@ func (c *Core) cleanupBrokerWithDeadConnection(dsn string) {
 
 func cleanupOrphanedResources(sqlDB *sql.DB) {
 	stmt := `
+
 	DECLARE @queueName NVARCHAR(256);
 	DECLARE @serviceName NVARCHAR(256);
 	DECLARE @isOrphaned BIT;
