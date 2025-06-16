@@ -24,8 +24,9 @@ DB_NAME=testDB
 DB_ENCRYPT=true
 DB_TRUSTSERVERCERTIFICATE=true
 `
+
 	// Schreibe die .env-Datei ins aktuelle Verzeichnis
-	if err := os.WriteFile(".env", []byte(envContent), 0644); err != nil {
+	if err := os.WriteFile("test.env", []byte(envContent), 0644); err != nil {
 		panic(fmt.Sprintf("failed to write .env file: %v", err))
 	}
 	// Lade die .env-Datei
