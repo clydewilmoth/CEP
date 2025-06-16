@@ -2,20 +2,51 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/joho/godotenv"
 	mssql "github.com/microsoft/go-mssqldb"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 )
 
 // Helper: returns a Core with in-memory SQLite DB for testing
 func newTestCore(t *testing.T) *Core {
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	exePath, err := os.Executable()
+	if err != nil {
+		t.Fatalf("Failed to get executable path: %v", err)
+	}
+	envPath := filepath.Join(filepath.Dir(exePath), ".env")
+	_, err = os.Stat(envPath)
+	if os.IsNotExist(err) {
+		t.Fatalf("Environment file not found: %s", envPath)
+	}
+	_ = godotenv.Load(envPath)
+	user := os.Getenv("DB_USER")
+	pass := os.Getenv("DB_PASSWORD")
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	encrypt := os.Getenv("DB_ENCRYPT")
+	trust := os.Getenv("DB_TRUSTSERVERCERTIFICATE")
+	dbName := "testDB"
+	if encrypt == "" {
+		encrypt = "true"
+	}
+	if trust == "" {
+		trust = "true"
+	}
+
+	dsn := fmt.Sprintf(
+		"sqlserver://%s:%s@%s:%s?database=%s&encrypt=%s&trustservercertificate=%s",
+		user, pass, host, port, dbName, encrypt, trust,
+	)
+	assert.NotEmpty(t, dsn)
+	db, err := gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
 	assert.NoError(t, err)
 	err = db.AutoMigrate(&Line{}, &Station{}, &Tool{}, &Operation{}, &Version{}, &LineHistory{}, &StationHistory{}, &ToolHistory{}, &OperationHistory{}, &AppMetadata{}, &EntityChangeLog{})
 	assert.NoError(t, err)
@@ -61,7 +92,7 @@ func TestCheckEnvInExeDir(t *testing.T) {
 }
 
 func TestParseDSNFromEnv(t *testing.T) {
-	os.Setenv("MSSQL_DSN", "sqlserver://user:pass@localhost:1433?database=testdb&encrypt=true&trustservercertificate=true")
+	os.Setenv("MSSQL_DSN", "sqlserver://user:pass@localhost:1433?database=testDB&encrypt=true&trustservercertificate=true")
 	defer os.Unsetenv("MSSQL_DSN")
 	core := &Core{}
 	dsn, err := core.ParseDSNFromEnv()
@@ -122,26 +153,23 @@ func TestGetModelInstance(t *testing.T) {
 
 func TestGtIDFromModel(t *testing.T) {
 	id := mssql.UniqueIdentifier{}
-	type Line struct {
-		ID mssql.UniqueIdentifier
-	}
-	type Station struct {
-		ID mssql.UniqueIdentifier
-	}
-	type Tool struct {
-		ID mssql.UniqueIdentifier
-	}
-	type Operation struct {
-		ID mssql.UniqueIdentifier
-	}
+
 	_ = id.Scan("123E4567-E89B-12D3-A456-426614174000")
-	line := &Line{ID: id}
+	line := &Line{
+		BaseModel: BaseModel{ID: id},
+	}
 	assert.Equal(t, id, getIDFromModel(line))
-	station := &Station{ID: id}
+	station := &Station{
+		BaseModel: BaseModel{ID: id},
+	}
 	assert.Equal(t, id, getIDFromModel(station))
-	tool := &Tool{ID: id}
+	tool := &Tool{
+		BaseModel: BaseModel{ID: id},
+	}
 	assert.Equal(t, id, getIDFromModel(tool))
-	op := &Operation{ID: id}
+	op := &Operation{
+		BaseModel: BaseModel{ID: id},
+	}
 	assert.Equal(t, id, getIDFromModel(op))
 	var empty mssql.UniqueIdentifier
 	assert.Equal(t, empty, getIDFromModel("not a model"))
