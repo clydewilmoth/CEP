@@ -1,4 +1,6 @@
 import { OperationForm } from "@/components/logic/EntityForms";
+import { SequenceGroupView } from "@/components/logic/SequenceGroupView";
+import { useTranslation } from "react-i18next";
 import { BreadcrumbNavigation } from "@/components/logic/Navigation";
 import {
   ResizableHandle,
@@ -16,6 +18,7 @@ export default function Operations() {
     ouuid: string;
   }>();
   const { luuid, suuid, tuuid, ouuid } = params;
+  const { t } = useTranslation();
 
   return (
     <ResizablePanelGroup
@@ -45,9 +48,13 @@ export default function Operations() {
       </ResizablePanel>
       <ResizableHandle disabled />
       <ResizablePanel>
-        <ScrollArea>
-          <div className="p-8 bg-muted h-screen w-full"></div>
-        </ScrollArea>
+           <div className="p-8 bg-muted h-screen w-full">
+            <h1 className="text-xl font-bold">{t("sequenceGroups")}</h1>
+              <SequenceGroupView
+                entityType="sequencegroup"
+                parentId={suuid}
+              />
+          </div>
       </ResizablePanel>
     </ResizablePanelGroup>
   );

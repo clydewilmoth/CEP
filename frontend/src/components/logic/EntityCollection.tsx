@@ -15,6 +15,7 @@ import {
   HandleImport,
   CopyEntityHierarchyToClipboard,
   PasteEntityHierarchyFromClipboard as PasteEntityHierarchyFromClipboardAPI,
+  UpdateEntityFieldsString,
 } from "../../../wailsjs/go/main/Core";
 import {
   Ellipsis,
@@ -218,7 +219,7 @@ export function EntityCollection({
   );
 }
 
-function CreateEntityCard({
+export function CreateEntityCard({
   entityType,
   parentId,
   link,
@@ -408,7 +409,7 @@ function EntityCard({
   );
 }
 
-function DeleteEntityDialog({
+export function DeleteEntityDialog({
   entityType,
   entityId,
   onClose,
@@ -419,6 +420,8 @@ function DeleteEntityDialog({
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { mutateAsync: deleteEntity } = useMutation({
     mutationFn: ({
@@ -430,18 +433,42 @@ function DeleteEntityDialog({
       entityType: string;
       entityId: string;
     }) => DeleteEntityByIDString(name, entityType, entityId),
-    onSuccess: () => (
-      queryClient.invalidateQueries(),
-      toast.success(`${t(entityType)} ${t("DeleteToast")}`)
-    ),
+     onSuccess: () => {
+      queryClient.invalidateQueries();
+      toast.success(`${t(entityType)} ${t("DeleteToast")}`);
+    },
   });
 
-  const [open, setOpen] = useState(false);
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      // Wait for the operations to be updated first
+      await deleteOperationSequenceAttributes(entityType, entityId);
+      
+      // Then delete the entity
+      await deleteEntity({
+        name: String(localStorage.getItem("name")),
+        entityType: entityType,
+        entityId: entityId,
+      });
+      
+      setOpen(false);
+      if (onClose) onClose();
+    } catch (error) {
+      console.error("Error during deletion:", error);
+      toast.error("Failed to delete entity");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <Dialog
       open={open}
-      onOpenChange={(open) => (setOpen(open), !open && onClose && onClose())}
+      onOpenChange={(open) => {
+        setOpen(open);
+        if (!open && onClose) onClose();
+      }}
     >
       <div className="flex gap-1 items-center">
         <DialogTrigger asChild>
@@ -461,18 +488,11 @@ function DeleteEntityDialog({
         </DialogDescription>
         <Button
           variant="outline"
-          onClick={() => (
-            deleteEntity({
-              name: String(localStorage.getItem("name")),
-              entityType: entityType,
-              entityId: entityId,
-            }),
-            setOpen(false),
-            onClose && onClose()
-          )}
+          onClick={handleDelete}
+          disabled={isDeleting}
           className="w-1/2 mx-auto"
         >
-          {t("Confirm")}
+          {isDeleting ? t("Deleting...") : t("Confirm")}
         </Button>
       </DialogContent>
     </Dialog>
@@ -506,6 +526,40 @@ function ExportJSON({
       </Button>
     </div>
   );
+}
+
+async function deleteOperationSequenceAttributes(entityType: string, entityId: string) {
+  if (entityType == "sequencegroup") {
+    try {
+      
+      const operationsToUpdate = await GetAllEntities("operation", entityId) || [];
+      if (operationsToUpdate && operationsToUpdate.length > 0) {
+        
+        
+        for (const operation of operationsToUpdate) {
+          console.log(`Updating operation ${operation.ID} to remove group link...`);
+          
+          await UpdateEntityFieldsString(
+            localStorage.getItem("name") || "",
+            "operation", 
+            operation.ID,
+            operation.UpdatedAt,
+            {
+              GroupID: "", 
+              Sequence: "",
+              SequenceGroup: "",
+            }
+          );
+          
+          console.log(`...Update for ${operation.ID} complete.`);
+        }
+      }
+
+    } catch (error) {
+      console.error("Error updating child operations before deleting group:", error);
+      throw error; 
+    }
+  }
 }
 
 function ClipboardExportButton({

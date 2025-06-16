@@ -43,10 +43,11 @@ type Line struct {
 
 type Station struct {
 	BaseModel
-	Description *string                `gorm:"default:null"`
-	StationType *string                `gorm:"default:null"`
-	ParentID    mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
-	Tools       []Tool                 `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Description    *string                `gorm:"default:null"`
+	StationType    *string                `gorm:"default:null"`
+	ParentID       mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+	Tools          []Tool                 `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	SequenceGroups []SequenceGroup        `gorm:"foreignKey:ParentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 type Tool struct {
@@ -67,19 +68,27 @@ type Tool struct {
 
 type Operation struct {
 	BaseModel
-	Description       *string                `gorm:"default:null"`
-	SerialOrParallel  *string                `gorm:"default:null"`
-	SequenceGroup     *string                `gorm:"default:null"`
-	Sequence          *string                `gorm:"default:null"`
-	AlwaysPerform     *string                `gorm:"default:null"`
-	QGateRelevant     *string                `gorm:"default:null"`
-	Template          *string                `gorm:"default:null"`
-	DecisionClass     *string                `gorm:"default:null"`
-	VerificationClass *string                `gorm:"default:null"`
-	GenerationClass   *string                `gorm:"default:null"`
-	SavingClass       *string                `gorm:"default:null"`
-	DecisionCriteria  *string                `gorm:"default:null"`
-	ParentID          mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+	Description       *string                 `gorm:"default:null"`
+	SerialOrParallel  *string                 `gorm:"default:null"`
+	Sequence          *string                 `gorm:"default:null"`
+	AlwaysPerform     *string                 `gorm:"default:null"`
+	QGateRelevant     *string                 `gorm:"default:null"`
+	Template          *string                 `gorm:"default:null"`
+	DecisionClass     *string                 `gorm:"default:null"`
+	VerificationClass *string                 `gorm:"default:null"`
+	GenerationClass   *string                 `gorm:"default:null"`
+	SavingClass       *string                 `gorm:"default:null"`
+	DecisionCriteria  *string                 `gorm:"default:null"`
+	ParentID          mssql.UniqueIdentifier  `gorm:"type:uniqueidentifier;index"`
+	GroupID           *mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+	SequenceGroup     *string                 `gorm:"default:null"`
+}
+
+type SequenceGroup struct {
+	BaseModel
+	ParentID   mssql.UniqueIdentifier `gorm:"type:uniqueidentifier;index"`
+	Index      *string                `gorm:"size:255;default:null"`
+	Operations []Operation            `gorm:"foreignKey:GroupID;"`
 }
 
 // History Models for Versioning

@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/user"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -315,7 +316,7 @@ func (c *Core) InitDB(dsn string) string {
 		return "InitError"
 	}
 	err = c.DB.AutoMigrate(
-		&Line{}, &Station{}, &Tool{}, &Operation{},
+		&Line{}, &Station{}, &Tool{}, &Operation{}, &SequenceGroup{},
 		&AppMetadata{}, &EntityChangeLog{},
 		&LineHistory{}, &StationHistory{}, &ToolHistory{}, &OperationHistory{},
 	)
@@ -586,6 +587,8 @@ func getModelInstance(entityTypeStr string) (interface{}, error) {
 		return &Tool{}, nil
 	case "operation":
 		return &Operation{}, nil
+	case "sequencegroup":
+		return &SequenceGroup{}, nil
 	case "appmetadata":
 		return &AppMetadata{}, nil
 	default:
@@ -607,6 +610,8 @@ func getIDFromModel(entity interface{}) mssql.UniqueIdentifier {
 	case *Tool:
 		return e.ID
 	case *Operation:
+		return e.ID
+	case *SequenceGroup:
 		return e.ID
 	default:
 		var emptyID mssql.UniqueIdentifier
@@ -669,6 +674,67 @@ func (c *Core) CreateEntity(userName string, entityTypeStr string, parentIDStrIf
 		return nil, err
 	}
 	reloadedEntity, _ := getModelInstance(entityTypeNormalized)
+	createdEntityID := getIDFromModel(entityToCreate)
+	var emptyIDcheck mssql.UniqueIdentifier
+	if createdEntityID == emptyIDcheck {
+		return nil, errors.New("created entity ID is nil after create, cannot reload")
+	}
+	if errReload := c.DB.First(reloadedEntity, "id = ?", createdEntityID).Error; errReload != nil {
+		return nil, fmt.Errorf("error reloading entity (ID: %s) after create: %w", createdEntityID.String(), errReload)
+	}
+	return reloadedEntity, nil
+}
+
+func (c *Core) CreateEntitySequenceGroup(userName string, entityTypeStr string, parentIDStrIfApplicable string, sequenceGroupName string) (interface{}, error) {
+	if c.DB == nil {
+		return nil, errors.New("DB not initialized")
+	}
+	if userName == "" {
+		return nil, errors.New("userName is required for creation")
+	}
+
+	entityTypeNormalized := strings.ToLower(entityTypeStr)
+	if entityTypeNormalized != "sequencegroup" {
+		return nil, fmt.Errorf("unsupported entity type for Create: %s", entityTypeStr)
+	}
+
+	if parentIDStrIfApplicable == "" {
+		return nil, fmt.Errorf("ParentID is required for %s", entityTypeStr)
+	}
+	parentIDmssql, err := parseMSSQLUniqueIdentifierFromString(parentIDStrIfApplicable)
+	if err != nil {
+		return nil, fmt.Errorf("invalid ParentID for %s: %w", entityTypeStr, err)
+	}
+
+	base := BaseModel{CreatedBy: strPtr(userName), UpdatedBy: strPtr(userName)}
+
+	var highest int
+	var groups []SequenceGroup
+	if err := c.DB.Where("parent_id = ?", parentIDmssql).Find(&groups).Error; err != nil {
+		return nil, fmt.Errorf("DB error reading SequenceGroups: %w", err)
+	}
+	for _, g := range groups {
+		if parsed, err := strconv.Atoi(*g.Index); err == nil {
+			if parsed > highest {
+				highest = parsed
+			}
+		}
+	}
+	newIndex := strconv.Itoa(highest + 1)
+	base.Name = strPtr(sequenceGroupName)
+	entityToCreate := &SequenceGroup{BaseModel: base, ParentID: parentIDmssql, Index: &newIndex}
+
+	err = c.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(entityToCreate).Error; err != nil {
+			return fmt.Errorf("DB error creating %s: %w", entityTypeStr, err)
+		}
+		return tx.Model(&AppMetadata{}).Where("config_key = ?", GlobalMetadataKey).Update("last_update", time.Now()).Error
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	reloadedEntity := &SequenceGroup{}
 	createdEntityID := getIDFromModel(entityToCreate)
 	var emptyIDcheck mssql.UniqueIdentifier
 	if createdEntityID == emptyIDcheck {
@@ -882,6 +948,94 @@ func (c *Core) UpdateEntityFieldsString(userName string, entityTypeStr string, e
 	return finalModelInstance, nil
 }
 
+func (c *Core) UpdateEntityFieldsStringSequenceGroup(userName string, entityTypeStr string, entityIDStr string, lastKnownUpdatedAtStr string, updatesMapStr map[string]string) (interface{}, error) {
+	if c.DB == nil {
+		return nil, errors.New("DB not initialized")
+	}
+	if userName == "" {
+		return nil, errors.New("userName is required for update")
+	}
+
+	entityTypeNormalized := strings.ToLower(entityTypeStr)
+	if entityTypeNormalized != "sequencegroup" && entityTypeNormalized != "operation" {
+		return nil, fmt.Errorf("unsupported entity type: %s", entityTypeStr)
+	}
+
+	entityIDmssql, err := parseMSSQLUniqueIdentifierFromString(entityIDStr)
+	if err != nil {
+		return nil, err
+	}
+	lastKnownUpdatedAt, err := parseTimestampFlexible(lastKnownUpdatedAtStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid updated_at format ('%s'): %w", lastKnownUpdatedAtStr, err)
+	}
+
+	var modelToUpdate interface{}
+	switch entityTypeNormalized {
+	case "sequencegroup":
+		modelToUpdate = &SequenceGroup{}
+	case "operation":
+		modelToUpdate = &Operation{}
+	}
+
+	var finalModelInstance interface{}
+	err = c.DB.Transaction(func(tx *gorm.DB) error {
+		switch entityTypeNormalized {
+		case "sequencegroup":
+			var m SequenceGroup
+			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errors.New("record not found or already deleted")
+				}
+				return fmt.Errorf("error loading entity for update check: %w", err)
+			}
+		case "operation":
+			var m Operation
+			if err := tx.Where("id = ?", entityIDmssql).Take(&m).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errors.New("record not found or already deleted")
+				}
+				return fmt.Errorf("error loading entity for update check: %w", err)
+			}
+		}
+
+		currentGlobalTsStr, err := c.GetGlobalLastUpdateTimestamp()
+		if err != nil {
+			return fmt.Errorf("failed to get global last update timestamp: %w", err)
+		}
+		currentDBUpdatedAt, err := parseTimestampFlexible(currentGlobalTsStr)
+		if err != nil {
+			return fmt.Errorf("failed to parse global last update timestamp: %w", err)
+		}
+		if currentDBUpdatedAt.UTC().Before(lastKnownUpdatedAt.UTC()) {
+			log.Printf("[Concurrency] Conflict detected: DB UpdatedAt=%s | Client UpdatedAt=%s", currentDBUpdatedAt.UTC().Format(time.RFC3339Nano), lastKnownUpdatedAt.UTC().Format(time.RFC3339Nano))
+			return errors.New("conflict: record was modified by another user")
+		}
+
+		gormUpdates := make(map[string]interface{})
+		for k, v := range updatesMapStr {
+			gormUpdates[k] = strPtr(v)
+		}
+		gormUpdates["updated_by"] = strPtr(userName)
+		gormUpdates["updated_at"] = time.Now()
+		if err := tx.Model(modelToUpdate).Where("id = ?", entityIDmssql).Updates(gormUpdates).Error; err != nil {
+			return fmt.Errorf("error updating DB: %w", err)
+		}
+
+		reloadedEntity := modelToUpdate
+		if err := tx.First(reloadedEntity, "id = ?", entityIDmssql).Error; err != nil {
+			return fmt.Errorf("error reloading entity after update within tx: %w", err)
+		}
+		finalModelInstance = reloadedEntity
+
+		return updateGlobalLastUpdateTimestampAndLogChange(tx, entityIDmssql, entityTypeNormalized, OpTypeUpdate, strPtr(userName), updatesMapStr)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return finalModelInstance, nil
+}
+
 func (c *Core) GetEntityDetails(entityTypeStr string, entityIDStr string) (interface{}, error) {
 	if c.DB == nil {
 		return nil, errors.New("DB not initialized")
@@ -918,7 +1072,11 @@ func (c *Core) GetAllEntities(entityTypeStr string, parentIDStr_optional string)
 		if err != nil {
 			return nil, fmt.Errorf("invalid parentID for GetAllEntities: %w", err)
 		}
-		query = query.Where("parent_id = ?", parentIDmssql)
+		if c.checkIfParentIsGroup(parentIDStr_optional) {
+			query = query.Where("group_id = ?", parentIDmssql)
+		} else {
+			query = query.Where("parent_id = ?", parentIDmssql)
+		}
 	} else {
 		if strings.ToLower(entityTypeStr) != "line" {
 			return nil, errors.New("ParentID is required for non-line entities in GetAllEntities")
@@ -957,10 +1115,61 @@ func (c *Core) GetAllEntities(entityTypeStr string, parentIDStr_optional string)
 		for i := range items {
 			results = append(results, &items[i])
 		}
+	case "sequencegroup":
+		var items []SequenceGroup
+		if err := query.Find(&items).Error; err != nil {
+			return nil, err
+		}
+		for i := range items {
+			results = append(results, &items[i])
+		}
 	default:
 		return nil, fmt.Errorf("GetAllEntities not implemented for type: %s", entityTypeStr)
 	}
 	return results, nil
+}
+
+func (c *Core) checkIfParentIsGroup(parentIDStr_optional string) bool {
+	modelInstance, err := getModelInstance("sequencegroup")
+	if err != nil {
+		return false
+	}
+	if err := c.DB.Where("id = ?", parentIDStr_optional).Take(modelInstance).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false
+		}
+		return false
+	}
+	return true
+}
+
+func (c *Core) GetOperationsByStation(stationID string) ([]Operation, error) {
+	if c.DB == nil {
+		return nil, errors.New("DB not initialized")
+	}
+	stationUUID, err := parseMSSQLUniqueIdentifierFromString(stationID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid stationID: %w", err)
+	}
+
+	var tools []Tool
+	if err := c.DB.Where("parent_id = ?", stationUUID).Find(&tools).Error; err != nil {
+		return nil, fmt.Errorf("error loading tools for station: %w", err)
+	}
+
+	var toolIDs []mssql.UniqueIdentifier
+	for _, t := range tools {
+		toolIDs = append(toolIDs, t.ID)
+	}
+	if len(toolIDs) == 0 {
+		return []Operation{}, nil
+	}
+
+	var ops []Operation
+	if err := c.DB.Where("parent_id IN ?", toolIDs).Find(&ops).Error; err != nil {
+		return nil, fmt.Errorf("error loading operations for tools: %w", err)
+	}
+	return ops, nil
 }
 
 func (c *Core) GetEntityHierarchyString(entityTypeStr string, entityIDStr string) (*HierarchyResponse, error) {
@@ -990,13 +1199,13 @@ func internalGetEntityHierarchy(db *gorm.DB, entityTypeStr string, entityIDStr s
 	txDB := db
 	switch strings.ToLower(entityTypeStr) {
 	case "line":
-		txDB = txDB.Preload("Stations.Tools.Operations")
+		txDB = txDB.Preload("Stations.Tools.Operations").Preload("Stations.SequenceGroups.Operations")
 	case "station":
-		txDB = txDB.Preload("Tools.Operations").Preload("Line")
-	case "tool":
+		txDB = txDB.Preload("Tools.Operations").Preload("SequenceGroups.Operations").Preload("Line")
+	case "tool", "sequencegroup":
 		txDB = txDB.Preload("Operations").Preload("Station.Line")
 	case "operation":
-		txDB = txDB.Preload("Tool.Station.Line")
+		txDB = txDB.Preload("Tool.Station.Line").Preload("SequenceGroup.Station.Line")
 	default:
 		return nil, fmt.Errorf("hierarchical loading not defined for type: %s", entityTypeStr)
 	}
@@ -1117,6 +1326,17 @@ func importEntityRecursive_UseOriginalData(currentTx *gorm.DB, originalEntityDat
 		for i := range entity.Operations {
 			childrenToProcess = append(childrenToProcess, &entity.Operations[i])
 		}
+	case *SequenceGroup:
+		if entity.ID == emptyMsSQLID {
+			return fmt.Errorf("sequenceGroup in JSON has no ID")
+		}
+		currentEntityID = entity.ID
+		currentEntityNamePtr = entity.Name
+		entity.ParentID = newParentActualID
+		childEntityTypeStr = "operation"
+		for i := range entity.Operations {
+			childrenToProcess = append(childrenToProcess, &entity.Operations[i])
+		}
 	case *Operation:
 		if entity.ID == emptyMsSQLID {
 			return fmt.Errorf("operation in JSON has no ID")
@@ -1183,6 +1403,14 @@ func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr 
 
 	if err := tx.First(modelInstance, "id = ?", entityID).Error; err != nil {
 		return fmt.Errorf("error loading entity with hierarchy: %w", err)
+	}
+
+	if entityTypeStr == "operation" {
+		if op, ok := modelInstance.(*Operation); ok {
+			op.GroupID = nil
+			op.SequenceGroup = nil
+			op.Sequence = nil
+		}
 	}
 
 	jsonData, err := json.MarshalIndent(modelInstance, "", "  ")
@@ -1389,11 +1617,12 @@ func importCopiedEntityRecursive(
 
 	case *Station:
 		newStation := Station{
-			BaseModel:   createBaseFromOriginal(e.BaseModel, userName),
-			Description: e.Description,
-			StationType: e.StationType,
-			ParentID:    newParentID,
-			Tools:       []Tool{},
+			BaseModel:      createBaseFromOriginal(e.BaseModel, userName),
+			Description:    e.Description,
+			StationType:    e.StationType,
+			ParentID:       newParentID,
+			Tools:          []Tool{},
+			SequenceGroups: []SequenceGroup{},
 		}
 		if err := tx.Create(&newStation).Error; err != nil {
 			return newUUID, fmt.Errorf("failed to insert new Station: %w", err)
@@ -1451,6 +1680,7 @@ func importCopiedEntityRecursive(
 			VerificationClass: e.VerificationClass,
 			GenerationClass:   e.GenerationClass,
 			ParentID:          newParentID,
+			GroupID:           e.GroupID,
 		}
 		if err := tx.Create(&newOp).Error; err != nil {
 			return newUUID, fmt.Errorf("failed to insert new Operation: %w", err)
