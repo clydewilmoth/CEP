@@ -584,11 +584,9 @@ export function SequenceGroupView({
         </div>
       ) : (
         <div className="grid grid-cols-2">
-          <ScrollArea className="h-[90vh]">
-            <div className="flex flex-col gap-5 w-[90%]">
-              <h1 className="text-xl font-bold">
-                {t("Operations Unassigned")}
-              </h1>
+          <div className="flex flex-col gap-5 w-[90%]">
+            <h1 className="text-xl font-bold">{t("Operations Unassigned")}</h1>
+            <ScrollArea className="h-[85vh] pr-4">
               <div
                 className="min-h-[100px] border-2 border-dashed border-gray-300 rounded-lg p-4 mb-4 transition-all hover:border-gray-400"
                 onDrop={(e) => {
@@ -734,12 +732,11 @@ export function SequenceGroupView({
                   </div>
                 </div>
               </div>
-            </div>
-          </ScrollArea>
-
-          <ScrollArea className="h-[90vh]">
-            <div className="flex flex-col gap-5 w-[90%]">
-              <h1 className="text-xl font-bold">{t("SequenceGroups")}</h1>
+            </ScrollArea>
+          </div>
+          <div className="flex flex-col gap-5 w-[90%]">
+            <h1 className="text-xl font-bold">{t("SequenceGroups")}</h1>
+            <ScrollArea className="h-[85vh] pr-4">
               <Reorder.Group
                 axis="y"
                 values={processedData.groups || []}
@@ -793,8 +790,8 @@ export function SequenceGroupView({
                 parentId={parentId}
                 stationSuuid={suuid}
               />
-            </div>
-          </ScrollArea>
+            </ScrollArea>
+          </div>
         </div>
       )}
     </>
