@@ -2441,6 +2441,11 @@ export function OperationForm({
         if (key == "DecisionCriteria") {
           changesRecord[key] = value.data.join("<|||>");
           return;
+        } else if (key == "SerialOrParallel") {
+          changesRecord["Sequence"] = "";
+          changesRecord["SequenceGroup"] = "";
+          changesRecord["GroupID"] = "";
+          return;
         }
         changesRecord[key] = value.data;
       }
