@@ -627,7 +627,7 @@ export function SequenceGroupView({
                   {/* Serial Operations Section */}
                   <div>
                     <h4 className="text-sm font-medium mb-2 border-b pb-1">
-                      {t("Serial")}
+                      {t("SOP_0_name")}
                     </h4>
                     {processedData.unassignedSerialOperations.length > 0 ? (
                       <Reorder.Group
@@ -655,14 +655,13 @@ export function SequenceGroupView({
                       </Reorder.Group>
                     ) : (
                       <div className="text-center py-4 text-muted-foreground">
-                        {t("drag_Serial_here")}
                       </div>
                     )}
                   </div>
                   {/* Parallel Operations Section */}
                   <div>
                     <h4 className="text-sm font-medium mb-2 border-b pb-1">
-                      {t("Parallel")}
+                      {t("SOP_1_name")}
                     </h4>
                     {processedData.unassignedParallelOperations.length > 0 ? (
                       <Reorder.Group
@@ -690,7 +689,6 @@ export function SequenceGroupView({
                       </Reorder.Group>
                     ) : (
                       <div className="text-center py-4 text-muted-foreground">
-                        {t("drag_Parallel_here")}
                       </div>
                     )}
                   </div>
@@ -1166,7 +1164,7 @@ function SequenceGroupCard({
       {/* Serial Operations */}
       <div className="mb-6">
         <div className="text-sm font-medium mb-2 border-b pb-1">
-          {t("Serial")} ({group.SerialOperations.length})
+          {t("SOP_0_name")} ({group.SerialOperations.length})
         </div>
         {group.SerialOperations.length > 0 ? (
           <Reorder.Group
@@ -1231,7 +1229,7 @@ function SequenceGroupCard({
           >
             {isDragOver && !group.SerialOperations.length
               ? t("drop_operation_here")
-              : t("drag_Serial_here")}
+              : t("")}
           </div>
         )}
       </div>
@@ -1239,7 +1237,7 @@ function SequenceGroupCard({
       {/* Parallel Operations */}
       <div>
         <div className="text-sm font-medium mb-2 border-b pb-1">
-          {t("Parallel")} ({group.ParallelOperations.length})
+          {t("SOP_1_name")} ({group.ParallelOperations.length})
         </div>
         {group.ParallelOperations.length > 0 ? (
           <Reorder.Group
@@ -1271,9 +1269,9 @@ function SequenceGroupCard({
                 : "border-muted text-muted-foreground"
             }`}
           >
-            {isDragOver && !group.ParallelOperations.length
+            {isDragOver && !group.SerialOperations.length
               ? t("drop_operation_here")
-              : t("drag_Parallel_here")}
+              : t("")}
           </div>
         )}
       </div>

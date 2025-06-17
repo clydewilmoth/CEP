@@ -1012,12 +1012,6 @@
       "helpText": "PositionClear via SPA with picture"
     },
     {
-      "id": "122",
-      "description": "Measuring (File) AVL TDC",
-      "toolClassId": "9",
-      "helpText": "Measuring via file to AVL TDC measurement PC"
-    },
-    {
       "id": "123",
       "description": "Check For Logged In User",
       "toolClassId": "1",
@@ -1405,6 +1399,12 @@
     }
   ],
   "GenerationClasses": [
+    {
+      "id": "0",
+      "description": "00 - keine Zusatzdaten",
+      "templateId": "2",
+      "helpText": "Es werden keine Zusatzdaten gelesen. Kommt alles aus der OSREF_ScanningDetail. Normally not used"
+    },
     {
       "id": "1",
       "description": "01 - Standard",
@@ -1878,6 +1878,12 @@
     {
       "id": "1",
       "description": "01 - Standard",
+      "templateId": "1",
+      "helpText": "Standard"
+    },
+    {
+      "id": "1",
+      "description": "01 - Standard",
       "templateId": "2",
       "helpText": "Standard"
     },
@@ -2249,6 +2255,12 @@
     }
   ],
   "VerificationClasses": [
+    {
+      "id": "0",
+      "description": "00 - Nicht verwendet",
+      "templateId": "0",
+      "helpText": "Nicht verwendet"
+    },
     {
       "id": "1",
       "description": "01 - Keine Prüfung",
