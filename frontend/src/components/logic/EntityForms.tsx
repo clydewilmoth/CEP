@@ -645,7 +645,7 @@ export function StationForm({ entityId }: { entityId: string }) {
       if (value.draft && stationDb.key != value.data) {
         if (
           key == "StationType" &&
-          (value == "" || value == "none" || value == "0")
+          (value.data == "" || value.data == "none" || value.data == "0")
         )
           resetChildTemplate = true;
         changesRecord[key] = value.data;
@@ -2445,6 +2445,7 @@ export function OperationForm({
           changesRecord["Sequence"] = "";
           changesRecord["SequenceGroup"] = "";
           changesRecord["GroupID"] = "";
+          changesRecord[key] = value.data;
           return;
         }
         changesRecord[key] = value.data;
