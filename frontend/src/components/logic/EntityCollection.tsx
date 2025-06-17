@@ -63,6 +63,7 @@ import {
   SelectItem,
 } from "../ui/select";
 import { StringNullToBlank } from "@/lib/utils";
+import { ScrollArea } from "../ui/scroll-area";
 
 export function EntityCollection({
   entityType,
@@ -170,51 +171,53 @@ export function EntityCollection({
           </SelectContent>
         </Select>
       </div>
-      <div className="flex flex-wrap gap-7">
-        {entities?.map((entity, index) => {
-          let filterCondition = true;
-          switch (filter) {
-            case "none":
-              filterCondition = true;
-              break;
-            case "red":
-              filterCondition = entity.StatusColor == "red";
-              break;
-            case "amber":
-              filterCondition = entity.StatusColor == "amber";
-              break;
-            case "emerald":
-              filterCondition = entity.StatusColor == "emerald";
-              break;
-            case "draft":
-              filterCondition = Boolean(localStorage.getItem(entity.ID));
-              break;
-            default:
-              filterCondition = true;
-          }
-          return (
-            StringNullToBlank(entity.Name).includes(searchFilter) &&
-            filterCondition && (
-              <EntityCard
-                entityType={entityType}
-                entityId={entity.ID}
-                entityName={entity.Name}
-                entityComment={entity.Comment}
-                entityStatusColor={
-                  entity.StatusColor != "empty" ? entity.StatusColor : null
-                }
-                link={link}
-                key={index}
-              />
-            )
-          );
-        })}
-        <CreateEntityCard
-          entityType={entityType}
-          parentId={parentId}
-          link={link}
-        />
-      </div>
+      <ScrollArea className="h-[78vh]">
+        <div className="flex flex-wrap gap-7">
+          {entities?.map((entity, index) => {
+            let filterCondition = true;
+            switch (filter) {
+              case "none":
+                filterCondition = true;
+                break;
+              case "red":
+                filterCondition = entity.StatusColor == "red";
+                break;
+              case "amber":
+                filterCondition = entity.StatusColor == "amber";
+                break;
+              case "emerald":
+                filterCondition = entity.StatusColor == "emerald";
+                break;
+              case "draft":
+                filterCondition = Boolean(localStorage.getItem(entity.ID));
+                break;
+              default:
+                filterCondition = true;
+            }
+            return (
+              StringNullToBlank(entity.Name).includes(searchFilter) &&
+              filterCondition && (
+                <EntityCard
+                  entityType={entityType}
+                  entityId={entity.ID}
+                  entityName={entity.Name}
+                  entityComment={entity.Comment}
+                  entityStatusColor={
+                    entity.StatusColor != "empty" ? entity.StatusColor : null
+                  }
+                  link={link}
+                  key={index}
+                />
+              )
+            );
+          })}
+          <CreateEntityCard
+            entityType={entityType}
+            parentId={parentId}
+            link={link}
+          />
+        </div>
+      </ScrollArea>
     </div>
   );
 }
@@ -433,7 +436,7 @@ export function DeleteEntityDialog({
       entityType: string;
       entityId: string;
     }) => DeleteEntityByIDString(name, entityType, entityId),
-     onSuccess: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries();
       toast.success(`${t(entityType)} ${t("DeleteToast")}`);
     },
@@ -444,14 +447,14 @@ export function DeleteEntityDialog({
     try {
       // Wait for the operations to be updated first
       await deleteOperationSequenceAttributes(entityType, entityId);
-      
+
       // Then delete the entity
       await deleteEntity({
         name: String(localStorage.getItem("name")),
         entityType: entityType,
         entityId: entityId,
       });
-      
+
       setOpen(false);
       if (onClose) onClose();
     } catch (error) {
@@ -528,36 +531,41 @@ function ExportJSON({
   );
 }
 
-async function deleteOperationSequenceAttributes(entityType: string, entityId: string) {
+async function deleteOperationSequenceAttributes(
+  entityType: string,
+  entityId: string
+) {
   if (entityType == "sequencegroup") {
     try {
-      
-      const operationsToUpdate = await GetAllEntities("operation", entityId) || [];
+      const operationsToUpdate =
+        (await GetAllEntities("operation", entityId)) || [];
       if (operationsToUpdate && operationsToUpdate.length > 0) {
-        
-        
         for (const operation of operationsToUpdate) {
-          console.log(`Updating operation ${operation.ID} to remove group link...`);
-          
+          console.log(
+            `Updating operation ${operation.ID} to remove group link...`
+          );
+
           await UpdateEntityFieldsString(
             localStorage.getItem("name") || "",
-            "operation", 
+            "operation",
             operation.ID,
             operation.UpdatedAt,
             {
-              GroupID: "", 
+              GroupID: "",
               Sequence: "",
               SequenceGroup: "",
             }
           );
-          
+
           console.log(`...Update for ${operation.ID} complete.`);
         }
       }
-
     } catch (error) {
-      console.error("Error updating child operations before deleting group:", error);
-      throw error; 
+      console.error(
+        "Error updating child operations before deleting group:",
+        error
+      );
+      throw error;
     }
   }
 }
