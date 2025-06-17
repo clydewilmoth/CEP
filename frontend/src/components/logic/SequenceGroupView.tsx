@@ -16,7 +16,7 @@ import { DeleteEntityDialog } from "./EntityCollection";
 import { ScrollArea } from "../ui/scroll-area";
 import { Reorder } from "framer-motion";
 import React, { useEffect, useState } from "react";
-import { ChevronUp, ChevronDown, Info } from "lucide-react"; // Added for up/down buttons
+import { ChevronUp, ChevronDown, Info, Plus } from "lucide-react"; // Added for up/down buttons
 import { Loader } from "../ui/loader";
 
 type Group = {
@@ -761,35 +761,38 @@ export function SequenceGroupView({
                   </Reorder.Item>
                 ))}
               </Reorder.Group>
-
-              <Input
-                value={processedData.inputValue}
-                onChange={(e) => handleInputChange(e.target.value)}
-                placeholder={t("enter_group_name_placeholder")}
-                className="my-4"
-              />
-
-              <CreateSequenceGroupCard
-                name={t("create_sequence_group_button")}
-                entityType={entityType}
-                parentId={parentId}
-                sequenceGroupName={processedData.inputValue}
-                currentGroupsCount={processedData.groups.length}
-                onGroupCreated={() => handleInputChange("")}
-              />
-
-              <SubmitGroupsOrderButton
-                reorderableGroups={processedData.groups || []}
-                unassignedSerialOperations={
-                  processedData.unassignedSerialOperations || []
-                }
-                unassignedParallelOperations={
-                  processedData.unassignedParallelOperations || []
-                }
-                entityType={entityType}
-                parentId={parentId}
-                stationSuuid={suuid}
-              />
+              <div className="flex flex-col gap-5 my-5">
+                <div className="flex gap-3 w-full">
+                  <Input
+                    value={processedData.inputValue}
+                    onChange={(e) => handleInputChange(e.target.value)}
+                    placeholder={t("SequenceGroup CreateInput")}
+                  />
+                  <div className="w-1/4">
+                    <CreateSequenceGroupCard
+                      entityType={entityType}
+                      parentId={parentId}
+                      sequenceGroupName={processedData.inputValue}
+                      currentGroupsCount={processedData.groups.length}
+                      onGroupCreated={() => handleInputChange("")}
+                    />
+                  </div>
+                </div>
+                <div className="w-1/2 min-w-fit max-w-52 mx-auto">
+                  <SubmitGroupsOrderButton
+                    reorderableGroups={processedData.groups || []}
+                    unassignedSerialOperations={
+                      processedData.unassignedSerialOperations || []
+                    }
+                    unassignedParallelOperations={
+                      processedData.unassignedParallelOperations || []
+                    }
+                    entityType={entityType}
+                    parentId={parentId}
+                    stationSuuid={suuid}
+                  />
+                </div>
+              </div>
             </ScrollArea>
           </div>
         </div>
@@ -956,25 +959,23 @@ export function SubmitGroupsOrderButton({
   return (
     <Button
       onClick={() => submitMutation.mutate()}
-      className="w-full mt-6"
+      className="w-full"
       disabled={submitMutation.isPending}
     >
       {submitMutation.isPending
         ? t("submitting") + "..."
-        : t("submit_order_changes_button")}
+        : t("SequenceGroup Submit")}
     </Button>
   );
 }
 
 function CreateSequenceGroupCard({
-  name,
   entityType,
   parentId,
   sequenceGroupName,
   currentGroupsCount,
   onGroupCreated,
 }: {
-  name: string;
   entityType: string;
   parentId: string;
   sequenceGroupName: string;
@@ -1037,7 +1038,7 @@ function CreateSequenceGroupCard({
       onClick={handleCreate}
       disabled={isPending}
     >
-      {isPending ? t("creating") + "..." : name}
+      {isPending ? t("creating") + "..." : <Plus />}
     </Button>
   );
 }
@@ -1145,7 +1146,7 @@ function SequenceGroupCard({
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="text-xl font-bold bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center">
+          <div className="text-lg font-bold bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center">
             {visualIndex}
           </div>
           <CardTitle className="text-lg">
