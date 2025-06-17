@@ -588,12 +588,12 @@ export function SequenceGroupView({
             <h1 className="text-xl font-bold">{t("Operations Unassigned")}</h1>
             <ScrollArea className="pr-4 h-[85vh]">
               <div
-                className="min-h-[100px] border-2 border-dashed border-gray-300 rounded-lg p-4 mb-4 transition-all hover:border-gray-400"
+                className="min-h-[100px] border-2 border-dashed rounded-lg p-4 mb-4 transition-all hover:border-accent/70 hover:bg-accent/10"
                 onDrop={(e) => {
                   e.preventDefault();
                   e.currentTarget.classList.remove(
-                    "border-blue-400",
-                    "bg-blue-50"
+                    "border-accent",
+                    "bg-accent/20"
                   );
                   const operationId = e.dataTransfer.getData("operationId");
                   const sourceGroupId = e.dataTransfer.getData("sourceGroupId");
@@ -609,16 +609,16 @@ export function SequenceGroupView({
                 onDragEnter={(e) => {
                   e.preventDefault();
                   e.currentTarget.classList.add(
-                    "border-blue-400",
-                    "bg-blue-50"
+                    "border-accent",
+                    "bg-accent/20"
                   );
                 }}
                 onDragLeave={(e) => {
                   e.preventDefault();
                   if (!e.currentTarget.contains(e.relatedTarget as Node)) {
                     e.currentTarget.classList.remove(
-                      "border-blue-400",
-                      "bg-blue-50"
+                      "border-accent",
+                      "bg-accent/20"
                     );
                   }
                 }}
@@ -627,7 +627,7 @@ export function SequenceGroupView({
                   {/* Serial Operations Section */}
                   <div>
                     <h4 className="text-sm font-medium mb-2 border-b pb-1">
-                      {t("serial_operations")}
+                      {t("Serial")}
                     </h4>
                     {processedData.unassignedSerialOperations.length > 0 ? (
                       <Reorder.Group
@@ -654,15 +654,15 @@ export function SequenceGroupView({
                         )}
                       </Reorder.Group>
                     ) : (
-                      <div className="text-center py-4">
-                        {t("drag_serial_operations_here")}
+                      <div className="text-center py-4 text-muted-foreground">
+                        {t("drag_Serial_here")}
                       </div>
                     )}
                   </div>
                   {/* Parallel Operations Section */}
                   <div>
                     <h4 className="text-sm font-medium mb-2 border-b pb-1">
-                      {t("parallel_operations")}
+                      {t("Parallel")}
                     </h4>
                     {processedData.unassignedParallelOperations.length > 0 ? (
                       <Reorder.Group
@@ -689,15 +689,15 @@ export function SequenceGroupView({
                         )}
                       </Reorder.Group>
                     ) : (
-                      <div className="text-center py-4">
-                        {t("drag_parallel_operations_here")}
+                      <div className="text-center py-4 text-muted-foreground">
+                        {t("drag_Parallel_here")}
                       </div>
                     )}
                   </div>
                   {/* "none" Operations Section */}
                   <div>
                     <h4 className="text-sm font-medium mb-2 border-b pb-1">
-                      {t("neither_operations")}
+                      {t("NeitherSerialParallel")}
                     </h4>
                     {processedData.unassignedNoneOperations.length > 0 ? (
                       <Reorder.Group
@@ -725,8 +725,8 @@ export function SequenceGroupView({
                         )}
                       </Reorder.Group>
                     ) : (
-                      <div className="text-center py-4">
-                        {t("drag_parallel_operations_here")}
+                      <div className="text-center py-4 text-muted-foreground">
+                        {t("drag_Parallel_here")}
                       </div>
                     )}
                   </div>
@@ -826,8 +826,10 @@ function OperationCard({
 
   return (
     <Card
-      className={`w-full max-w-md h-fit flex relative justify-center items-center hover:cursor-grab active:cursor-grabbing transition-all p-3 ${
-        isDragging ? "opacity-50 scale-95 shadow-xl z-50" : "hover:shadow-md"
+      className={`relative w-36 hover:cursor-pointer transition-all h-fit flex gap-3 justify-center items-center py-4 ${
+        isDragging
+          ? "opacity-50 scale-95 shadow-xl z-50"
+          : "hover:translate-y-1"
       }`}
       draggable
       onDragStart={(e) => {
@@ -1082,7 +1084,7 @@ function SequenceGroupCard({
     e.preventDefault();
     e.stopPropagation();
     setDragOverState(false);
-    e.currentTarget.classList.remove("border-blue-400", "bg-blue-50");
+    e.currentTarget.classList.remove("border-accent", "bg-accent/20");
 
     const operationId = e.dataTransfer.getData("operationId");
     const sourceGroupId = e.dataTransfer.getData("sourceGroupId");
@@ -1103,7 +1105,7 @@ function SequenceGroupCard({
     e.stopPropagation();
     if (e.target === e.currentTarget) {
       setDragOverState(true);
-      e.currentTarget.classList.add("border-blue-400", "bg-blue-50");
+      e.currentTarget.classList.add("border-accent", "bg-accent/20");
     }
   };
 
@@ -1112,7 +1114,7 @@ function SequenceGroupCard({
     e.stopPropagation();
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setDragOverState(false);
-      e.currentTarget.classList.remove("border-blue-400", "bg-blue-50");
+      e.currentTarget.classList.remove("border-accent", "bg-accent/20");
     }
   };
 
@@ -1138,7 +1140,7 @@ function SequenceGroupCard({
 
   return (
     <Card
-      className="w-full h-fit flex flex-col relative p-4 transition-all border-2 border-dashed border-gray-300 hover:border-gray-400"
+      className="bg-muted w-full h-fit flex flex-col relative p-4 transition-all border-2 border-dashed hover:border-accent/70 hover:bg-accent/10"
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
@@ -1164,7 +1166,7 @@ function SequenceGroupCard({
       {/* Serial Operations */}
       <div className="mb-6">
         <div className="text-sm font-medium mb-2 border-b pb-1">
-          {t("serial_operations")} ({group.SerialOperations.length})
+          {t("Serial")} ({group.SerialOperations.length})
         </div>
         {group.SerialOperations.length > 0 ? (
           <Reorder.Group
@@ -1183,7 +1185,7 @@ function SequenceGroupCard({
               >
                 {/* MODIFIED: Flex container for order number, card, and buttons */}
                 <div className="flex items-center gap-2 w-full">
-                  <span className="text-xs text-gray-500 w-4 text-right">
+                  <span className="text-xs text-muted-foreground w-4 text-right">
                     {opIndex + 1}.
                   </span>
                   <div className="flex-grow">
@@ -1223,13 +1225,13 @@ function SequenceGroupCard({
           <div
             className={`text-center py-6 border-2 border-dashed rounded transition-all ${
               isDragOver && !group.SerialOperations.length
-                ? "border-blue-400 bg-blue-100 text-blue-600"
-                : "border-gray-200"
+                ? "border-accent bg-accent/20 text-accent-foreground"
+                : "border-muted text-muted-foreground"
             }`}
           >
             {isDragOver && !group.SerialOperations.length
               ? t("drop_operation_here")
-              : t("drag_serial_operations_here")}
+              : t("drag_Serial_here")}
           </div>
         )}
       </div>
@@ -1237,7 +1239,7 @@ function SequenceGroupCard({
       {/* Parallel Operations */}
       <div>
         <div className="text-sm font-medium mb-2 border-b pb-1">
-          {t("parallel_operations")} ({group.ParallelOperations.length})
+          {t("Parallel")} ({group.ParallelOperations.length})
         </div>
         {group.ParallelOperations.length > 0 ? (
           <Reorder.Group
@@ -1265,13 +1267,13 @@ function SequenceGroupCard({
           <div
             className={`text-center py-6 border-2 border-dashed rounded transition-all ${
               isDragOver && !group.ParallelOperations.length
-                ? "border-blue-400 bg-blue-100 text-blue-600"
-                : "border-gray-200"
+                ? "border-accent bg-accent/20 text-accent-foreground"
+                : "border-muted text-muted-foreground"
             }`}
           >
             {isDragOver && !group.ParallelOperations.length
               ? t("drop_operation_here")
-              : t("drag_parallel_operations_here")}
+              : t("drag_Parallel_here")}
           </div>
         )}
       </div>
