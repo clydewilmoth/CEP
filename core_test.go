@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/joho/godotenv"
 	mssql "github.com/microsoft/go-mssqldb"
 	"github.com/stretchr/testify/assert"
@@ -15,6 +17,15 @@ import (
 	"gorm.io/gorm"
 )
 
+func newTestGormDB(t *testing.T) (*gorm.DB, *sql.DB, sqlmock.Sqlmock) {
+	sqlDB, mock, err := sqlmock.New()
+	assert.NoError(t, err)
+	db, err := gorm.Open(sqlserver.New(sqlserver.Config{
+		Conn: sqlDB,
+	}), &gorm.Config{})
+	assert.NoError(t, err)
+	return db, sqlDB, mock
+}
 func setup() {
 	envContent := `DB_USER=Testuser
 DB_PASSWORD=Sich3resPassw0rt!
@@ -48,41 +59,45 @@ DB_TRUSTSERVERCERTIFICATE=true
 }
 
 // Helper: returns a Core with in-memory SQLite DB for testing
-func newTestCore(t *testing.T) *Core {
-	setup()
-	wd, _ := os.Getwd()
-	envPath := filepath.Join(wd, "test.env")
-	_, err := os.Stat(envPath)
-	if os.IsNotExist(err) {
-		t.Fatalf("Environment file not found: %s", envPath)
-	}
-	_ = godotenv.Load(envPath)
-	user := os.Getenv("DB_USER")
-	pass := os.Getenv("DB_PASSWORD")
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	encrypt := os.Getenv("DB_ENCRYPT")
-	trust := os.Getenv("DB_TRUSTSERVERCERTIFICATE")
-	dbName := os.Getenv("DB_NAME")
-	if encrypt == "" {
-		encrypt = "true"
-	}
-	if trust == "" {
-		trust = "true"
-	}
+var sharedTestCore *Core
 
-	// ... wie gehabt ...
-	dsn := fmt.Sprintf(
-		"sqlserver://%s:%s@%s:%s?database=%s&encrypt=%s&trustservercertificate=%s",
-		user, pass, host, port, dbName, encrypt, trust,
-	)
-	os.Setenv("MSSQL_DSN", dsn) // falls im Code benötigt
-	assert.NotEmpty(t, dsn)
-	db, err := gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
-	assert.NoError(t, err)
-	err = db.AutoMigrate(&Line{}, &Station{}, &Tool{}, &Operation{}, &Version{}, &LineHistory{}, &StationHistory{}, &ToolHistory{}, &OperationHistory{}, &AppMetadata{}, &EntityChangeLog{})
-	assert.NoError(t, err)
-	return &Core{DB: db, ctx: context.Background()}
+func newTestCore(t *testing.T) *Core {
+	if sharedTestCore == nil {
+		setup()
+		wd, _ := os.Getwd()
+		envPath := filepath.Join(wd, "test.env")
+		_, err := os.Stat(envPath)
+		if os.IsNotExist(err) {
+			t.Fatalf("Environment file not found: %s", envPath)
+		}
+		_ = godotenv.Load(envPath)
+		user := os.Getenv("DB_USER")
+		pass := os.Getenv("DB_PASSWORD")
+		host := os.Getenv("DB_HOST")
+		port := os.Getenv("DB_PORT")
+		encrypt := os.Getenv("DB_ENCRYPT")
+		trust := os.Getenv("DB_TRUSTSERVERCERTIFICATE")
+		dbName := os.Getenv("DB_NAME")
+		if encrypt == "" {
+			encrypt = "true"
+		}
+		if trust == "" {
+			trust = "true"
+		}
+
+		dsn := fmt.Sprintf(
+			"sqlserver://%s:%s@%s:%s?database=%s&encrypt=%s&trustservercertificate=%s",
+			user, pass, host, port, dbName, encrypt, trust,
+		)
+		os.Setenv("MSSQL_DSN", dsn)
+		assert.NotEmpty(t, dsn)
+		db, err := gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
+		assert.NoError(t, err)
+		err = db.AutoMigrate(&Line{}, &Station{}, &Tool{}, &Operation{}, &Version{}, &LineHistory{}, &StationHistory{}, &ToolHistory{}, &OperationHistory{}, &AppMetadata{}, &EntityChangeLog{})
+		assert.NoError(t, err)
+		sharedTestCore = &Core{DB: db, ctx: context.Background()}
+	}
+	return sharedTestCore
 }
 
 func TestParseTimestmpFlexible(t *testing.T) {
@@ -382,4 +397,324 @@ func TestCore_InitDB_DBError(t *testing.T) {
 	defer os.Unsetenv("MSSQL_DSN")
 	result := core.InitDB()
 	assert.Equal(t, "InitError", result)
+}
+func TestGetChangesSince_DBNotInitialized(t *testing.T) {
+	core := &Core{}
+	_, err := core.GetChangesSince(time.Now().Format(time.RFC3339Nano))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "DB not initialized")
+}
+
+func TestGetChangesSince_InvalidTimestampFormat(t *testing.T) {
+	core := newTestCore(t)
+	_, err := core.GetChangesSince("not-a-timestamp")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid clientLastKnownTimestampStr format")
+}
+
+func TestGetChangesSince_NoChanges(t *testing.T) {
+	core := newTestCore(t)
+	ts, err := core.GetGlobalLastUpdateTimestamp()
+	assert.NoError(t, err)
+	resp, err := core.GetChangesSince(ts)
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, ts, resp.NewGlobalLastUpdatedAt)
+	assert.Empty(t, resp.UpdatedEntities)
+	assert.Empty(t, resp.DeletedEntities)
+}
+
+func TestGetChangesSince_WithUpdateAndDelete(t *testing.T) {
+	core := newTestCore(t)
+	user := "testuser"
+	// Create entity
+	line, err := core.CreateEntity(user, "line", "")
+	assert.NoError(t, err)
+	lineID := getIDFromModel(line).String()
+	// Get timestamp before update
+	tsBefore, err := core.GetGlobalLastUpdateTimestamp()
+	assert.NoError(t, err)
+	// Update entity
+	updates := map[string]string{"Name": "changed"}
+	_, err = core.UpdateEntityFieldsString(user, "line", lineID, tsBefore, updates)
+	assert.NoError(t, err)
+	// Delete entity
+	err = core.DeleteEntityByIDString(user, "line", lineID)
+	assert.NoError(t, err)
+	// Get changes since tsBefore
+	resp, err := core.GetChangesSince(tsBefore)
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	// Should contain update and delete for "line"
+	foundUpdate := false
+	foundDelete := false
+	for _, ids := range resp.UpdatedEntities {
+		for _, id := range ids {
+			if id == lineID {
+				foundUpdate = true
+			}
+		}
+	}
+	for _, ids := range resp.DeletedEntities {
+		for _, id := range ids {
+			if id == lineID {
+				foundDelete = true
+			}
+		}
+	}
+	assert.True(t, foundUpdate || foundDelete)
+}
+
+func TestGetChangesSince_SystemEvent(t *testing.T) {
+	core := newTestCore(t)
+	// Insert a system event log manually
+	now := time.Now()
+	log := EntityChangeLog{
+		EntityID:      mssql.UniqueIdentifier{},
+		EntityType:    "system",
+		OperationType: OpTypeSystemEvent,
+		ChangeTime:    now,
+	}
+	err := core.DB.Create(&log).Error
+	assert.NoError(t, err)
+	ts := now.Add(-time.Second).Format(time.RFC3339Nano)
+	resp, err := core.GetChangesSince(ts)
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	// Should contain system_event in UpdatedEntities
+	_, ok := resp.UpdatedEntities["system_event"]
+	assert.True(t, ok)
+}
+func TestUpdateEntityFieldsString_Success(t *testing.T) {
+	core := newTestCore(t)
+	user := "testuser"
+	// Create a line entity
+	line, err := core.CreateEntity(user, "line", "")
+	assert.NoError(t, err)
+	lineID := getIDFromModel(line).String()
+	// Get current global last update timestamp
+	ts, err := core.GetGlobalLastUpdateTimestamp()
+	assert.NoError(t, err)
+	// Prepare updates
+	updates := map[string]string{
+		"Name": "UpdatedLineName",
+	}
+	// Update entity
+	updated, err := core.UpdateEntityFieldsString(user, "line", lineID, ts, updates)
+	assert.NoError(t, err)
+	assert.NotNil(t, updated)
+	// Check if the update was applied
+	updatedLine, ok := updated.(*Line)
+	assert.True(t, ok)
+	assert.NotNil(t, updatedLine.Name)
+	assert.Equal(t, "UpdatedLineName", *updatedLine.Name)
+}
+
+func TestUpdateEntityFieldsString_DBNotInitialized(t *testing.T) {
+	core := &Core{}
+	_, err := core.UpdateEntityFieldsString("user", "line", "some-id", time.Now().Format(time.RFC3339Nano), map[string]string{"Name": "x"})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "DB not initialized")
+}
+
+func TestUpdateEntityFieldsString_UserNameRequired(t *testing.T) {
+	core := newTestCore(t)
+	// Create entity
+	line, err := core.CreateEntity("testuser", "line", "")
+	assert.NoError(t, err)
+	lineID := getIDFromModel(line).String()
+	ts, _ := core.GetGlobalLastUpdateTimestamp()
+	_, err = core.UpdateEntityFieldsString("", "line", lineID, ts, map[string]string{"Name": "x"})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "userName is required for update")
+}
+
+func TestUpdateEntityFieldsString_InvalidEntityID(t *testing.T) {
+	core := newTestCore(t)
+	ts, _ := core.GetGlobalLastUpdateTimestamp()
+	_, err := core.UpdateEntityFieldsString("user", "line", "not-a-uuid", ts, map[string]string{"Name": "x"})
+	assert.Error(t, err)
+}
+
+func TestUpdateEntityFieldsString_InvalidTimestamp(t *testing.T) {
+	core := newTestCore(t)
+	line, err := core.CreateEntity("testuser", "line", "")
+	assert.NoError(t, err)
+	lineID := getIDFromModel(line).String()
+	_, err = core.UpdateEntityFieldsString("testuser", "line", lineID, "not-a-timestamp", map[string]string{"Name": "x"})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid updated_at format")
+}
+
+func TestUpdateEntityFieldsString_UnknownEntityType(t *testing.T) {
+	core := newTestCore(t)
+	line, err := core.CreateEntity("testuser", "line", "")
+	assert.NoError(t, err)
+	lineID := getIDFromModel(line).String()
+	ts, _ := core.GetGlobalLastUpdateTimestamp()
+	_, err = core.UpdateEntityFieldsString("testuser", "unknown", lineID, ts, map[string]string{"Name": "x"})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unknown entity type")
+}
+
+func TestUpdateEntityFieldsString_RecordNotFound(t *testing.T) {
+	core := newTestCore(t)
+	// Use a random UUID that does not exist
+	id := "123e4567-e89b-12d3-a456-426614174999"
+	ts, _ := core.GetGlobalLastUpdateTimestamp()
+	_, err := core.UpdateEntityFieldsString("testuser", "line", id, ts, map[string]string{"Name": "x"})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "record not found or already deleted")
+}
+func TestDetectEntityTypeFromClipboard(t *testing.T) {
+	// Helper UUID
+	uuidStr := "123e4567-e89b-12d3-a456-426614174000"
+
+	// Line JSON (has AssemblyArea and Stations)
+	lineJSON := fmt.Sprintf(`{
+		"ID": "%s",
+		"AssemblyArea": "A1",
+		"Stations": [],
+		"Name": "Line1"
+	}`, uuidStr)
+	typ, err := detectEntityTypeFromClipboard(lineJSON)
+	assert.NoError(t, err)
+	assert.Equal(t, "line", typ)
+
+	// Station JSON (has StationType and Tools)
+	stationJSON := fmt.Sprintf(`{
+		"ID": "%s",
+		"StationType": "S1",
+		"Tools": [],
+		"Name": "Station1"
+	}`, uuidStr)
+	typ, err = detectEntityTypeFromClipboard(stationJSON)
+	assert.NoError(t, err)
+	assert.Equal(t, "station", typ)
+
+	// Tool JSON (has ToolClass and Operations)
+	toolJSON := fmt.Sprintf(`{
+		"ID": "%s",
+		"ToolClass": "T1",
+		"Operations": [],
+		"Name": "Tool1"
+	}`, uuidStr)
+	typ, err = detectEntityTypeFromClipboard(toolJSON)
+	assert.NoError(t, err)
+	assert.Equal(t, "tool", typ)
+
+	// Operation JSON (has DecisionCriteria and SequenceGroup)
+	operationJSON := fmt.Sprintf(`{
+		"ID": "%s",
+		"DecisionCriteria": "D1",
+		"SequenceGroup": "SG1",
+		"Name": "Op1"
+	}`, uuidStr)
+	typ, err = detectEntityTypeFromClipboard(operationJSON)
+	assert.NoError(t, err)
+	assert.Equal(t, "operation", typ)
+
+	// Fallback: valid Line struct, but no AssemblyArea/Stations keys
+	lineStructJSON := fmt.Sprintf(`{
+		"ID": "%s",
+		"Name": "line"
+	}`, uuidStr)
+	typ, err = detectEntityTypeFromClipboard(lineStructJSON)
+	assert.NoError(t, err)
+	assert.Equal(t, "line", typ)
+
+	// Invalid JSON
+	invalidJSON := `{invalid`
+	typ, err = detectEntityTypeFromClipboard(invalidJSON)
+	assert.Error(t, err)
+	assert.Empty(t, typ)
+
+	// Unknown type (valid JSON, but not matching any entity)
+	unknownJSON := `{"foo": "bar"}`
+	typ, err = detectEntityTypeFromClipboard(unknownJSON)
+	assert.Error(t, err)
+	assert.Empty(t, typ)
+}
+func TestCreateBaseFromOriginal_GeneratesNewIDAndTimestamps(t *testing.T) {
+	orig := BaseModel{
+		Name:        strPtr("OriginalName"),
+		Comment:     strPtr("OriginalComment"),
+		StatusColor: strPtr("blue"),
+	}
+	user := "testuser"
+	base := createBaseFromOriginal(orig, user)
+
+	assert.NotNil(t, base.Name)
+	assert.Equal(t, *orig.Name, *base.Name)
+	assert.NotNil(t, base.Comment)
+	assert.Equal(t, *orig.Comment, *base.Comment)
+	assert.NotNil(t, base.StatusColor)
+	assert.Equal(t, *orig.StatusColor, *base.StatusColor)
+
+	// ID should be a valid UUID and not zero
+	var zeroID mssql.UniqueIdentifier
+	assert.NotEqual(t, zeroID, base.ID)
+	assert.NotEmpty(t, base.ID.String())
+
+	// CreatedAt and UpdatedAt should be close to now
+	now := time.Now()
+	assert.WithinDuration(t, now, base.CreatedAt, time.Second)
+	assert.WithinDuration(t, now, base.UpdatedAt, time.Second)
+
+	// CreatedBy and UpdatedBy should be set to user
+	assert.NotNil(t, base.CreatedBy)
+	assert.NotNil(t, base.UpdatedBy)
+	assert.Equal(t, user, *base.CreatedBy)
+	assert.Equal(t, user, *base.UpdatedBy)
+}
+
+func TestCreateBaseFromOriginal_NilFields(t *testing.T) {
+	orig := BaseModel{}
+	user := "anotheruser"
+	base := createBaseFromOriginal(orig, user)
+
+	assert.Nil(t, base.Name)
+	assert.Nil(t, base.Comment)
+	assert.Nil(t, base.StatusColor)
+	assert.NotEqual(t, mssql.UniqueIdentifier{}, base.ID)
+	assert.NotNil(t, base.CreatedBy)
+	assert.NotNil(t, base.UpdatedBy)
+	assert.Equal(t, user, *base.CreatedBy)
+	assert.Equal(t, user, *base.UpdatedBy)
+}
+func TestCore_cleanupBroker_Success(t *testing.T) {
+	// Use a real DB if available, otherwise use a sqlmock
+	db, sqlDB, mock := newTestGormDB(t)
+	defer sqlDB.Close()
+	core := &Core{
+		DB:          db,
+		queueName:   "TestQueue",
+		serviceName: "TestService",
+	}
+	// Expect two Execs (service, queue)
+	mock.ExpectExec("DROP SERVICE").WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec("DROP QUEUE").WillReturnResult(sqlmock.NewResult(0, 1))
+	core.cleanupBroker()
+	// Ensure all expectations were met
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestCore_cleanupBroker_ExecStatements(t *testing.T) {
+	// Use a real DB if available, otherwise use a sqlmock
+	db, sqlDB, mock := newTestGormDB(t)
+	defer sqlDB.Close()
+	core := &Core{
+		DB:          db,
+		queueName:   "TestQueue",
+		serviceName: "TestService",
+	}
+
+	// Expect two Execs (service, queue)
+	mock.ExpectExec("DROP SERVICE").WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec("DROP QUEUE").WillReturnResult(sqlmock.NewResult(0, 1))
+
+	core.cleanupBroker()
+
+	// Ensure all expectations were met
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
