@@ -1012,13 +1012,13 @@ func (c *Core) UpdateEntityFieldsStringSequenceGroup(userName string, entityType
 			return errors.New("conflict: record was modified by another user")
 		}
 
-		gormUpdates := make(map[string]interface{})
+		gromUpdates := make(map[string]interface{})
 		for k, v := range updatesMapStr {
-			gormUpdates[k] = strPtr(v)
+			gromUpdates[k] = strPtr(v)
 		}
-		gormUpdates["updated_by"] = strPtr(userName)
-		gormUpdates["updated_at"] = time.Now()
-		if err := tx.Model(modelToUpdate).Where("id = ?", entityIDmssql).Updates(gormUpdates).Error; err != nil {
+		gromUpdates["updated_by"] = strPtr(userName)
+		gromUpdates["updated_at"] = time.Now()
+		if err := tx.Model(modelToUpdate).Where("id = ?", entityIDmssql).Updates(gromUpdates).Error; err != nil {
 			return fmt.Errorf("error updating DB: %w", err)
 		}
 
@@ -1028,7 +1028,11 @@ func (c *Core) UpdateEntityFieldsStringSequenceGroup(userName string, entityType
 		}
 		finalModelInstance = reloadedEntity
 
-		return updateGlobalLastUpdateTimestampAndLogChange(tx, entityIDmssql, entityTypeNormalized, OpTypeUpdate, strPtr(userName), updatesMapStr)
+		// Nur Änderungen an Operationen in den Changelog schreiben
+		if entityTypeNormalized == "operation" {
+			return updateGlobalLastUpdateTimestampAndLogChange(tx, entityIDmssql, entityTypeNormalized, OpTypeUpdate, strPtr(userName), updatesMapStr)
+		}
+		return nil
 	})
 	if err != nil {
 		return nil, err
