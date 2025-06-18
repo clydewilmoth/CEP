@@ -761,7 +761,7 @@ export function SequenceGroupView({
                   </Reorder.Group>
                 )}
 
-                <div className="flex gap-2 w-[99.5%]">
+                <div className="flex gap-2 w-[99%]">
                   <Input
                     value={processedData.inputValue}
                     onChange={(e) => handleInputChange(e.target.value)}
