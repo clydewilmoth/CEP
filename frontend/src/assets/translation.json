@@ -965,7 +965,7 @@
             "ToolClass": "Werkzeug Klasse",
             "ToolType": "Werkzeug Typ",
             "Operation Description" : "Beschreibung",
-            "Operations Unassigned" : "Nicht zugewiesene Operationen",
+            "Operations Unassigned" : "Unzugewiesene Operationen",
             "IpAddressDevice" : "Geräte IP Adresse",
             "IpAddressDevice ValidationFailed" : "Muss gültiger IPv4: 0-255.0-255.0-255.0-255 entsprechen!",
             "DecisionCriteria" : "Entscheidungskriterien",

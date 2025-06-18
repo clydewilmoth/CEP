@@ -584,8 +584,8 @@ export function SequenceGroupView({
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-5">
-          <div className="flex flex-col gap-5 w-[90%]">
-            <h1 className="text-xl font-bold">{t("Operations Unassigned")}</h1>
+          <div className="flex flex-col gap-5 w-[95%]">
+            <h1 className="text-lg font-bold">{t("Operations Unassigned")}</h1>
             <ScrollArea className="pr-4 h-[calc(100vh-11rem)]">
               <div
                 className="min-h-[100px] border-2 border-dashed rounded-lg p-4 mb-4 transition-all hover:border-accent/70 hover:bg-accent/10"
@@ -728,8 +728,8 @@ export function SequenceGroupView({
               </div>
             </ScrollArea>
           </div>
-          <div className="flex flex-col gap-5 w-[90%]">
-            <h1 className="text-xl font-bold">{t("SequenceGroups")}</h1>
+          <div className="flex flex-col gap-5 w-[95%]">
+            <h1 className="text-lg font-bold">{t("SequenceGroups")}</h1>
             <ScrollArea className="pr-4 h-[calc(100vh-11rem)]">
               <div className="flex flex-col gap-5">
                 {processedData.groups.length > 0 && (
