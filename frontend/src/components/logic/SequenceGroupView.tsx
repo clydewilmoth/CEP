@@ -624,7 +624,7 @@ export function SequenceGroupView({
                 }}
               >
                 <div className="flex flex-col gap-4">
-                  {/* Serial Operations Section */}
+                  {/* Serial Operations Section */}{" "}
                   <div>
                     <h4 className="text-sm font-medium mb-2 border-b pb-1">
                       {t("SOP_0_name")}
@@ -636,7 +636,7 @@ export function SequenceGroupView({
                         onReorder={(newOrder) =>
                           handleReorderUnassigned(newOrder, "serial")
                         }
-                        className="flex flex-col gap-2"
+                        className="flex flex-wrap gap-2"
                       >
                         {" "}
                         {processedData.unassignedSerialOperations.map(
@@ -657,7 +657,7 @@ export function SequenceGroupView({
                       </Reorder.Group>
                     )}
                   </div>
-                  {/* Parallel Operations Section */}
+                  {/* Parallel Operations Section */}{" "}
                   <div>
                     <h4 className="text-sm font-medium mb-2 border-b pb-1">
                       {t("SOP_1_name")}
@@ -669,7 +669,7 @@ export function SequenceGroupView({
                         onReorder={(newOrder) =>
                           handleReorderUnassigned(newOrder, "parallel")
                         }
-                        className="flex flex-col gap-2"
+                        className="flex flex-wrap gap-2"
                       >
                         {" "}
                         {processedData.unassignedParallelOperations.map(
@@ -690,7 +690,7 @@ export function SequenceGroupView({
                       </Reorder.Group>
                     )}
                   </div>
-                  {/* "none" Operations Section */}
+                  {/* "none" Operations Section */}{" "}
                   <div>
                     <h4 className="text-sm font-medium mb-2 border-b pb-1">
                       {t("NeitherSerialParallel")}
@@ -702,7 +702,7 @@ export function SequenceGroupView({
                         onReorder={(newOrder) =>
                           handleReorderUnassigned(newOrder, "parallel")
                         }
-                        className="flex flex-col gap-2"
+                        className="flex flex-wrap gap-2"
                         visibility="disabled"
                       >
                         {" "}
@@ -1140,7 +1140,6 @@ function SequenceGroupCard({
           onClose={() => onDelete(group.ID)}
         />
       </div>
-
       {/* Serial Operations */}
       <div className="mb-6">
         <div className="text-sm font-medium mb-2 border-b pb-1">
@@ -1214,8 +1213,7 @@ function SequenceGroupCard({
             )}
           </div>
         )}
-      </div>
-
+      </div>{" "}
       {/* Parallel Operations */}
       <div>
         <div className="text-sm font-medium mb-2 border-b pb-1">
@@ -1228,7 +1226,7 @@ function SequenceGroupCard({
             onReorder={(newOperations) =>
               onReorderOperations(group.ID, newOperations, "parallel")
             }
-            className="flex flex-col gap-2 pl-2"
+            className="flex flex-wrap gap-2 pl-2"
           >
             {" "}
             {group.ParallelOperations.map((operation) => (
