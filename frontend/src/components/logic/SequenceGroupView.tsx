@@ -623,13 +623,14 @@ export function SequenceGroupView({
                   }
                 }}
               >
+                {" "}
                 <div className="flex flex-col gap-4">
-                  {/* Serial Operations Section */}{" "}
-                  <div>
-                    <h4 className="text-sm font-medium mb-2 border-b pb-1">
-                      {t("SOP_0_name")}
-                    </h4>
-                    {processedData.unassignedSerialOperations.length > 0 && (
+                  {/* Serial Operations Section - nur anzeigen wenn Operationen vorhanden */}
+                  {processedData.unassignedSerialOperations.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2 border-b pb-1">
+                        {t("SOP_0_name")}
+                      </h4>
                       <Reorder.Group
                         axis="y"
                         values={processedData.unassignedSerialOperations}
@@ -638,7 +639,6 @@ export function SequenceGroupView({
                         }
                         className="flex flex-wrap gap-2"
                       >
-                        {" "}
                         {processedData.unassignedSerialOperations.map(
                           (entity) => (
                             <Reorder.Item
@@ -655,14 +655,14 @@ export function SequenceGroupView({
                           )
                         )}
                       </Reorder.Group>
-                    )}
-                  </div>
-                  {/* Parallel Operations Section */}{" "}
-                  <div>
-                    <h4 className="text-sm font-medium mb-2 border-b pb-1">
-                      {t("SOP_1_name")}
-                    </h4>
-                    {processedData.unassignedParallelOperations.length > 0 && (
+                    </div>
+                  )}
+                  {/* Parallel Operations Section - nur anzeigen wenn Operationen vorhanden */}
+                  {processedData.unassignedParallelOperations.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2 border-b pb-1">
+                        {t("SOP_1_name")}
+                      </h4>
                       <Reorder.Group
                         axis="y"
                         values={processedData.unassignedParallelOperations}
@@ -671,7 +671,6 @@ export function SequenceGroupView({
                         }
                         className="flex flex-wrap gap-2"
                       >
-                        {" "}
                         {processedData.unassignedParallelOperations.map(
                           (entity) => (
                             <Reorder.Item
@@ -688,14 +687,14 @@ export function SequenceGroupView({
                           )
                         )}
                       </Reorder.Group>
-                    )}
-                  </div>
-                  {/* "none" Operations Section */}{" "}
-                  <div>
-                    <h4 className="text-sm font-medium mb-2 border-b pb-1">
-                      {t("NeitherSerialParallel")}
-                    </h4>
-                    {processedData.unassignedNoneOperations.length > 0 && (
+                    </div>
+                  )}
+                  {/* "none" Operations Section - nur anzeigen wenn Operationen vorhanden */}
+                  {processedData.unassignedNoneOperations.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2 border-b pb-1">
+                        {t("NeitherSerialParallel")}
+                      </h4>
                       <Reorder.Group
                         axis="y"
                         values={processedData.unassignedNoneOperations}
@@ -705,7 +704,6 @@ export function SequenceGroupView({
                         className="flex flex-wrap gap-2"
                         visibility="disabled"
                       >
-                        {" "}
                         {processedData.unassignedNoneOperations.map(
                           (entity) => (
                             <Reorder.Item
@@ -722,8 +720,8 @@ export function SequenceGroupView({
                           )
                         )}
                       </Reorder.Group>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </ScrollArea>
