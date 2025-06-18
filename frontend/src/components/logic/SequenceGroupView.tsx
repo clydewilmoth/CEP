@@ -60,10 +60,14 @@ export function SequenceGroupView({
   }>();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  // State to track if any changes have been made
+  const [hasChanges, setHasChanges] = useState(false);
 
   const { data: processedData } = useQuery({
     queryKey: ["sequenceGroupsWithOperations", entityType, parentId, suuid],
     queryFn: async (): Promise<ReorderState> => {
+      // Reset hasChanges when data is refreshed from server
+      setHasChanges(false);
       const [groupsData, allOperationsData] = await Promise.all([
         GetAllEntities(entityType, String(parentId)),
         GetOperationsByStation(String(suuid)),
@@ -152,7 +156,6 @@ export function SequenceGroupView({
       };
     },
   });
-
   const moveOperationMutation = useMutation({
     mutationFn: async ({
       operationId,
@@ -263,6 +266,7 @@ export function SequenceGroupView({
         ["sequenceGroupsWithOperations", entityType, parentId, suuid],
         newData
       );
+      setHasChanges(true);
     },
   });
 
@@ -311,6 +315,7 @@ export function SequenceGroupView({
         ["sequenceGroupsWithOperations", entityType, parentId, suuid],
         newData
       );
+      setHasChanges(true);
     },
   });
 
@@ -344,6 +349,7 @@ export function SequenceGroupView({
         ["sequenceGroupsWithOperations", entityType, parentId, suuid],
         newData
       );
+      setHasChanges(true);
     },
   });
 
@@ -374,6 +380,7 @@ export function SequenceGroupView({
         ["sequenceGroupsWithOperations", entityType, parentId, suuid],
         newData
       );
+      setHasChanges(true);
     },
   });
 
@@ -782,20 +789,23 @@ export function SequenceGroupView({
                   </div>
                 </div>
               </div>
-            </ScrollArea>
+            </ScrollArea>{" "}
           </div>
-          <SubmitGroupsOrderButton
-            reorderableGroups={processedData.groups || []}
-            unassignedSerialOperations={
-              processedData.unassignedSerialOperations || []
-            }
-            unassignedParallelOperations={
-              processedData.unassignedParallelOperations || []
-            }
-            entityType={entityType}
-            parentId={parentId}
-            stationSuuid={suuid}
-          />
+          {hasChanges && (
+            <SubmitGroupsOrderButton
+              reorderableGroups={processedData.groups || []}
+              unassignedSerialOperations={
+                processedData.unassignedSerialOperations || []
+              }
+              unassignedParallelOperations={
+                processedData.unassignedParallelOperations || []
+              }
+              entityType={entityType}
+              parentId={parentId}
+              stationSuuid={suuid}
+              onSubmitSuccess={() => setHasChanges(false)}
+            />
+          )}
         </div>
       )}
     </>
@@ -835,6 +845,7 @@ export function SubmitGroupsOrderButton({
   entityType,
   parentId,
   stationSuuid,
+  onSubmitSuccess,
 }: {
   reorderableGroups: Group[];
   unassignedSerialOperations: Operation[];
@@ -842,6 +853,7 @@ export function SubmitGroupsOrderButton({
   entityType: string;
   parentId: string;
   stationSuuid: string;
+  onSubmitSuccess?: () => void;
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -930,6 +942,7 @@ export function SubmitGroupsOrderButton({
         ],
       });
       toast.success(t("order_changes_submitted_successfully"));
+      onSubmitSuccess?.();
     },
     onError: (error) => {
       toast.error(t("failed_to_submit_order_changes"));
