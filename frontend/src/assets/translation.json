@@ -926,7 +926,7 @@
             "OC_VERIFICATION_97_2_HelpText": "Special case Redford Axle: only temporary solution as part number is not correct in the bill of materials.",
             "drop_operation_here": "Drop Operation here",
             "please_enter_group_name": "enter group name",
-            "unnamed_entity": "unnamed entity"
+            "unnamed_entity": "Unnamed Operation"
         }
     },
 
@@ -1853,7 +1853,7 @@
             "drop_operation_here": "Operation hier ablegen",
             "please_enter_group_name": "Gruppennamen eingeben",
             "NeitherSerialParallel" : "Undefiniert",
-            "unnamed_entity": "Unbenannte Entität"
+            "unnamed_entity": "Unbenannte Operation"
         }
     }
 }
