@@ -986,7 +986,7 @@ function CreateSequenceGroupCard({
       queryClient.invalidateQueries({
         queryKey: ["sequenceGroupsWithOperations", entityType, parentId, suuid],
       });
-      toast.success(`${t(entityType)} ${t("create_toast")}`);
+      toast.success(`${t(entityType)} ${t("CreateToast")}`);
       onGroupCreated();
     },
     onError: (error: any) => {
