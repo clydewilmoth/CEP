@@ -629,7 +629,7 @@ export function SequenceGroupView({
                     <h4 className="text-sm font-medium mb-2 border-b pb-1">
                       {t("SOP_0_name")}
                     </h4>
-                    {processedData.unassignedSerialOperations.length > 0 ? (
+                    {processedData.unassignedSerialOperations.length > 0 && (
                       <Reorder.Group
                         axis="y"
                         values={processedData.unassignedSerialOperations}
@@ -638,12 +638,14 @@ export function SequenceGroupView({
                         }
                         className="flex flex-col gap-2"
                       >
+                        {" "}
                         {processedData.unassignedSerialOperations.map(
                           (entity) => (
                             <Reorder.Item
                               value={entity}
                               key={entity.ID}
-                              dragListener={true}
+                              dragListener={false}
+                              className="cursor-grab hover:cursor-grab active:cursor-grabbing"
                             >
                               <OperationCard
                                 operation={entity}
@@ -653,9 +655,6 @@ export function SequenceGroupView({
                           )
                         )}
                       </Reorder.Group>
-                    ) : (
-                      <div className="text-center py-4 text-muted-foreground">
-                      </div>
                     )}
                   </div>
                   {/* Parallel Operations Section */}
@@ -663,7 +662,7 @@ export function SequenceGroupView({
                     <h4 className="text-sm font-medium mb-2 border-b pb-1">
                       {t("SOP_1_name")}
                     </h4>
-                    {processedData.unassignedParallelOperations.length > 0 ? (
+                    {processedData.unassignedParallelOperations.length > 0 && (
                       <Reorder.Group
                         axis="y"
                         values={processedData.unassignedParallelOperations}
@@ -672,12 +671,14 @@ export function SequenceGroupView({
                         }
                         className="flex flex-col gap-2"
                       >
+                        {" "}
                         {processedData.unassignedParallelOperations.map(
                           (entity) => (
                             <Reorder.Item
                               value={entity}
                               key={entity.ID}
-                              dragListener={true}
+                              dragListener={false}
+                              className="cursor-grab hover:cursor-grab active:cursor-grabbing"
                             >
                               <OperationCard
                                 operation={entity}
@@ -687,9 +688,6 @@ export function SequenceGroupView({
                           )
                         )}
                       </Reorder.Group>
-                    ) : (
-                      <div className="text-center py-4 text-muted-foreground">
-                      </div>
                     )}
                   </div>
                   {/* "none" Operations Section */}
@@ -697,7 +695,7 @@ export function SequenceGroupView({
                     <h4 className="text-sm font-medium mb-2 border-b pb-1">
                       {t("NeitherSerialParallel")}
                     </h4>
-                    {processedData.unassignedNoneOperations.length > 0 ? (
+                    {processedData.unassignedNoneOperations.length > 0 && (
                       <Reorder.Group
                         axis="y"
                         values={processedData.unassignedNoneOperations}
@@ -707,12 +705,14 @@ export function SequenceGroupView({
                         className="flex flex-col gap-2"
                         visibility="disabled"
                       >
+                        {" "}
                         {processedData.unassignedNoneOperations.map(
                           (entity) => (
                             <Reorder.Item
                               value={entity}
                               key={entity.ID}
-                              dragListener={true}
+                              dragListener={false}
+                              className="cursor-grab hover:cursor-grab active:cursor-grabbing"
                             >
                               <OperationCard
                                 operation={entity}
@@ -722,10 +722,6 @@ export function SequenceGroupView({
                           )
                         )}
                       </Reorder.Group>
-                    ) : (
-                      <div className="text-center py-4 text-muted-foreground">
-                        {t("drag_Parallel_here")}
-                      </div>
                     )}
                   </div>
                 </div>
@@ -741,11 +737,13 @@ export function SequenceGroupView({
                 onReorder={handleReorderGroups}
                 className="flex flex-col gap-3"
               >
+                {" "}
                 {(processedData.groups || []).map((group, index) => (
                   <Reorder.Item
                     value={group}
                     key={group.ID}
                     dragListener={true}
+                    className="cursor-grab hover:cursor-grab active:cursor-grabbing"
                   >
                     <SequenceGroupCard
                       entityType={entityType}
@@ -807,37 +805,15 @@ function OperationCard({
   currentGroupId: string;
 }) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
-  const dragStateKey = ["dragState", operation.ID];
-
-  const { data: isDragging = false, refetch: refetchDragState } = useQuery({
-    queryKey: dragStateKey,
-    queryFn: () => false,
-    enabled: false,
-    staleTime: Infinity,
-  });
-
-  const setDragState = (dragging: boolean) => {
-    queryClient.setQueryData(dragStateKey, dragging);
-    refetchDragState();
-  };
 
   return (
     <Card
-      className={`relative w-36 hover:cursor-pointer transition-all h-fit flex gap-3 justify-center items-center py-4 ${
-        isDragging
-          ? "opacity-50 scale-95 shadow-xl z-50"
-          : "hover:translate-y-1"
-      }`}
+      className="relative w-36 transition-all h-fit flex gap-3 justify-center items-center py-4 hover:translate-y-1"
       draggable
       onDragStart={(e) => {
-        setDragState(true);
         e.dataTransfer.setData("operationId", operation.ID);
         e.dataTransfer.setData("sourceGroupId", currentGroupId);
         e.dataTransfer.effectAllowed = "move";
-      }}
-      onDragEnd={() => {
-        setDragState(false);
       }}
     >
       <div className="font-semibold text-sm text-center truncate px-2">
@@ -1175,11 +1151,13 @@ function SequenceGroupCard({
             }
             className="flex flex-col gap-2 pl-2"
           >
+            {" "}
             {group.SerialOperations.map((operation, opIndex) => (
               <Reorder.Item
                 value={operation}
                 key={operation.ID}
                 dragListener={true}
+                className="cursor-grab hover:cursor-grab active:cursor-grabbing"
               >
                 {/* MODIFIED: Flex container for order number, card, and buttons */}
                 <div className="flex items-center gap-2 w-full">
@@ -1227,9 +1205,9 @@ function SequenceGroupCard({
                 : "border-muted text-muted-foreground"
             }`}
           >
-            {isDragOver && !group.SerialOperations.length
-              ? t("drop_operation_here")
-              : t("")}
+            {isDragOver &&
+              !group.SerialOperations.length &&
+              t("drop_operation_here")}
           </div>
         )}
       </div>
@@ -1248,11 +1226,13 @@ function SequenceGroupCard({
             }
             className="flex flex-col gap-2 pl-2"
           >
+            {" "}
             {group.ParallelOperations.map((operation) => (
               <Reorder.Item
                 value={operation}
                 key={operation.ID}
                 dragListener={true}
+                className="cursor-grab hover:cursor-grab active:cursor-grabbing"
               >
                 <OperationCard
                   operation={operation}
@@ -1269,9 +1249,9 @@ function SequenceGroupCard({
                 : "border-muted text-muted-foreground"
             }`}
           >
-            {isDragOver && !group.SerialOperations.length
-              ? t("drop_operation_here")
-              : t("")}
+            {isDragOver &&
+              !group.ParallelOperations.length &&
+              t("drop_operation_here")}
           </div>
         )}
       </div>
