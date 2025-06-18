@@ -625,38 +625,39 @@ export function SequenceGroupView({
               >
                 {" "}
                 <div className="flex flex-col gap-4">
-                  {/* Serial Operations Section - nur anzeigen wenn Operationen vorhanden */}
-                  {processedData.unassignedSerialOperations.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium mb-2 border-b pb-1">
-                        {t("SOP_0_name")}
-                      </h4>
-                      <Reorder.Group
-                        axis="y"
-                        values={processedData.unassignedSerialOperations}
-                        onReorder={(newOrder) =>
-                          handleReorderUnassigned(newOrder, "serial")
-                        }
-                        className="flex flex-wrap gap-2"
-                      >
-                        {processedData.unassignedSerialOperations.map(
-                          (entity) => (
-                            <Reorder.Item
-                              value={entity}
-                              key={entity.ID}
-                              dragListener={false}
-                              className="cursor-grab hover:cursor-grab active:cursor-grabbing"
-                            >
-                              <OperationCard
-                                operation={entity}
-                                currentGroupId=""
-                              />
-                            </Reorder.Item>
-                          )
-                        )}
-                      </Reorder.Group>
-                    </div>
-                  )}
+                  {/* Serial Operations Section - nur anzeigen wenn Operationen vorhanden und stationType nicht "10" */}
+                  {processedData.unassignedSerialOperations.length > 0 &&
+                    stationType !== "10" && (
+                      <div>
+                        <h4 className="text-sm font-medium mb-2 border-b pb-1">
+                          {t("SOP_0_name")}
+                        </h4>
+                        <Reorder.Group
+                          axis="y"
+                          values={processedData.unassignedSerialOperations}
+                          onReorder={(newOrder) =>
+                            handleReorderUnassigned(newOrder, "serial")
+                          }
+                          className="flex flex-wrap gap-2"
+                        >
+                          {processedData.unassignedSerialOperations.map(
+                            (entity) => (
+                              <Reorder.Item
+                                value={entity}
+                                key={entity.ID}
+                                dragListener={false}
+                                className="cursor-grab hover:cursor-grab active:cursor-grabbing"
+                              >
+                                <OperationCard
+                                  operation={entity}
+                                  currentGroupId=""
+                                />
+                              </Reorder.Item>
+                            )
+                          )}
+                        </Reorder.Group>
+                      </div>
+                    )}
                   {/* Parallel Operations Section - nur anzeigen wenn Operationen vorhanden */}
                   {processedData.unassignedParallelOperations.length > 0 && (
                     <div>
@@ -745,6 +746,7 @@ export function SequenceGroupView({
                         dragListener={true}
                         className="cursor-grab hover:cursor-grab active:cursor-grabbing"
                       >
+                        {" "}
                         <SequenceGroupCard
                           entityType={entityType}
                           group={group}
@@ -753,6 +755,7 @@ export function SequenceGroupView({
                           onMoveOperation={handleMoveOperation}
                           onReorderOperations={handleReorderOperationsInGroup}
                           onDelete={handleGroupDelete}
+                          stationType={stationType}
                         />
                       </Reorder.Item>
                     ))}
@@ -1028,6 +1031,7 @@ function SequenceGroupCard({
   onMoveOperation,
   onReorderOperations,
   onDelete,
+  stationType,
 }: {
   entityType: string;
   group: Group;
@@ -1040,6 +1044,7 @@ function SequenceGroupCard({
     type: string
   ) => void;
   onDelete: (groupId: string) => void;
+  stationType: string;
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -1137,83 +1142,87 @@ function SequenceGroupCard({
           entityId={group.ID}
           onClose={() => onDelete(group.ID)}
         />
-      </div>
-      {/* Serial Operations */}
-      <div className="mb-6">
-        <div className="text-sm font-medium mb-2 border-b pb-1">
-          {t("SOP_0_name")} ({group.SerialOperations.length})
-        </div>
-        {group.SerialOperations.length > 0 ? (
-          <Reorder.Group
-            axis="y"
-            values={group.SerialOperations}
-            onReorder={(newOperations) =>
-              onReorderOperations(group.ID, newOperations, "0")
-            }
-            className="flex flex-col gap-2 pl-2"
-          >
-            {" "}
-            {group.SerialOperations.map((operation, opIndex) => (
-              <Reorder.Item
-                value={operation}
-                key={operation.ID}
-                dragListener={true}
-                className="cursor-grab hover:cursor-grab active:cursor-grabbing"
-              >
-                {/* MODIFIED: Flex container for order number, card, and buttons */}
-                <div className="flex items-center gap-2 w-full">
-                  <span className="text-xs text-muted-foreground w-4 text-right">
-                    {opIndex + 1}.
-                  </span>
-                  <div className="flex-grow">
-                    <OperationCard
-                      operation={operation}
-                      currentGroupId={group.ID}
-                    />
-                  </div>
-                  {/* NEW: Up and Down buttons */}
-                  <div className="flex flex-col">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => handleMoveOperationUpDown("up", opIndex)}
-                      disabled={opIndex === 0}
-                      aria-label={t("move_up")}
-                    >
-                      <ChevronUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => handleMoveOperationUpDown("down", opIndex)}
-                      disabled={opIndex === group.SerialOperations.length - 1}
-                      aria-label={t("move_down")}
-                    >
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
-        ) : (
-          <div
-            className={`text-center py-6 border-2 border-dashed rounded transition-all ${
-              isDragOver && !group.SerialOperations.length
-                ? "border-accent bg-accent/20 text-accent-foreground"
-                : "border-muted text-muted-foreground"
-            }`}
-          >
-            {isDragOver && !group.SerialOperations.length && (
-              <span className="text-sm">{t("drop_operation_here")}</span>
-            )}
-          </div>
-        )}
       </div>{" "}
+      {/* Serial Operations - nur anzeigen wenn stationType nicht "10" */}
+      {stationType !== "10" && (
+        <div className="mb-6">
+          <div className="text-sm font-medium mb-2 border-b pb-1">
+            {t("SOP_0_name")} ({group.SerialOperations.length})
+          </div>
+          {group.SerialOperations.length > 0 ? (
+            <Reorder.Group
+              axis="y"
+              values={group.SerialOperations}
+              onReorder={(newOperations) =>
+                onReorderOperations(group.ID, newOperations, "0")
+              }
+              className="flex flex-col gap-2 pl-2"
+            >
+              {" "}
+              {group.SerialOperations.map((operation, opIndex) => (
+                <Reorder.Item
+                  value={operation}
+                  key={operation.ID}
+                  dragListener={true}
+                  className="cursor-grab hover:cursor-grab active:cursor-grabbing"
+                >
+                  {/* MODIFIED: Flex container for order number, card, and buttons */}
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="text-xs text-muted-foreground w-4 text-right">
+                      {opIndex + 1}.
+                    </span>
+                    <div className="flex-grow">
+                      <OperationCard
+                        operation={operation}
+                        currentGroupId={group.ID}
+                      />
+                    </div>
+                    {/* NEW: Up and Down buttons */}
+                    <div className="flex flex-col">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleMoveOperationUpDown("up", opIndex)}
+                        disabled={opIndex === 0}
+                        aria-label={t("move_up")}
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() =>
+                          handleMoveOperationUpDown("down", opIndex)
+                        }
+                        disabled={opIndex === group.SerialOperations.length - 1}
+                        aria-label={t("move_down")}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </Reorder.Item>
+              ))}
+            </Reorder.Group>
+          ) : (
+            <div
+              className={`text-center py-6 border-2 border-dashed rounded transition-all ${
+                isDragOver && !group.SerialOperations.length
+                  ? "border-accent bg-accent/20 text-accent-foreground"
+                  : "border-muted text-muted-foreground"
+              }`}
+            >
+              {isDragOver && !group.SerialOperations.length && (
+                <span className="text-sm">{t("drop_operation_here")}</span>
+              )}
+            </div>
+          )}
+        </div>
+      )}{" "}
       {/* Parallel Operations */}
-      <div>
+      <div className={stationType === "10" ? "" : ""}>
         <div className="text-sm font-medium mb-2 border-b pb-1">
           {t("SOP_1_name")} ({group.ParallelOperations.length})
         </div>
