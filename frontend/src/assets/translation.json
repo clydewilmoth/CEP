@@ -923,7 +923,7 @@
             "OC_VERIFICATION_63_2_HelpText": "Check CustOrderno. Barcode defined via Barcodetype: UserDataStart and UserDataLength define where the customer order no. is in the barcode.",
             "OC_VERIFICATION_97_2_ClassDescription": "97 - I-Beam",
             "OC_VERIFICATION_97_2_HelpText": "Special case Redford Axle: only temporary solution as part number is not correct in the bill of materials.",
-            "drop_operation_here": "drop Operation here",
+            "drop_operation_here": "Drop Operation here",
             "please_enter_group_name": "enter group name",
             "unnamed_entity": "unnamed entity"
         }
@@ -1848,7 +1848,7 @@
             "OC_VERIFICATION_63_2_HelpText": "CustOrderno prüfen. Barcode über Barcodetype definiert: UserDataStart und UserDataLength legen dabei fest, wo die Kunden-Orderno im Barcode steht.",
             "OC_VERIFICATION_97_2_ClassDescription": "97 - I-Beam",
             "OC_VERIFICATION_97_2_HelpText": "Spezialfall Redford Achse: nur temporäre Lösung, da Teilenummer nicht korrekt in der Stückliste ist.",
-            "drop_operation_here": "Operation hier dropen",
+            "drop_operation_here": "Operation hier ablegen",
             "please_enter_group_name": "Gruppennamen eingeben",
             "NeitherSerialParallel" : "Undefiniert",
             "unnamed_entity": "Unbenannte Entität"

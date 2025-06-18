@@ -583,10 +583,10 @@ export function SequenceGroupView({
           {t("StationType Datapump")}
         </div>
       ) : (
-        <div className="grid grid-cols-2">
+        <div className="grid grid-cols-2 gap-5">
           <div className="flex flex-col gap-5 w-[90%]">
             <h1 className="text-xl font-bold">{t("Operations Unassigned")}</h1>
-            <ScrollArea className="pr-4 h-[85vh]">
+            <ScrollArea className="pr-4 h-[calc(100vh-11rem)]">
               <div
                 className="min-h-[100px] border-2 border-dashed rounded-lg p-4 mb-4 transition-all hover:border-accent/70 hover:bg-accent/10"
                 onDrop={(e) => {
@@ -730,41 +730,47 @@ export function SequenceGroupView({
           </div>
           <div className="flex flex-col gap-5 w-[90%]">
             <h1 className="text-xl font-bold">{t("SequenceGroups")}</h1>
-            <ScrollArea className="pr-4 h-[85vh]">
-              <Reorder.Group
-                axis="y"
-                values={processedData.groups || []}
-                onReorder={handleReorderGroups}
-                className="flex flex-col gap-3"
-              >
-                {" "}
-                {(processedData.groups || []).map((group, index) => (
-                  <Reorder.Item
-                    value={group}
-                    key={group.ID}
-                    dragListener={true}
-                    className="cursor-grab hover:cursor-grab active:cursor-grabbing"
+            <ScrollArea className="pr-4 h-[calc(100vh-11rem)]">
+              <div className="flex flex-col gap-5">
+                {processedData.groups.length > 0 && (
+                  <Reorder.Group
+                    axis="y"
+                    values={processedData.groups || []}
+                    onReorder={handleReorderGroups}
+                    className="flex flex-col gap-3"
                   >
-                    <SequenceGroupCard
-                      entityType={entityType}
-                      group={group}
-                      entityName={group.Name || t("unnamed_group")}
-                      visualIndex={index + 1}
-                      onMoveOperation={handleMoveOperation}
-                      onReorderOperations={handleReorderOperationsInGroup}
-                      onDelete={handleGroupDelete}
-                    />
-                  </Reorder.Item>
-                ))}
-              </Reorder.Group>
-              <div className="flex flex-col gap-5 my-5">
-                <div className="flex gap-3 w-full">
+                    {" "}
+                    {(processedData.groups || []).map((group, index) => (
+                      <Reorder.Item
+                        value={group}
+                        key={group.ID}
+                        dragListener={true}
+                        className="cursor-grab hover:cursor-grab active:cursor-grabbing"
+                      >
+                        <SequenceGroupCard
+                          entityType={entityType}
+                          group={group}
+                          entityName={group.Name || t("unnamed_group")}
+                          visualIndex={index + 1}
+                          onMoveOperation={handleMoveOperation}
+                          onReorderOperations={handleReorderOperationsInGroup}
+                          onDelete={handleGroupDelete}
+                        />
+                      </Reorder.Item>
+                    ))}
+                  </Reorder.Group>
+                )}
+
+                <div className="flex gap-2 w-[99.5%]">
                   <Input
                     value={processedData.inputValue}
                     onChange={(e) => handleInputChange(e.target.value)}
                     placeholder={t("SequenceGroup CreateInput")}
                   />
-                  <div className="w-1/4">
+                  <div
+                    className="w-8 h-8"
+                    hidden={processedData.inputValue == ""}
+                  >
                     <CreateSequenceGroupCard
                       entityType={entityType}
                       parentId={parentId}
@@ -774,23 +780,21 @@ export function SequenceGroupView({
                     />
                   </div>
                 </div>
-                <div className="w-1/2 min-w-fit max-w-52 mx-auto">
-                  <SubmitGroupsOrderButton
-                    reorderableGroups={processedData.groups || []}
-                    unassignedSerialOperations={
-                      processedData.unassignedSerialOperations || []
-                    }
-                    unassignedParallelOperations={
-                      processedData.unassignedParallelOperations || []
-                    }
-                    entityType={entityType}
-                    parentId={parentId}
-                    stationSuuid={suuid}
-                  />
-                </div>
               </div>
             </ScrollArea>
           </div>
+          <SubmitGroupsOrderButton
+            reorderableGroups={processedData.groups || []}
+            unassignedSerialOperations={
+              processedData.unassignedSerialOperations || []
+            }
+            unassignedParallelOperations={
+              processedData.unassignedParallelOperations || []
+            }
+            entityType={entityType}
+            parentId={parentId}
+            stationSuuid={suuid}
+          />
         </div>
       )}
     </>
@@ -935,7 +939,7 @@ export function SubmitGroupsOrderButton({
   return (
     <Button
       onClick={() => submitMutation.mutate()}
-      className="w-full"
+      className="w-fit"
       disabled={submitMutation.isPending}
     >
       {submitMutation.isPending
@@ -1014,7 +1018,7 @@ function CreateSequenceGroupCard({
       onClick={handleCreate}
       disabled={isPending}
     >
-      {isPending ? t("creating") + "..." : <Plus />}
+      {isPending ? "..." : <Plus />}
     </Button>
   );
 }
@@ -1205,9 +1209,9 @@ function SequenceGroupCard({
                 : "border-muted text-muted-foreground"
             }`}
           >
-            {isDragOver &&
-              !group.SerialOperations.length &&
-              t("drop_operation_here")}
+            {isDragOver && !group.SerialOperations.length && (
+              <span className="text-sm">{t("drop_operation_here")}</span>
+            )}
           </div>
         )}
       </div>
@@ -1249,9 +1253,9 @@ function SequenceGroupCard({
                 : "border-muted text-muted-foreground"
             }`}
           >
-            {isDragOver &&
-              !group.ParallelOperations.length &&
-              t("drop_operation_here")}
+            {isDragOver && !group.ParallelOperations.length && (
+              <span className="text-sm">{t("drop_operation_here")}</span>
+            )}
           </div>
         )}
       </div>
