@@ -1703,27 +1703,50 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 	if err != nil {
 		return err
 	}
-
-	// Sonderfall: sequencegroup - nur die Entität selbst löschen, keine History, keine Kinder
+	// Sonderfall: sequencegroup - erst alle Operationen auf unassigned setzen, dann die Gruppe löschen
 	if strings.ToLower(entityTypeStr) == "sequencegroup" {
-		modelInstance, err := getModelInstance(entityTypeStr)
-		if err != nil {
-			return err
-		}
-		if err := c.DB.First(modelInstance, "id = ?", entityIDmssql).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return fmt.Errorf("no entity %s with ID %s found to delete", entityTypeStr, entityIDStr)
+		return c.DB.Transaction(func(tx *gorm.DB) error {
+			// 1. Erst prüfen, ob die Sequenzgruppe existiert
+			modelInstance, err := getModelInstance(entityTypeStr)
+			if err != nil {
+				return err
 			}
-			return fmt.Errorf("error finding entity %s with ID %s for delete: %w", entityTypeStr, entityIDStr, err)
-		}
-		result := c.DB.Delete(modelInstance)
-		if result.Error != nil {
-			return fmt.Errorf("error deleting %s with ID %s: %w", entityTypeStr, entityIDStr, result.Error)
-		}
-		if result.RowsAffected == 0 {
-			return fmt.Errorf("no entity %s with ID %s actually deleted", entityTypeStr, entityIDStr)
-		}
-		return nil
+			if err := tx.First(modelInstance, "id = ?", entityIDmssql).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return fmt.Errorf("no entity %s with ID %s found to delete", entityTypeStr, entityIDStr)
+				}
+				return fmt.Errorf("error finding entity %s with ID %s for delete: %w", entityTypeStr, entityIDStr, err)
+			} // 2. Alle Operationen, die zu dieser Sequenzgruppe gehören, auf unassigned setzen
+			updateResult := tx.Model(&Operation{}).
+				Where("group_id = ?", entityIDmssql).
+				Updates(map[string]interface{}{
+					"group_id":       nil,
+					"sequence_group": "",
+					"sequence":       "",
+					"updated_by":     userName,
+					"updated_at":     time.Now(),
+				})
+
+			if updateResult.Error != nil {
+				return fmt.Errorf("error updating operations before deleting sequence group: %w", updateResult.Error)
+			}
+
+			// 3. Jetzt die Sequenzgruppe sicher löschen
+			result := tx.Delete(modelInstance)
+			if result.Error != nil {
+				return fmt.Errorf("error deleting %s with ID %s: %w", entityTypeStr, entityIDStr, result.Error)
+			}
+			if result.RowsAffected == 0 {
+				return fmt.Errorf("no entity %s with ID %s actually deleted", entityTypeStr, entityIDStr)
+			}
+
+			// 4. Globalen Timestamp und Changelog aktualisieren
+			if logErr := updateGlobalLastUpdateTimestampAndLogChange(tx, entityIDmssql, entityTypeStr, OpTypeDelete, strPtr(userName), nil); logErr != nil {
+				return fmt.Errorf("error logging delete for %s %s: %w", entityTypeStr, entityIDStr, logErr)
+			}
+
+			return nil
+		})
 	}
 
 	modelInstance, err := getModelInstance(entityTypeStr)
