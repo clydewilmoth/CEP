@@ -68,12 +68,14 @@ export function LineForm({ entityId }: { entityId: string }) {
   const [formReady, setFormReady] = useState(false);
   const { dbState, lastUpdate } = useContext();
   const { t, i18n } = useTranslation();
+  const [draftAvailable, setDraftAvailable] = useState(false);
 
   useEffect(() => {
     (async () => {
       const line = await GetEntityDetails("line", entityId);
       setMeta({ UpdatedAt: line.UpdatedAt, UpdatedBy: line.UpdatedBy });
       const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+      setDraftAvailable(Object.keys(json).length > 0);
       form.reset({
         Name: json.Name ?? line.Name ?? "",
         Comment: json.Comment ?? line.Comment ?? "",
@@ -114,6 +116,10 @@ export function LineForm({ entityId }: { entityId: string }) {
     queryFn: async () => {
       const values = form.getValues();
       const res: Record<string, any> = {};
+      setDraftAvailable(
+        Object.keys(JSON.parse(localStorage.getItem(entityId) ?? "{}")).length >
+          0
+      );
       Object.entries(values).forEach(([key, value]) => {
         JSON.parse(localStorage.getItem(entityId) ?? "{}")[key] != null
           ? (res[key] = { data: value, draft: true })
@@ -513,19 +519,21 @@ export function LineForm({ entityId }: { entityId: string }) {
               </FormItem>
             )}
           />
-          <div className="flex gap-5 justify-center">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={async () => discardDrafts()}
-              className="w-full"
-            >
-              {t("Discard")}
-            </Button>
-            <Button variant="outline" type="submit" className="w-full">
-              {t("Submit")}
-            </Button>
-          </div>
+          {draftAvailable && (
+            <div className="flex gap-5 justify-center">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={async () => discardDrafts()}
+                className="w-full"
+              >
+                {t("Discard")}
+              </Button>
+              <Button variant="outline" type="submit" className="w-full">
+                {t("Submit")}
+              </Button>
+            </div>
+          )}
           <div className="flex justify-center items-center">
             <div className="max-w-80 text-left italic text-sm">
               {t("EntityMetaData", {
@@ -549,12 +557,14 @@ export function StationForm({ entityId }: { entityId: string }) {
   const [formReady, setFormReady] = useState(false);
   const { dbState, lastUpdate } = useContext();
   const { t, i18n } = useTranslation();
+  const [draftAvailable, setDraftAvailable] = useState(false);
 
   useEffect(() => {
     (async () => {
       const station = await GetEntityDetails("station", entityId);
       setMeta({ UpdatedAt: station.UpdatedAt, UpdatedBy: station.UpdatedBy });
       const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+      setDraftAvailable(Object.keys(json).length > 0);
       form.reset({
         Name: json.Name ?? station.Name ?? "",
         Comment: json.Comment ?? station.Comment ?? "",
@@ -592,6 +602,10 @@ export function StationForm({ entityId }: { entityId: string }) {
   const { data: station } = useQuery({
     queryKey: ["station", entityId],
     queryFn: async () => {
+      setDraftAvailable(
+        Object.keys(JSON.parse(localStorage.getItem(entityId) ?? "{}")).length >
+          0
+      );
       const values = form.getValues();
       const res: Record<string, any> = {};
       Object.entries(values).forEach(([key, value]) => {
@@ -1097,19 +1111,21 @@ export function StationForm({ entityId }: { entityId: string }) {
             )}
           />
 
-          <div className="flex gap-5 justify-center">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={async () => discardDrafts()}
-              className="w-full"
-            >
-              {t("Discard")}
-            </Button>
-            <Button variant="outline" type="submit" className="w-full">
-              {t("Submit")}
-            </Button>
-          </div>
+          {draftAvailable && (
+            <div className="flex gap-5 justify-center">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={async () => discardDrafts()}
+                className="w-full"
+              >
+                {t("Discard")}
+              </Button>
+              <Button variant="outline" type="submit" className="w-full">
+                {t("Submit")}
+              </Button>
+            </div>
+          )}
           <div className="flex justify-center items-center">
             <div className="max-w-80 text-left italic text-sm">
               {t("EntityMetaData", {
@@ -1133,12 +1149,14 @@ export function ToolForm({ entityId }: { entityId: string }) {
   const [formReady, setFormReady] = useState(false);
   const { dbState, lastUpdate } = useContext();
   const { t, i18n } = useTranslation();
+  const [draftAvailable, setDraftAvailable] = useState(false);
 
   useEffect(() => {
     (async () => {
       const tool = await GetEntityDetails("tool", entityId);
       setMeta({ UpdatedAt: tool.UpdatedAt, UpdatedBy: tool.UpdatedBy });
       const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
+      setDraftAvailable(Object.keys(json).length > 0);
       form.reset({
         Name: json.Name ?? tool.Name ?? "",
         Comment: json.Comment ?? tool.Comment ?? "",
@@ -1231,6 +1249,10 @@ export function ToolForm({ entityId }: { entityId: string }) {
   const { data: tool } = useQuery({
     queryKey: ["tool", entityId],
     queryFn: async () => {
+      setDraftAvailable(
+        Object.keys(JSON.parse(localStorage.getItem(entityId) ?? "{}")).length >
+          0
+      );
       const values = form.getValues();
       const res: Record<string, any> = {};
       Object.entries(values).forEach(([key, value]) => {
@@ -2265,19 +2287,21 @@ export function ToolForm({ entityId }: { entityId: string }) {
               />
             </>
           )}
-          <div className="flex gap-5 justify-center">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={async () => discardDrafts()}
-              className="w-full"
-            >
-              {t("Discard")}
-            </Button>
-            <Button variant="outline" type="submit" className="w-full">
-              {t("Submit")}
-            </Button>
-          </div>
+          {draftAvailable && (
+            <div className="flex gap-5 justify-center">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={async () => discardDrafts()}
+                className="w-full"
+              >
+                {t("Discard")}
+              </Button>
+              <Button variant="outline" type="submit" className="w-full">
+                {t("Submit")}
+              </Button>
+            </div>
+          )}
           <div className="flex justify-center items-center">
             <div className="max-w-80 text-left italic text-sm">
               {t("EntityMetaData", {
@@ -2307,7 +2331,7 @@ export function OperationForm({
   const [formReady, setFormReady] = useState(false);
   const { dbState, lastUpdate } = useContext();
   const { t, i18n } = useTranslation();
-
+  const [draftAvailable, setDraftAvailable] = useState(false);
   const [parentTool, setParentTool] = useState<any>();
 
   useEffect(() => {
@@ -2323,7 +2347,7 @@ export function OperationForm({
       });
 
       const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
-
+      setDraftAvailable(Object.keys(json).length > 0);
       const jsonDecisionCriteria =
         json.DecisionCriteria && json.DecisionCriteria.split("<|||>");
       const operationDecisionCriteria =
@@ -2388,6 +2412,10 @@ export function OperationForm({
   const { data: operation } = useQuery({
     queryKey: ["operation", entityId],
     queryFn: async () => {
+      setDraftAvailable(
+        Object.keys(JSON.parse(localStorage.getItem(entityId) ?? "{}")).length >
+          0
+      );
       const values = form.getValues();
       const res: Record<string, any> = {};
       Object.entries(values).forEach(([key, value]) => {
@@ -3628,20 +3656,21 @@ export function OperationForm({
               </FormItem>
             )}
           />
-          <div className="flex gap-5 justify-center">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={async () => discardDrafts()}
-              className="w-full"
-            >
-              {t("Discard")}
-            </Button>
-            <Button variant="outline" type="submit" className="w-full">
-              {t("Submit")}
-            </Button>
-          </div>
-
+          {draftAvailable && (
+            <div className="flex gap-5 justify-center">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={async () => discardDrafts()}
+                className="w-full"
+              >
+                {t("Discard")}
+              </Button>
+              <Button variant="outline" type="submit" className="w-full">
+                {t("Submit")}
+              </Button>
+            </div>
+          )}
           <div className="flex justify-center items-center">
             <div className="max-w-80 text-left italic text-sm">
               {t("EntityMetaData", {

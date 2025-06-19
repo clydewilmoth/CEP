@@ -20,9 +20,9 @@ func main() {
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:            "CEP",
-		Width:            1120,
+		Width:            1160,
 		Height:           800,
-		MinWidth:         1120,
+		MinWidth:         1160,
 		MinHeight:        800,
 		Assets:           assets,
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
