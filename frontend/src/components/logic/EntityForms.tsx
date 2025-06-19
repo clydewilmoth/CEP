@@ -160,8 +160,6 @@ export function LineForm({ entityId }: { entityId: string }) {
   });
 
   async function onSubmit() {
-    if (!checkDraftsAvailable()) return toast.error(t("NoDraft"));
-
     let changesRecord: Record<string, string> = {};
 
     const lineDb = await GetEntityDetails("line", entityId);
@@ -648,8 +646,6 @@ export function StationForm({ entityId }: { entityId: string }) {
   });
 
   async function onSubmit() {
-    if (!checkDraftsAvailable()) return toast.error(t("NoDraft"));
-
     let changesRecord: Record<string, string> = {};
 
     let resetChildTemplate = false;
@@ -1295,8 +1291,6 @@ export function ToolForm({ entityId }: { entityId: string }) {
   });
 
   async function onSubmit() {
-    if (!checkDraftsAvailable()) return toast.error(t("NoDraft"));
-
     let changesRecord: Record<string, string> = {};
 
     let resetChildTemplate = false;
@@ -2458,8 +2452,6 @@ export function OperationForm({
   });
 
   async function onSubmit() {
-    if (!checkDraftsAvailable()) return toast.error(t("NoDraft"));
-
     let changesRecord: Record<string, string> = {};
 
     const operationDb = await GetEntityDetails("operation", entityId);
