@@ -790,21 +790,33 @@ export function SequenceGroupView({
                 </div>
               </div>
             </ScrollArea>{" "}
-          </div>
+          </div>{" "}
           {hasChanges && (
-            <SubmitGroupsOrderButton
-              reorderableGroups={processedData.groups || []}
-              unassignedSerialOperations={
-                processedData.unassignedSerialOperations || []
-              }
-              unassignedParallelOperations={
-                processedData.unassignedParallelOperations || []
-              }
-              entityType={entityType}
-              parentId={parentId}
-              stationSuuid={suuid}
-              onSubmitSuccess={() => setHasChanges(false)}
-            />
+            <div className="flex gap-5 mt-4 w-72">
+              <div className="w-1/2">
+                <DiscardChangesButton
+                  entityType={entityType}
+                  parentId={parentId}
+                  stationSuuid={suuid}
+                  onDiscardSuccess={() => setHasChanges(false)}
+                />
+              </div>
+              <div className="w-1/2">
+                <SubmitGroupsOrderButton
+                  reorderableGroups={processedData.groups || []}
+                  unassignedSerialOperations={
+                    processedData.unassignedSerialOperations || []
+                  }
+                  unassignedParallelOperations={
+                    processedData.unassignedParallelOperations || []
+                  }
+                  entityType={entityType}
+                  parentId={parentId}
+                  stationSuuid={suuid}
+                  onSubmitSuccess={() => setHasChanges(false)}
+                />
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -952,13 +964,59 @@ export function SubmitGroupsOrderButton({
 
   return (
     <Button
+      variant="outline"
       onClick={() => submitMutation.mutate()}
-      className="w-fit"
+      className="w-full"
       disabled={submitMutation.isPending}
     >
-      {submitMutation.isPending
-        ? t("submitting") + "..."
-        : t("SequenceGroup Submit")}
+      {submitMutation.isPending ? "..." : t("Submit")}
+    </Button>
+  );
+}
+
+export function DiscardChangesButton({
+  entityType,
+  parentId,
+  stationSuuid,
+  onDiscardSuccess,
+}: {
+  entityType: string;
+  parentId: string;
+  stationSuuid: string;
+  onDiscardSuccess?: () => void;
+}) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  const discardMutation = useMutation({
+    mutationFn: async () => {
+      queryClient.invalidateQueries({
+        queryKey: [
+          "sequenceGroupsWithOperations",
+          entityType,
+          parentId,
+          stationSuuid,
+        ],
+      });
+    },
+    onSuccess: () => {
+      toast.success(t("changes_discarded_successfully"));
+      onDiscardSuccess?.();
+    },
+    onError: (error) => {
+      toast.error(t("failed_to_discard_changes"));
+      console.error("Error discarding changes:", error);
+    },
+  });
+
+  return (
+    <Button
+      variant="outline"
+      onClick={() => discardMutation.mutate()}
+      className="w-full"
+      disabled={discardMutation.isPending}
+    >
+      {discardMutation.isPending ? "..." : t("Discard")}
     </Button>
   );
 }
