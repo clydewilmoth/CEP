@@ -404,7 +404,6 @@ export function SequenceGroupView({
       );
     },
   });
-
   const deleteGroupMutation = useMutation({
     mutationFn: async ({
       groupId,
@@ -413,62 +412,8 @@ export function SequenceGroupView({
       groupId: string;
       sourceData: ReorderState;
     }) => {
-      const groupToDelete = sourceData.groups.find(
-        (group) => group.ID === groupId
-      );
-      let newUnassignedSerialOperations = [
-        ...sourceData.unassignedSerialOperations,
-      ];
-      let newUnassignedParallelOperations = [
-        ...sourceData.unassignedParallelOperations,
-      ];
-
-      if (groupToDelete) {
-        const opsToMove = [
-          ...groupToDelete.SerialOperations.map((op) => ({
-            ...op,
-            SequenceGroup: "",
-            Sequence: "",
-            GroupID: "",
-          })),
-          ...groupToDelete.ParallelOperations.map((op) => ({
-            ...op,
-            SequenceGroup: "",
-            Sequence: "",
-            GroupID: "",
-          })),
-        ];
-
-        if (opsToMove.length > 0) {
-          for (const op of opsToMove) {
-            try {
-              await UpdateEntityFieldsStringSequenceGroup(
-                localStorage.getItem("name") || "",
-                "operation",
-                op.ID,
-                op.UpdatedAt,
-                {
-                  Sequence: "",
-                  SequenceGroup: "",
-                  GroupID: "",
-                }
-              );
-            } catch (error) {
-              console.error(
-                "Error unassigning operation on group delete:",
-                error
-              );
-            }
-          }
-          newUnassignedSerialOperations.push(
-            ...opsToMove.filter((op) => op.SerialOrParallel === "0")
-          );
-          newUnassignedParallelOperations.push(
-            ...opsToMove.filter((op) => op.SerialOrParallel === "1")
-          );
-        }
-      }
-
+      // Backend handles unassigning operations automatically
+      // Just return the current state without the deleted group
       const newGroups = sourceData.groups
         .filter((group) => group.ID !== groupId)
         .map((group, index) => ({
@@ -487,8 +432,6 @@ export function SequenceGroupView({
       return {
         ...sourceData,
         groups: newGroups,
-        unassignedSerialOperations: newUnassignedSerialOperations,
-        unassignedParallelOperations: newUnassignedParallelOperations,
       };
     },
     onSuccess: (newData, variables) => {
@@ -496,6 +439,7 @@ export function SequenceGroupView({
         ["sequenceGroupsWithOperations", entityType, parentId, suuid],
         newData
       );
+      // Invalidate queries to reload data from server (including unassigned operations)
       queryClient.invalidateQueries({
         queryKey: ["sequenceGroupsWithOperations", entityType, parentId, suuid],
       });
