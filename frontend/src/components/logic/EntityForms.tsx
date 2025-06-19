@@ -2327,11 +2327,13 @@ export function OperationForm({
         UpdatedAt: operation.UpdatedAt,
         UpdatedBy: operation.UpdatedBy,
       });
-
       const json = JSON.parse(localStorage.getItem(entityId) ?? "{}");
       setDraftAvailable(Object.keys(json).length > 0);
-      const jsonDecisionCriteria =
-        json.DecisionCriteria && json.DecisionCriteria.split("<|||>");
+      const jsonDecisionCriteria = json.DecisionCriteria
+        ? Array.isArray(json.DecisionCriteria)
+          ? json.DecisionCriteria
+          : json.DecisionCriteria.split("<|||>")
+        : null;
       const operationDecisionCriteria =
         operation.DecisionCriteria && operation.DecisionCriteria.split("<|||>");
 
@@ -2665,8 +2667,9 @@ export function OperationForm({
                       selectedVersion.VerificationClass ?? "";
                     json.GenerationClass =
                       selectedVersion.GenerationClass ?? "";
-                    json.DecisionCriteria =
-                      selectedVersion.DecisionCriteria ?? "";
+                    json.DecisionCriteria = selectedVersion.DecisionCriteria
+                      ? selectedVersion.DecisionCriteria.split("<|||>")
+                      : [];
                     localStorage.setItem(entityId, JSON.stringify(json));
                     setObserver((prev) => prev + 1);
                     toast.success(t("VersionHistory Toast"));
