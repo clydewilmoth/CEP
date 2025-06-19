@@ -105,10 +105,6 @@ export function LineForm({ entityId }: { entityId: string }) {
     setObserver((prev) => prev + 1);
   }
 
-  function checkDraftsAvailable() {
-    return localStorage.getItem(entityId) != null ? true : false;
-  }
-
   const queryClient = useQueryClient();
 
   const { data: line } = useQuery({
@@ -589,10 +585,6 @@ export function StationForm({ entityId }: { entityId: string }) {
   function clearDrafts() {
     localStorage.removeItem(entityId);
     setObserver((prev) => prev + 1);
-  }
-
-  function checkDraftsAvailable() {
-    return localStorage.getItem(entityId) != null ? true : false;
   }
 
   const queryClient = useQueryClient();
@@ -1234,10 +1226,6 @@ export function ToolForm({ entityId }: { entityId: string }) {
   function clearDrafts() {
     localStorage.removeItem(entityId);
     setObserver((prev) => prev + 1);
-  }
-
-  function checkDraftsAvailable() {
-    return localStorage.getItem(entityId) != null ? true : false;
   }
 
   const queryClient = useQueryClient();
@@ -2395,10 +2383,6 @@ export function OperationForm({
   function clearDrafts() {
     localStorage.removeItem(entityId);
     setObserver((prev) => prev + 1);
-  }
-
-  function checkDraftsAvailable() {
-    return localStorage.getItem(entityId) != null ? true : false;
   }
 
   const queryClient = useQueryClient();
