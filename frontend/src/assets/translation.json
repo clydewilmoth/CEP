@@ -8,7 +8,7 @@
             "StationType Placeholder": "Select a Station Type",
             "StationType Unassigned": "No Station Type selected. To view, create, or edit Sequence Groups, please select a Station Type other than Datapump.",
             "StationType Datapump": "Station Type 'Datapump' selected. To view, create, or edit Sequence Groups, please select a Station Type other than Datapump.",            
-            "Template" : "Vorlage",
+            "Template" : "Template",
             "Template Placeholder": "Select a Template",
             "SOP Placeholder": "Select between Serial or Parallel",
             "ToolClass Placeholder": "Select a Tool Class",
