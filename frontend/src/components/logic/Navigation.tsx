@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { GetEntityDetails } from "../../../wailsjs/go/main/Core";
 import { useEffect, useState } from "react";
 import { useContext } from "../../store";
+import { Skeleton } from "../ui/skeleton";
 
 export function BreadcrumbNavigation({
   luuid,
@@ -31,6 +32,7 @@ export function BreadcrumbNavigation({
   const [sName, setSName] = useState("");
   const [tName, setTName] = useState("");
   const [oName, setOName] = useState("");
+  const [navReady, setNavReady] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -40,10 +42,17 @@ export function BreadcrumbNavigation({
       const tDetails = tuuid && (await GetEntityDetails("tool", tuuid ?? ""));
       const oDetails =
         ouuid && (await GetEntityDetails("operation", ouuid ?? ""));
+      await (async (ms: number) => {
+        return await new Promise((resolve) => {
+          setTimeout(resolve, ms);
+        });
+      })(1000);
       setLName(lDetails?.Name ?? "");
       setSName(sDetails?.Name ?? "");
       setTName(tDetails?.Name ?? "");
       setOName(oDetails?.Name ?? "");
+
+      setNavReady(true);
     })();
   }, [location, dbState]);
 
@@ -73,6 +82,7 @@ export function BreadcrumbNavigation({
                   className="text-base text-foreground opacity-50 disabled:opacity-100 px-2"
                 >
                   {`${t("line")} ${lName}`}
+                  {!navReady && <Skeleton className="w-24 h-8" />}
                 </Button>
               </BreadcrumbItem>
               {suuid && <BreadcrumbSeparator />}
@@ -93,6 +103,7 @@ export function BreadcrumbNavigation({
                     className="text-base text-foreground opacity-50 disabled:opacity-100 px-2"
                   >
                     {`${t("station")} ${sName}`}
+                    {!navReady && <Skeleton className="w-24 h-8" />}
                   </Button>
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -117,6 +128,7 @@ export function BreadcrumbNavigation({
                     className="text-base text-foreground opacity-50 disabled:opacity-100 px-2"
                   >
                     {`${t("tool")} ${tName}`}
+                    {!navReady && <Skeleton className="w-24 h-8" />}
                   </Button>
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -133,6 +145,7 @@ export function BreadcrumbNavigation({
                     className="text-base text-foreground opacity-50 disabled:opacity-100 px-2"
                   >
                     {`${t("operation")} ${oName}`}
+                    {!navReady && <Skeleton className="w-24 h-8" />}
                   </Button>
                 </BreadcrumbLink>
               </BreadcrumbItem>
