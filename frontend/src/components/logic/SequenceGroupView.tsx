@@ -512,8 +512,7 @@ export function SequenceGroupView({
   const [loading, setLoading] = useState(true);
 
   // Use delayed loading to prevent skeleton flickering
-  const showDataLoader = useDelayedLoading(!processedData);
-  const showStationLoader = useDelayedLoading(loading);
+  const dataLoading = useDelayedLoading(isFetching);
 
   useEffect(() => {
     (async () => {
@@ -523,13 +522,13 @@ export function SequenceGroupView({
     })();
   }, []);
 
-  if (showDataLoader || !processedData) {
+  if (!processedData) {
     return <Loader />;
   }
 
   return (
     <>
-      {showStationLoader ? (
+      {loading ? (
         <Loader />
       ) : stationType == "" || stationType == "none" ? (
         <div className="text-sm font-semibold max-w-lg bg-card border p-4 flex flex-col gap-3 rounded-lg">
@@ -543,7 +542,7 @@ export function SequenceGroupView({
         <div className="grid grid-cols-2 gap-5">
           <div className="flex flex-col gap-5 w-[95%]">
             <h1 className="text-lg font-bold">{t("Operations Unassigned")}</h1>
-            {isFetching ? (
+            {dataLoading ? (
               <Skeleton className="w-[95%] h-[50vh]" />
             ) : (
               <ScrollArea className="pr-4 h-[calc(100vh-11rem)]">
@@ -690,7 +689,7 @@ export function SequenceGroupView({
           </div>
           <div className="flex flex-col gap-5 w-[95%]">
             <h1 className="text-lg font-bold">{t("SequenceGroups")}</h1>
-            {isFetching ? (
+            {dataLoading ? (
               <Skeleton className="w-[95%] h-[50vh]" />
             ) : (
               <ScrollArea className="pr-4 h-[calc(100vh-11rem)]">
