@@ -1,6 +1,7 @@
 build/bin
 build/darwin
-build/windows
+build/windows/info.json
+build/windows/wails.exe.manifest
 node_modules
 frontend/dist
 frontend/wailsjs
