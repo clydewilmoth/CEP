@@ -1721,8 +1721,8 @@ func (c *Core) DeleteEntityByIDString(userName string, entityTypeStr string, ent
 				Where("group_id = ?", entityIDmssql).
 				Updates(map[string]interface{}{
 					"group_id":       nil,
-					"sequence_group": "",
-					"sequence":       "",
+					"sequence_group": nil,
+					"sequence":       nil,
 					"updated_by":     userName,
 					"updated_at":     time.Now(),
 				})
