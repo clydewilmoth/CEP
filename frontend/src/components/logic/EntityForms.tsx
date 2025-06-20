@@ -59,6 +59,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "../ui/dialog";
+import { Skeleton } from "../ui/skeleton";
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -82,6 +83,11 @@ export function LineForm({ entityId }: { entityId: string }) {
         StatusColor: json.StatusColor ?? line.StatusColor ?? "empty",
         AssemblyArea: json.AssemblyArea ?? line.AssemblyArea ?? "",
       });
+      await (async (ms: number) => {
+        return await new Promise((resolve) => {
+          setTimeout(resolve, ms);
+        });
+      })(1000);
       setFormReady(true);
       setVersions(await GetEntityVersions("line", entityId));
       queryClient.invalidateQueries({
@@ -184,358 +190,355 @@ export function LineForm({ entityId }: { entityId: string }) {
   const [selectedVersion, setSelectedVersion] = useState<any>(null);
   const [versionDialogOpen, setVersionDialogOpen] = useState(false);
 
-  return (
-    formReady && (
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(() => submitForm())}
-          className="py-3 flex flex-col gap-5"
-        >
-          <div>
-            {versions.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="flex gap-3 items-center w-fit px-2.5"
-                  >
-                    <History />
-                    <span className="font-semibold">{t("VersionHistory")}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="p-0">
-                  <DropdownMenuItem className="p-0 m-0">
-                    <ScrollArea className="p-1">
-                      <div className="max-h-[30vh]">
-                        {versions.map((version) => (
-                          <div key={version.EntityID + version.Version}>
-                            <Button
-                              variant="ghost"
-                              className="w-full h-fit justify-start"
-                              onClick={() => {
-                                setSelectedVersion(version);
-                                setVersionDialogOpen(true);
-                              }}
-                            >
-                              <span className="max-w-sm text-wrap break-words text-left">
-                                {`${version.Version} ${t("by")} ${
-                                  version.UpdatedBy
-                                } 
+  return formReady ? (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(() => submitForm())}
+        className="py-3 flex flex-col gap-5"
+      >
+        <div>
+          {versions.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="flex gap-3 items-center w-fit px-2.5"
+                >
+                  <History />
+                  <span className="font-semibold">{t("VersionHistory")}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="p-0">
+                <DropdownMenuItem className="p-0 m-0">
+                  <ScrollArea className="p-1">
+                    <div className="max-h-[30vh]">
+                      {versions.map((version) => (
+                        <div key={version.EntityID + version.Version}>
+                          <Button
+                            variant="ghost"
+                            className="w-full h-fit justify-start"
+                            onClick={() => {
+                              setSelectedVersion(version);
+                              setVersionDialogOpen(true);
+                            }}
+                          >
+                            <span className="max-w-sm text-wrap break-words text-left">
+                              {`${version.Version} ${t("by")} ${
+                                version.UpdatedBy
+                              } 
                     ${t("on")} ${formatTimestamp(version.UpdatedAt)[0]} 
                     ${t("at")} ${formatTimestamp(version.UpdatedAt)[1]}`}
-                              </span>
-                            </Button>
-                            {version.Version != 1 && (
-                              <DropdownMenuSeparator className="bg-accent h-px my-1" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            <Dialog
-              open={versionDialogOpen}
-              onOpenChange={setVersionDialogOpen}
-            >
-              <DialogContent className="py-10 grid grid-cols-1 gap-5 w-1/2">
-                <DialogTitle>{t("VersionHistory DialogTitle")}</DialogTitle>
-                <DialogDescription>
-                  {t("VersionHistory DialogDescription", {
-                    Version: selectedVersion?.Version,
-                    UpdatedBy: selectedVersion?.UpdatedBy,
-                    UpdatedAtDate: formatTimestamp(
-                      selectedVersion?.UpdatedAt
-                    )[0],
-                    UpdatedAtTime: formatTimestamp(
-                      selectedVersion?.UpdatedAt
-                    )[1],
-                  })}
-                </DialogDescription>
-                <ScrollArea className="pr-4">
-                  <div className="flex flex-col gap-3 font-semibold max-h-[50vh] break-words">
-                    <span>{`${t("StatusColor")} → ${t(
-                      selectedVersion?.StatusColor
-                    )}`}</span>
-                    <span>{`${t("Comment")} → ${
-                      selectedVersion?.Comment ? selectedVersion?.Comment : ""
-                    }`}</span>
-                    <span>{`${t("Name")} → ${
-                      selectedVersion?.Name ? selectedVersion?.Name : ""
-                    }`}</span>
-                    <span>{`${t("AssemblyArea")} → ${
-                      selectedVersion?.AssemblyArea
-                        ? selectedVersion?.AssemblyArea
-                        : ""
-                    }`}</span>
-                  </div>
-                </ScrollArea>
-                <Button
-                  variant="outline"
-                  className="w-1/2 mx-auto"
-                  onClick={() => {
-                    const json = JSON.parse(
-                      localStorage.getItem(entityId) ?? "{}"
-                    );
-                    json.StatusColor = selectedVersion.StatusColor ?? "";
-                    json.Comment = selectedVersion.Comment ?? "";
-                    json.Name = selectedVersion.Name ?? "";
-                    json.AssemblyArea = selectedVersion.AssemblyArea ?? "";
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    setObserver((prev) => prev + 1);
-                    toast.success(t("VersionHistory Toast"));
-                    setVersionDialogOpen(false);
-                  }}
-                >
-                  {t("Confirm")}
-                </Button>
-              </DialogContent>
-            </Dialog>
-          </div>
+                            </span>
+                          </Button>
+                          {version.Version != 1 && (
+                            <DropdownMenuSeparator className="bg-accent h-px my-1" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          <Dialog open={versionDialogOpen} onOpenChange={setVersionDialogOpen}>
+            <DialogContent className="py-10 grid grid-cols-1 gap-5 w-1/2">
+              <DialogTitle>{t("VersionHistory DialogTitle")}</DialogTitle>
+              <DialogDescription>
+                {t("VersionHistory DialogDescription", {
+                  Version: selectedVersion?.Version,
+                  UpdatedBy: selectedVersion?.UpdatedBy,
+                  UpdatedAtDate: formatTimestamp(selectedVersion?.UpdatedAt)[0],
+                  UpdatedAtTime: formatTimestamp(selectedVersion?.UpdatedAt)[1],
+                })}
+              </DialogDescription>
+              <ScrollArea className="pr-4">
+                <div className="flex flex-col gap-3 font-semibold max-h-[50vh] break-words">
+                  <span>{`${t("StatusColor")} → ${t(
+                    selectedVersion?.StatusColor
+                  )}`}</span>
+                  <span>{`${t("Comment")} → ${
+                    selectedVersion?.Comment ? selectedVersion?.Comment : ""
+                  }`}</span>
+                  <span>{`${t("Name")} → ${
+                    selectedVersion?.Name ? selectedVersion?.Name : ""
+                  }`}</span>
+                  <span>{`${t("AssemblyArea")} → ${
+                    selectedVersion?.AssemblyArea
+                      ? selectedVersion?.AssemblyArea
+                      : ""
+                  }`}</span>
+                </div>
+              </ScrollArea>
+              <Button
+                variant="outline"
+                className="w-1/2 mx-auto"
+                onClick={() => {
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.StatusColor = selectedVersion.StatusColor ?? "";
+                  json.Comment = selectedVersion.Comment ?? "";
+                  json.Name = selectedVersion.Name ?? "";
+                  json.AssemblyArea = selectedVersion.AssemblyArea ?? "";
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  setObserver((prev) => prev + 1);
+                  toast.success(t("VersionHistory Toast"));
+                  setVersionDialogOpen(false);
+                }}
+              >
+                {t("Confirm")}
+              </Button>
+            </DialogContent>
+          </Dialog>
+        </div>
 
-          <div className="flex gap-3 items-center justify-between">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCommentOpen(commentOpen ? false : true)}
-              type="button"
-            >
-              {commentOpen ? <ChevronUp /> : <ChevronDown />}
-            </Button>
-            <div className="flex gap-3 items-center">
-              {line && line.StatusColor?.draft && (
-                <TooltipProvider>
-                  <Tooltip>
+        <div className="flex gap-3 items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCommentOpen(commentOpen ? false : true)}
+            type="button"
+          >
+            {commentOpen ? <ChevronUp /> : <ChevronDown />}
+          </Button>
+          <div className="flex gap-3 items-center">
+            {line && line.StatusColor?.draft && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SquarePen size={15} />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-sm">
+                    {t(lineDb.StatusColor)}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <FormField
+              control={form.control}
+              name="StatusColor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <RadioGroup
+                      className="flex gap-1.5"
+                      value={field.value ?? "empty"}
+                      onValueChange={(value: string) => {
+                        field.onChange(value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.StatusColor = value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["line", entityId],
+                        });
+                      }}
+                    >
+                      <RadioGroupItem
+                        value="empty"
+                        aria-label="empty"
+                        className="size-6 border bg-background"
+                      />
+                      <RadioGroupItem
+                        value="red"
+                        aria-label="red"
+                        className="size-6 border bg-red-500"
+                      />
+                      <RadioGroupItem
+                        value="amber"
+                        aria-label="amber"
+                        className="size-6 border bg-amber-500"
+                      />
+                      <RadioGroupItem
+                        value="emerald"
+                        aria-label="emerald"
+                        className="size-6 border bg-emerald-500"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+        {commentOpen && (
+          <div className="flex flex-col gap-3">
+            {line && line.Comment?.draft ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <div className="flex gap-3">
+                    <FormLabel className="flex h-[15px]">
+                      {t("Comment")}
+                    </FormLabel>
                     <TooltipTrigger asChild>
                       <SquarePen size={15} />
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-sm">
-                      {t(lineDb.StatusColor)}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                  </div>
+                  <TooltipContent className="max-w-sm">
+                    {t(lineDb.Comment)}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <FormLabel className="flex h-[15px]">{t("Comment")}</FormLabel>
+            )}
+
+            <FormField
+              control={form.control}
+              name="Comment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.Comment = e.target.value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["line", entityId],
+                        });
+                      }}
+                      className="h-32 resize-none"
+                    />
+                  </FormControl>
+                </FormItem>
               )}
-              <FormField
-                control={form.control}
-                name="StatusColor"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <RadioGroup
-                        className="flex gap-1.5"
-                        value={field.value ?? "empty"}
-                        onValueChange={(value: string) => {
-                          field.onChange(value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.StatusColor = value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["line", entityId],
-                          });
-                        }}
-                      >
-                        <RadioGroupItem
-                          value="empty"
-                          aria-label="empty"
-                          className="size-6 border bg-background"
-                        />
-                        <RadioGroupItem
-                          value="red"
-                          aria-label="red"
-                          className="size-6 border bg-red-500"
-                        />
-                        <RadioGroupItem
-                          value="amber"
-                          aria-label="amber"
-                          className="size-6 border bg-amber-500"
-                        />
-                        <RadioGroupItem
-                          value="emerald"
-                          aria-label="emerald"
-                          className="size-6 border bg-emerald-500"
-                        />
-                      </RadioGroup>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+            />
           </div>
-          {commentOpen && (
-            <div className="flex flex-col gap-3">
-              {line && line.Comment?.draft ? (
+        )}
+
+        <FormField
+          control={form.control}
+          name="Name"
+          render={({ field }) => (
+            <FormItem>
+              {line && line.Name?.draft ? (
                 <TooltipProvider>
                   <Tooltip>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
-                        {t("Comment")}
+                        {t("Name")}
                       </FormLabel>
                       <TooltipTrigger asChild>
                         <SquarePen size={15} />
                       </TooltipTrigger>
                     </div>
                     <TooltipContent className="max-w-sm">
-                      {t(lineDb.Comment)}
+                      {t(lineDb.Name)}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               ) : (
-                <FormLabel className="flex h-[15px]">{t("Comment")}</FormLabel>
+                <FormLabel className="flex h-[15px]">{t("Name")}</FormLabel>
               )}
-
-              <FormField
-                control={form.control}
-                name="Comment"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.Comment = e.target.value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["line", entityId],
-                          });
-                        }}
-                        className="h-32 resize-none"
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.Name = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["line", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
           )}
+        />
 
-          <FormField
-            control={form.control}
-            name="Name"
-            render={({ field }) => (
-              <FormItem>
-                {line && line.Name?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("Name")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {t(lineDb.Name)}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">{t("Name")}</FormLabel>
-                )}
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      const json = JSON.parse(
-                        localStorage.getItem(entityId) ?? "{}"
-                      );
-                      json.Name = e.target.value;
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      queryClient.invalidateQueries({
-                        queryKey: ["line", entityId],
-                      });
-                    }}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="AssemblyArea"
-            render={({ field }) => (
-              <FormItem>
-                {line && line.AssemblyArea?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("AssemblyArea")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {t(lineDb.AssemblyArea)}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("AssemblyArea")}
-                  </FormLabel>
-                )}
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      const json = JSON.parse(
-                        localStorage.getItem(entityId) ?? "{}"
-                      );
-                      json.AssemblyArea = e.target.value;
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      queryClient.invalidateQueries({
-                        queryKey: ["line", entityId],
-                      });
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {draftAvailable && (
-            <div className="flex gap-5 justify-center">
-              <Button
-                variant="outline"
-                type="button"
-                onClick={async () => discardDrafts()}
-                className="w-full"
-              >
-                {t("Discard")}
-              </Button>
-              <Button variant="outline" type="submit" className="w-full">
-                {t("Submit")}
-              </Button>
-            </div>
+        <FormField
+          control={form.control}
+          name="AssemblyArea"
+          render={({ field }) => (
+            <FormItem>
+              {line && line.AssemblyArea?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("AssemblyArea")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {t(lineDb.AssemblyArea)}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("AssemblyArea")}
+                </FormLabel>
+              )}
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.AssemblyArea = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["line", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-          <div className="flex justify-center items-center">
-            <div className="max-w-80 text-left italic text-sm">
-              {t("EntityMetaData", {
-                name: meta?.UpdatedBy,
-                date: formatTimestamp(meta.UpdatedAt ?? "")[0],
-                time: formatTimestamp(meta.UpdatedAt ?? "")[1],
-              })}
-            </div>
+        />
+        {draftAvailable && (
+          <div className="flex gap-5 justify-center">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={async () => discardDrafts()}
+              className="w-full"
+            >
+              {t("Discard")}
+            </Button>
+            <Button variant="outline" type="submit" className="w-full">
+              {t("Submit")}
+            </Button>
           </div>
-        </form>
-      </Form>
-    )
+        )}
+        <div className="flex justify-center items-center">
+          <div className="max-w-80 text-left italic text-sm">
+            {t("EntityMetaData", {
+              name: meta?.UpdatedBy,
+              date: formatTimestamp(meta.UpdatedAt ?? "")[0],
+              time: formatTimestamp(meta.UpdatedAt ?? "")[1],
+            })}
+          </div>
+        </div>
+      </form>
+    </Form>
+  ) : (
+    <div className="flex flex-col gap-5 py-5">
+      {Array.from({ length: 8 }, (_, index) => (
+        <Skeleton className="w-full h-10" />
+      ))}
+    </div>
   );
 }
 
@@ -562,6 +565,11 @@ export function StationForm({ entityId }: { entityId: string }) {
         Description: json.Description ?? station.Description ?? "",
         StationType: json.StationType ?? station.StationType ?? "",
       });
+      await (async (ms: number) => {
+        return await new Promise((resolve) => {
+          setTimeout(resolve, ms);
+        });
+      })(1000);
       setFormReady(true);
       setVersions(await GetEntityVersions("station", entityId));
       queryClient.invalidateQueries({
@@ -696,428 +704,425 @@ export function StationForm({ entityId }: { entityId: string }) {
   const [selectedVersion, setSelectedVersion] = useState<any>(null);
   const [versionDialogOpen, setVersionDialogOpen] = useState(false);
 
-  return (
-    formReady && (
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(() => submitForm())}
-          className="py-3  flex flex-col gap-5"
-        >
-          <div>
-            {versions.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="flex gap-3 items-center w-fit px-2.5"
-                  >
-                    <History />
-                    <span className="font-semibold">{t("VersionHistory")}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="p-0">
-                  <DropdownMenuItem className="p-0 m-0">
-                    <ScrollArea className="p-1">
-                      <div className="max-h-[30vh]">
-                        {versions.map((version) => (
-                          <div key={version.EntityID + version.Version}>
-                            <Button
-                              variant="ghost"
-                              className="w-full h-fit justify-start"
-                              onClick={() => {
-                                setSelectedVersion(version);
-                                setVersionDialogOpen(true);
-                              }}
-                            >
-                              <span className="max-w-sm text-wrap break-words text-left">
-                                {`${version.Version} ${t("by")} ${
-                                  version.UpdatedBy
-                                } 
+  return formReady ? (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(() => submitForm())}
+        className="py-3  flex flex-col gap-5"
+      >
+        <div>
+          {versions.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="flex gap-3 items-center w-fit px-2.5"
+                >
+                  <History />
+                  <span className="font-semibold">{t("VersionHistory")}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="p-0">
+                <DropdownMenuItem className="p-0 m-0">
+                  <ScrollArea className="p-1">
+                    <div className="max-h-[30vh]">
+                      {versions.map((version) => (
+                        <div key={version.EntityID + version.Version}>
+                          <Button
+                            variant="ghost"
+                            className="w-full h-fit justify-start"
+                            onClick={() => {
+                              setSelectedVersion(version);
+                              setVersionDialogOpen(true);
+                            }}
+                          >
+                            <span className="max-w-sm text-wrap break-words text-left">
+                              {`${version.Version} ${t("by")} ${
+                                version.UpdatedBy
+                              } 
                     ${t("on")} ${formatTimestamp(version.UpdatedAt)[0]} 
                     ${t("at")} ${formatTimestamp(version.UpdatedAt)[1]}`}
-                              </span>
-                            </Button>
-                            {version.Version != 1 && (
-                              <DropdownMenuSeparator className="bg-accent h-px my-1" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            <Dialog
-              open={versionDialogOpen}
-              onOpenChange={setVersionDialogOpen}
-            >
-              <DialogContent className="py-10 grid grid-cols-1 gap-5 w-1/2">
-                <DialogTitle>{t("VersionHistory DialogTitle")}</DialogTitle>
-                <DialogDescription>
-                  {t("VersionHistory DialogDescription", {
-                    Version: selectedVersion?.Version,
-                    UpdatedBy: selectedVersion?.UpdatedBy,
-                    UpdatedAtDate: formatTimestamp(
-                      selectedVersion?.UpdatedAt
-                    )[0],
-                    UpdatedAtTime: formatTimestamp(
-                      selectedVersion?.UpdatedAt
-                    )[1],
-                  })}
-                </DialogDescription>
-                <ScrollArea className="pr-4">
-                  <div className="flex flex-col gap-3 font-semibold max-h-[50vh] break-words">
-                    <span>{`${t("StatusColor")} → ${t(
-                      selectedVersion?.StatusColor
-                    )}`}</span>
-                    <span>{`${t("Comment")} → ${
-                      selectedVersion?.Comment ? selectedVersion?.Comment : ""
-                    }`}</span>
-                    <span>{`${t("Name")} → ${
-                      selectedVersion?.Name ? selectedVersion?.Name : ""
-                    }`}</span>
-                    <span>{`${t("Description")} → ${
-                      selectedVersion?.Description
-                        ? selectedVersion?.Description
-                        : ""
-                    }`}</span>
-                    <span>{`${t("StationType")} → ${
-                      selectedVersion?.StationType &&
-                      selectedVersion?.StationType != "none"
-                        ? t("ST_" + selectedVersion?.StationType + "_Name")
-                        : ""
-                    }`}</span>
-                  </div>
-                </ScrollArea>
-                <Button
-                  variant="outline"
-                  className="w-1/2 mx-auto"
-                  onClick={() => {
-                    const json = JSON.parse(
-                      localStorage.getItem(entityId) ?? "{}"
-                    );
-                    json.StatusColor = selectedVersion.StatusColor ?? "";
-                    json.Comment = selectedVersion.Comment ?? "";
-                    json.Name = selectedVersion.Name ?? "";
-                    json.Description = selectedVersion.Description ?? "";
-                    json.StationType = selectedVersion.StationType ?? "";
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    setObserver((prev) => prev + 1);
-                    toast.success(t("VersionHistory Toast"));
-                    setVersionDialogOpen(false);
-                  }}
-                >
-                  {t("Confirm")}
-                </Button>
-              </DialogContent>
-            </Dialog>
-          </div>
+                            </span>
+                          </Button>
+                          {version.Version != 1 && (
+                            <DropdownMenuSeparator className="bg-accent h-px my-1" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          <Dialog open={versionDialogOpen} onOpenChange={setVersionDialogOpen}>
+            <DialogContent className="py-10 grid grid-cols-1 gap-5 w-1/2">
+              <DialogTitle>{t("VersionHistory DialogTitle")}</DialogTitle>
+              <DialogDescription>
+                {t("VersionHistory DialogDescription", {
+                  Version: selectedVersion?.Version,
+                  UpdatedBy: selectedVersion?.UpdatedBy,
+                  UpdatedAtDate: formatTimestamp(selectedVersion?.UpdatedAt)[0],
+                  UpdatedAtTime: formatTimestamp(selectedVersion?.UpdatedAt)[1],
+                })}
+              </DialogDescription>
+              <ScrollArea className="pr-4">
+                <div className="flex flex-col gap-3 font-semibold max-h-[50vh] break-words">
+                  <span>{`${t("StatusColor")} → ${t(
+                    selectedVersion?.StatusColor
+                  )}`}</span>
+                  <span>{`${t("Comment")} → ${
+                    selectedVersion?.Comment ? selectedVersion?.Comment : ""
+                  }`}</span>
+                  <span>{`${t("Name")} → ${
+                    selectedVersion?.Name ? selectedVersion?.Name : ""
+                  }`}</span>
+                  <span>{`${t("Description")} → ${
+                    selectedVersion?.Description
+                      ? selectedVersion?.Description
+                      : ""
+                  }`}</span>
+                  <span>{`${t("StationType")} → ${
+                    selectedVersion?.StationType &&
+                    selectedVersion?.StationType != "none"
+                      ? t("ST_" + selectedVersion?.StationType + "_Name")
+                      : ""
+                  }`}</span>
+                </div>
+              </ScrollArea>
+              <Button
+                variant="outline"
+                className="w-1/2 mx-auto"
+                onClick={() => {
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.StatusColor = selectedVersion.StatusColor ?? "";
+                  json.Comment = selectedVersion.Comment ?? "";
+                  json.Name = selectedVersion.Name ?? "";
+                  json.Description = selectedVersion.Description ?? "";
+                  json.StationType = selectedVersion.StationType ?? "";
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  setObserver((prev) => prev + 1);
+                  toast.success(t("VersionHistory Toast"));
+                  setVersionDialogOpen(false);
+                }}
+              >
+                {t("Confirm")}
+              </Button>
+            </DialogContent>
+          </Dialog>
+        </div>
 
-          <div className="flex gap-3 items-center justify-between">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCommentOpen(commentOpen ? false : true)}
-              type="button"
-            >
-              {commentOpen ? <ChevronUp /> : <ChevronDown />}
-            </Button>
-            <div className="flex gap-3 items-center">
-              {station && station.StatusColor?.draft && (
-                <TooltipProvider>
-                  <Tooltip>
+        <div className="flex gap-3 items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCommentOpen(commentOpen ? false : true)}
+            type="button"
+          >
+            {commentOpen ? <ChevronUp /> : <ChevronDown />}
+          </Button>
+          <div className="flex gap-3 items-center">
+            {station && station.StatusColor?.draft && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SquarePen size={15} />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-sm">
+                    {t(stationDb.StatusColor)}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <FormField
+              control={form.control}
+              name="StatusColor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <RadioGroup
+                      className="flex gap-1.5"
+                      value={field.value ?? "empty"}
+                      onValueChange={(value: string) => {
+                        field.onChange(value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.StatusColor = value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["station", entityId],
+                        });
+                      }}
+                    >
+                      <RadioGroupItem
+                        value="empty"
+                        aria-label="empty"
+                        className="size-6 border bg-background"
+                      />
+                      <RadioGroupItem
+                        value="red"
+                        aria-label="red"
+                        className="size-6 border bg-red-500"
+                      />
+                      <RadioGroupItem
+                        value="amber"
+                        aria-label="amber"
+                        className="size-6 border bg-amber-500"
+                      />
+                      <RadioGroupItem
+                        value="emerald"
+                        aria-label="emerald"
+                        className="size-6 border bg-emerald-500"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+        {commentOpen && (
+          <div className="flex flex-col gap-3">
+            {station && station.Comment?.draft ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <div className="flex gap-3">
+                    <FormLabel className="flex h-[15px]">
+                      {t("Comment")}
+                    </FormLabel>
                     <TooltipTrigger asChild>
                       <SquarePen size={15} />
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-sm">
-                      {t(stationDb.StatusColor)}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                  </div>
+                  <TooltipContent className="max-w-sm">
+                    {t(stationDb.Comment)}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <FormLabel className="flex h-[15px]">{t("Comment")}</FormLabel>
+            )}
+
+            <FormField
+              control={form.control}
+              name="Comment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.Comment = e.target.value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["station", entityId],
+                        });
+                      }}
+                      className="h-32 resize-none"
+                    />
+                  </FormControl>
+                </FormItem>
               )}
-              <FormField
-                control={form.control}
-                name="StatusColor"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <RadioGroup
-                        className="flex gap-1.5"
-                        value={field.value ?? "empty"}
-                        onValueChange={(value: string) => {
-                          field.onChange(value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.StatusColor = value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["station", entityId],
-                          });
-                        }}
-                      >
-                        <RadioGroupItem
-                          value="empty"
-                          aria-label="empty"
-                          className="size-6 border bg-background"
-                        />
-                        <RadioGroupItem
-                          value="red"
-                          aria-label="red"
-                          className="size-6 border bg-red-500"
-                        />
-                        <RadioGroupItem
-                          value="amber"
-                          aria-label="amber"
-                          className="size-6 border bg-amber-500"
-                        />
-                        <RadioGroupItem
-                          value="emerald"
-                          aria-label="emerald"
-                          className="size-6 border bg-emerald-500"
-                        />
-                      </RadioGroup>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+            />
           </div>
-          {commentOpen && (
-            <div className="flex flex-col gap-3">
-              {station && station.Comment?.draft ? (
+        )}
+
+        <FormField
+          control={form.control}
+          name="Name"
+          render={({ field }) => (
+            <FormItem>
+              {station && station.Name?.draft ? (
                 <TooltipProvider>
                   <Tooltip>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
-                        {t("Comment")}
+                        {t("Name")}
                       </FormLabel>
                       <TooltipTrigger asChild>
                         <SquarePen size={15} />
                       </TooltipTrigger>
                     </div>
                     <TooltipContent className="max-w-sm">
-                      {t(stationDb.Comment)}
+                      {t(stationDb.Name)}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               ) : (
-                <FormLabel className="flex h-[15px]">{t("Comment")}</FormLabel>
+                <FormLabel className="flex h-[15px]">{t("Name")}</FormLabel>
               )}
-
-              <FormField
-                control={form.control}
-                name="Comment"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.Comment = e.target.value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["station", entityId],
-                          });
-                        }}
-                        className="h-32 resize-none"
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-          )}
-
-          <FormField
-            control={form.control}
-            name="Name"
-            render={({ field }) => (
-              <FormItem>
-                {station && station.Name?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("Name")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {t(stationDb.Name)}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">{t("Name")}</FormLabel>
-                )}
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      const json = JSON.parse(
-                        localStorage.getItem(entityId) ?? "{}"
-                      );
-                      json.Name = e.target.value;
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      queryClient.invalidateQueries({
-                        queryKey: ["station", entityId],
-                      });
-                    }}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="Description"
-            render={({ field }) => (
-              <FormItem>
-                {station && station.Description?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("Station Description")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {t(stationDb.Description)}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("Station Description")}
-                  </FormLabel>
-                )}
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      const json = JSON.parse(
-                        localStorage.getItem(entityId) ?? "{}"
-                      );
-                      json.Description = e.target.value;
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      queryClient.invalidateQueries({
-                        queryKey: ["station", entityId],
-                      });
-                    }}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="StationType"
-            render={({ field }) => (
-              <FormItem>
-                {station && station.StationType?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("Station Type")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {stationDb.StationType &&
-                          t("ST_" + String(stationDb.StationType) + "_Name")}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("Station Type")}
-                  </FormLabel>
-                )}
-                <Select
+              <FormControl>
+                <Input
+                  {...field}
                   value={field.value ?? ""}
-                  onValueChange={(value) => {
-                    field.onChange(value);
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
                     const json = JSON.parse(
                       localStorage.getItem(entityId) ?? "{}"
                     );
-                    json.StationType = value;
+                    json.Name = e.target.value;
                     localStorage.setItem(entityId, JSON.stringify(json));
                     queryClient.invalidateQueries({
                       queryKey: ["station", entityId],
                     });
                   }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("StationType Placeholder")} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {data.StationTypes.map((stationtype) => {
-                      return (
-                        <SelectItem
-                          key={"ST_" + stationtype.id}
-                          value={stationtype.id}
-                        >
-                          {t("ST_" + String(stationtype.id) + "_Name")}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-
-          {draftAvailable && (
-            <div className="flex gap-5 justify-center">
-              <Button
-                variant="outline"
-                type="button"
-                onClick={async () => discardDrafts()}
-                className="w-full"
-              >
-                {t("Discard")}
-              </Button>
-              <Button variant="outline" type="submit" className="w-full">
-                {t("Submit")}
-              </Button>
-            </div>
+                />
+              </FormControl>
+            </FormItem>
           )}
-          <div className="flex justify-center items-center">
-            <div className="max-w-80 text-left italic text-sm">
-              {t("EntityMetaData", {
-                name: meta?.UpdatedBy,
-                date: formatTimestamp(meta.UpdatedAt ?? "")[0],
-                time: formatTimestamp(meta.UpdatedAt ?? "")[1],
-              })}
-            </div>
+        />
+
+        <FormField
+          control={form.control}
+          name="Description"
+          render={({ field }) => (
+            <FormItem>
+              {station && station.Description?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("Station Description")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {t(stationDb.Description)}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("Station Description")}
+                </FormLabel>
+              )}
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.Description = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["station", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="StationType"
+          render={({ field }) => (
+            <FormItem>
+              {station && station.StationType?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("Station Type")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {stationDb.StationType &&
+                        t("ST_" + String(stationDb.StationType) + "_Name")}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("Station Type")}
+                </FormLabel>
+              )}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.StationType = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["station", entityId],
+                  });
+                }}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("StationType Placeholder")} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">-</SelectItem>
+                  {data.StationTypes.map((stationtype) => {
+                    return (
+                      <SelectItem
+                        key={"ST_" + stationtype.id}
+                        value={stationtype.id}
+                      >
+                        {t("ST_" + String(stationtype.id) + "_Name")}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        {draftAvailable && (
+          <div className="flex gap-5 justify-center">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={async () => discardDrafts()}
+              className="w-full"
+            >
+              {t("Discard")}
+            </Button>
+            <Button variant="outline" type="submit" className="w-full">
+              {t("Submit")}
+            </Button>
           </div>
-        </form>
-      </Form>
-    )
+        )}
+        <div className="flex justify-center items-center">
+          <div className="max-w-80 text-left italic text-sm">
+            {t("EntityMetaData", {
+              name: meta?.UpdatedBy,
+              date: formatTimestamp(meta.UpdatedAt ?? "")[0],
+              time: formatTimestamp(meta.UpdatedAt ?? "")[1],
+            })}
+          </div>
+        </div>
+      </form>
+    </Form>
+  ) : (
+    <div className="flex flex-col gap-5 py-5">
+      {Array.from({ length: 8 }, (_, index) => (
+        <Skeleton className="w-full h-10" />
+      ))}
+    </div>
   );
 }
 
@@ -1169,6 +1174,12 @@ export function ToolForm({ entityId }: { entityId: string }) {
           json.SPSAddressInSendDB ||
           tool.SPSAddressInSendDB
       );
+
+      await (async (ms: number) => {
+        return await new Promise((resolve) => {
+          setTimeout(resolve, ms);
+        });
+      })(1000);
       setFormReady(true);
       setVersions(await GetEntityVersions("tool", entityId));
       queryClient.invalidateQueries({
@@ -1332,958 +1343,946 @@ export function ToolForm({ entityId }: { entityId: string }) {
   const [versionDialogOpen, setVersionDialogOpen] = useState(false);
   const [spsChecked, setSpsChecked] = useState(false);
 
-  return (
-    formReady && (
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(() => submitForm())}
-          className="py-3  flex flex-col gap-5"
-        >
-          <div>
-            {versions.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="flex gap-3 items-center w-fit px-2.5"
-                  >
-                    <History />
-                    <span className="font-semibold">{t("VersionHistory")}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="p-0">
-                  <DropdownMenuItem className="p-0 m-0">
-                    <ScrollArea className="p-1">
-                      <div className="max-h-[30vh]">
-                        {versions.map((version) => (
-                          <div key={version.EntityID + version.Version}>
-                            <Button
-                              variant="ghost"
-                              className="w-full h-fit justify-start"
-                              onClick={() => {
-                                setSelectedVersion(version);
-                                setVersionDialogOpen(true);
-                              }}
-                            >
-                              <span className="max-w-sm text-wrap break-words text-left">
-                                {`${version.Version} ${t("by")} ${
-                                  version.UpdatedBy
-                                } 
+  return formReady ? (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(() => submitForm())}
+        className="py-3  flex flex-col gap-5"
+      >
+        <div>
+          {versions.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="flex gap-3 items-center w-fit px-2.5"
+                >
+                  <History />
+                  <span className="font-semibold">{t("VersionHistory")}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="p-0">
+                <DropdownMenuItem className="p-0 m-0">
+                  <ScrollArea className="p-1">
+                    <div className="max-h-[30vh]">
+                      {versions.map((version) => (
+                        <div key={version.EntityID + version.Version}>
+                          <Button
+                            variant="ghost"
+                            className="w-full h-fit justify-start"
+                            onClick={() => {
+                              setSelectedVersion(version);
+                              setVersionDialogOpen(true);
+                            }}
+                          >
+                            <span className="max-w-sm text-wrap break-words text-left">
+                              {`${version.Version} ${t("by")} ${
+                                version.UpdatedBy
+                              } 
                     ${t("on")} ${formatTimestamp(version.UpdatedAt)[0]} 
                     ${t("at")} ${formatTimestamp(version.UpdatedAt)[1]}`}
-                              </span>
-                            </Button>
-                            {version.Version != 1 && (
-                              <DropdownMenuSeparator className="bg-accent h-px my-1" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            <Dialog
-              open={versionDialogOpen}
-              onOpenChange={setVersionDialogOpen}
-            >
-              <DialogContent className="py-10 grid grid-cols-1 gap-5 w-1/2">
-                <DialogTitle>{t("VersionHistory DialogTitle")}</DialogTitle>
-                <DialogDescription>
-                  {t("VersionHistory DialogDescription", {
-                    Version: selectedVersion?.Version,
-                    UpdatedBy: selectedVersion?.UpdatedBy,
-                    UpdatedAtDate: formatTimestamp(
-                      selectedVersion?.UpdatedAt
-                    )[0],
-                    UpdatedAtTime: formatTimestamp(
-                      selectedVersion?.UpdatedAt
-                    )[1],
-                  })}
-                </DialogDescription>
-                <ScrollArea className="pr-4">
-                  <div className="flex flex-col gap-3 font-semibold max-h-[50vh] break-words">
-                    <span>{`${t("StatusColor")} → ${t(
-                      selectedVersion?.StatusColor
-                    )}`}</span>
-                    <span>{`${t("Comment")} → ${t(
-                      selectedVersion?.Comment
-                    )}`}</span>
-                    <span>{`${t("Name")} → ${t(selectedVersion?.Name)}`}</span>
-                    <span>{`${t("Description")} → ${t(
-                      selectedVersion?.Description
-                    )}`}</span>
-                    <span>{`${t("ToolClass")} → ${
-                      selectedVersion?.ToolClass &&
-                      selectedVersion?.ToolClass != "none"
-                        ? t(
-                            "TC_" +
-                              selectedVersion?.ToolClass +
-                              "_ToolClassName"
-                          )
-                        : ""
-                    }`}</span>
-                    <span>{`${t("ToolType")} → ${
-                      selectedVersion?.ToolType &&
-                      selectedVersion?.ToolClass &&
-                      selectedVersion?.ToolType != "none" &&
-                      selectedVersion?.ToolClass != "none"
-                        ? t(
-                            "TT_" +
-                              selectedVersion?.ToolType +
-                              "_" +
-                              selectedVersion?.ToolClass +
-                              "_Description"
-                          )
-                        : ""
-                    }`}</span>
-                    <span>{`${t("IpAddressDevice")} → ${
-                      selectedVersion?.IpAddressDevice
-                        ? selectedVersion?.IpAddressDevice
-                        : ""
-                    }`}</span>
-                    <span>{`${t("SPSPLCNameSPAService")} → ${
-                      selectedVersion?.SPSPLCNameSPAService
-                        ? selectedVersion?.SPSPLCNameSPAService
-                        : ""
-                    }`}</span>
-                    <span>{`${t("SPSDBNoSend")} → ${
-                      selectedVersion?.SPSDBNoSend
-                        ? selectedVersion?.SPSDBNoSend
-                        : ""
-                    }`}</span>
-                    <span>{`${t("SPSDBNoReceive")} → ${
-                      selectedVersion?.SPSDBNoReceive
-                        ? selectedVersion?.SPSDBNoReceive
-                        : ""
-                    }`}</span>
-                    <span>{`${t("SPSPreCheck")} → ${
-                      selectedVersion?.SPSPreCheck
-                        ? selectedVersion?.SPSPreCheck
-                        : ""
-                    }`}</span>
-                    <span>{`${t("SPSAddressInSendDB")} → ${
-                      selectedVersion?.SPSAddressInSendDB
-                        ? selectedVersion?.SPSAddressInSendDB
-                        : ""
-                    }`}</span>
-                    <span>{`${t("SPSAddressInReceiveDB")} → ${
-                      selectedVersion?.SPSAddressInReceiveDB
-                        ? selectedVersion?.SPSAddressInReceiveDB
-                        : ""
-                    }`}</span>
-                  </div>
-                </ScrollArea>
-                <Button
-                  variant="outline"
-                  className="w-1/2 mx-auto"
-                  onClick={() => {
-                    const json = JSON.parse(
-                      localStorage.getItem(entityId) ?? "{}"
-                    );
-                    json.StatusColor = selectedVersion.StatusColor ?? "";
-                    json.Comment = selectedVersion.Comment ?? "";
-                    json.Name = selectedVersion.Name ?? "";
-                    json.Description = selectedVersion.Description ?? "";
-                    json.ToolClass = selectedVersion.ToolClass ?? "";
-                    json.ToolType = selectedVersion.ToolType ?? "";
-                    json.IpAddressDevice =
-                      selectedVersion.IpAddressDevice ?? "";
-                    json.SPSPLCNameSPAService =
-                      selectedVersion.SPSPLCNameSPAService ?? "";
-                    json.SPSDBNoSend = selectedVersion.SPSDBNoSend ?? "";
-                    json.SPSDBNoReceive = selectedVersion.SPSDBNoReceive ?? "";
-                    json.SPSPreCheck = selectedVersion.SPSPreCheck ?? "";
-                    json.SPSAddressInSendDB =
-                      selectedVersion.SPSAddressInSendDB ?? "";
-                    json.SPSAddressInReceiveDB =
-                      selectedVersion.SPSAddressInReceiveDB ?? "";
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    setObserver((prev) => prev + 1);
-                    toast.success(t("VersionHistory Toast"));
-                    setVersionDialogOpen(false);
-                  }}
-                >
-                  {t("Confirm")}
-                </Button>
-              </DialogContent>
-            </Dialog>
-          </div>
+                            </span>
+                          </Button>
+                          {version.Version != 1 && (
+                            <DropdownMenuSeparator className="bg-accent h-px my-1" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          <Dialog open={versionDialogOpen} onOpenChange={setVersionDialogOpen}>
+            <DialogContent className="py-10 grid grid-cols-1 gap-5 w-1/2">
+              <DialogTitle>{t("VersionHistory DialogTitle")}</DialogTitle>
+              <DialogDescription>
+                {t("VersionHistory DialogDescription", {
+                  Version: selectedVersion?.Version,
+                  UpdatedBy: selectedVersion?.UpdatedBy,
+                  UpdatedAtDate: formatTimestamp(selectedVersion?.UpdatedAt)[0],
+                  UpdatedAtTime: formatTimestamp(selectedVersion?.UpdatedAt)[1],
+                })}
+              </DialogDescription>
+              <ScrollArea className="pr-4">
+                <div className="flex flex-col gap-3 font-semibold max-h-[50vh] break-words">
+                  <span>{`${t("StatusColor")} → ${t(
+                    selectedVersion?.StatusColor
+                  )}`}</span>
+                  <span>{`${t("Comment")} → ${t(
+                    selectedVersion?.Comment
+                  )}`}</span>
+                  <span>{`${t("Name")} → ${t(selectedVersion?.Name)}`}</span>
+                  <span>{`${t("Description")} → ${t(
+                    selectedVersion?.Description
+                  )}`}</span>
+                  <span>{`${t("ToolClass")} → ${
+                    selectedVersion?.ToolClass &&
+                    selectedVersion?.ToolClass != "none"
+                      ? t("TC_" + selectedVersion?.ToolClass + "_ToolClassName")
+                      : ""
+                  }`}</span>
+                  <span>{`${t("ToolType")} → ${
+                    selectedVersion?.ToolType &&
+                    selectedVersion?.ToolClass &&
+                    selectedVersion?.ToolType != "none" &&
+                    selectedVersion?.ToolClass != "none"
+                      ? t(
+                          "TT_" +
+                            selectedVersion?.ToolType +
+                            "_" +
+                            selectedVersion?.ToolClass +
+                            "_Description"
+                        )
+                      : ""
+                  }`}</span>
+                  <span>{`${t("IpAddressDevice")} → ${
+                    selectedVersion?.IpAddressDevice
+                      ? selectedVersion?.IpAddressDevice
+                      : ""
+                  }`}</span>
+                  <span>{`${t("SPSPLCNameSPAService")} → ${
+                    selectedVersion?.SPSPLCNameSPAService
+                      ? selectedVersion?.SPSPLCNameSPAService
+                      : ""
+                  }`}</span>
+                  <span>{`${t("SPSDBNoSend")} → ${
+                    selectedVersion?.SPSDBNoSend
+                      ? selectedVersion?.SPSDBNoSend
+                      : ""
+                  }`}</span>
+                  <span>{`${t("SPSDBNoReceive")} → ${
+                    selectedVersion?.SPSDBNoReceive
+                      ? selectedVersion?.SPSDBNoReceive
+                      : ""
+                  }`}</span>
+                  <span>{`${t("SPSPreCheck")} → ${
+                    selectedVersion?.SPSPreCheck
+                      ? selectedVersion?.SPSPreCheck
+                      : ""
+                  }`}</span>
+                  <span>{`${t("SPSAddressInSendDB")} → ${
+                    selectedVersion?.SPSAddressInSendDB
+                      ? selectedVersion?.SPSAddressInSendDB
+                      : ""
+                  }`}</span>
+                  <span>{`${t("SPSAddressInReceiveDB")} → ${
+                    selectedVersion?.SPSAddressInReceiveDB
+                      ? selectedVersion?.SPSAddressInReceiveDB
+                      : ""
+                  }`}</span>
+                </div>
+              </ScrollArea>
+              <Button
+                variant="outline"
+                className="w-1/2 mx-auto"
+                onClick={() => {
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.StatusColor = selectedVersion.StatusColor ?? "";
+                  json.Comment = selectedVersion.Comment ?? "";
+                  json.Name = selectedVersion.Name ?? "";
+                  json.Description = selectedVersion.Description ?? "";
+                  json.ToolClass = selectedVersion.ToolClass ?? "";
+                  json.ToolType = selectedVersion.ToolType ?? "";
+                  json.IpAddressDevice = selectedVersion.IpAddressDevice ?? "";
+                  json.SPSPLCNameSPAService =
+                    selectedVersion.SPSPLCNameSPAService ?? "";
+                  json.SPSDBNoSend = selectedVersion.SPSDBNoSend ?? "";
+                  json.SPSDBNoReceive = selectedVersion.SPSDBNoReceive ?? "";
+                  json.SPSPreCheck = selectedVersion.SPSPreCheck ?? "";
+                  json.SPSAddressInSendDB =
+                    selectedVersion.SPSAddressInSendDB ?? "";
+                  json.SPSAddressInReceiveDB =
+                    selectedVersion.SPSAddressInReceiveDB ?? "";
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  setObserver((prev) => prev + 1);
+                  toast.success(t("VersionHistory Toast"));
+                  setVersionDialogOpen(false);
+                }}
+              >
+                {t("Confirm")}
+              </Button>
+            </DialogContent>
+          </Dialog>
+        </div>
 
-          <div className="flex gap-3 items-center justify-between">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCommentOpen(commentOpen ? false : true)}
-              type="button"
-            >
-              {commentOpen ? <ChevronUp /> : <ChevronDown />}
-            </Button>
-            <div className="flex gap-3 items-center">
-              {tool && tool.StatusColor?.draft && (
-                <TooltipProvider>
-                  <Tooltip>
+        <div className="flex gap-3 items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCommentOpen(commentOpen ? false : true)}
+            type="button"
+          >
+            {commentOpen ? <ChevronUp /> : <ChevronDown />}
+          </Button>
+          <div className="flex gap-3 items-center">
+            {tool && tool.StatusColor?.draft && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SquarePen size={15} />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-sm">
+                    {t(toolDb.StatusColor)}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <FormField
+              control={form.control}
+              name="StatusColor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <RadioGroup
+                      className="flex gap-1.5"
+                      value={field.value ?? "empty"}
+                      onValueChange={(value: string) => {
+                        field.onChange(value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.StatusColor = value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["tool", entityId],
+                        });
+                      }}
+                    >
+                      <RadioGroupItem
+                        value="empty"
+                        aria-label="empty"
+                        className="size-6 border bg-background"
+                      />
+                      <RadioGroupItem
+                        value="red"
+                        aria-label="red"
+                        className="size-6 border bg-red-500"
+                      />
+                      <RadioGroupItem
+                        value="amber"
+                        aria-label="amber"
+                        className="size-6 border bg-amber-500"
+                      />
+                      <RadioGroupItem
+                        value="emerald"
+                        aria-label="emerald"
+                        className="size-6 border bg-emerald-500"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+        {commentOpen && (
+          <div className="flex flex-col gap-3">
+            {tool && tool.Comment?.draft ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <div className="flex gap-3">
+                    <FormLabel className="flex h-[15px]">
+                      {t("Comment")}
+                    </FormLabel>
                     <TooltipTrigger asChild>
                       <SquarePen size={15} />
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-sm">
-                      {t(toolDb.StatusColor)}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                  </div>
+                  <TooltipContent className="max-w-sm">
+                    {t(toolDb.Comment)}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <FormLabel className="flex h-[15px]">{t("Comment")}</FormLabel>
+            )}
+
+            <FormField
+              control={form.control}
+              name="Comment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.Comment = e.target.value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["tool", entityId],
+                        });
+                      }}
+                      className="h-32 resize-none"
+                    />
+                  </FormControl>
+                </FormItem>
               )}
-              <FormField
-                control={form.control}
-                name="StatusColor"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <RadioGroup
-                        className="flex gap-1.5"
-                        value={field.value ?? "empty"}
-                        onValueChange={(value: string) => {
-                          field.onChange(value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.StatusColor = value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["tool", entityId],
-                          });
-                        }}
-                      >
-                        <RadioGroupItem
-                          value="empty"
-                          aria-label="empty"
-                          className="size-6 border bg-background"
-                        />
-                        <RadioGroupItem
-                          value="red"
-                          aria-label="red"
-                          className="size-6 border bg-red-500"
-                        />
-                        <RadioGroupItem
-                          value="amber"
-                          aria-label="amber"
-                          className="size-6 border bg-amber-500"
-                        />
-                        <RadioGroupItem
-                          value="emerald"
-                          aria-label="emerald"
-                          className="size-6 border bg-emerald-500"
-                        />
-                      </RadioGroup>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+            />
           </div>
-          {commentOpen && (
-            <div className="flex flex-col gap-3">
-              {tool && tool.Comment?.draft ? (
+        )}
+
+        <FormField
+          control={form.control}
+          name="Name"
+          render={({ field }) => (
+            <FormItem>
+              {tool && tool.Name?.draft ? (
                 <TooltipProvider>
                   <Tooltip>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
-                        {t("Comment")}
+                        {t("Name")}
                       </FormLabel>
                       <TooltipTrigger asChild>
                         <SquarePen size={15} />
                       </TooltipTrigger>
                     </div>
                     <TooltipContent className="max-w-sm">
-                      {t(toolDb.Comment)}
+                      {t(toolDb.Name)}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               ) : (
-                <FormLabel className="flex h-[15px]">{t("Comment")}</FormLabel>
+                <FormLabel className="flex h-[15px]">{t("Name")}</FormLabel>
               )}
-
-              <FormField
-                control={form.control}
-                name="Comment"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.Comment = e.target.value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["tool", entityId],
-                          });
-                        }}
-                        className="h-32 resize-none"
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.Name = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["tool", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
           )}
+        />
 
-          <FormField
-            control={form.control}
-            name="Name"
-            render={({ field }) => (
-              <FormItem>
-                {tool && tool.Name?.draft ? (
+        <FormField
+          control={form.control}
+          name="Description"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex gap-3">
+                {tool && tool.Description?.draft ? (
                   <TooltipProvider>
                     <Tooltip>
                       <div className="flex gap-3">
                         <FormLabel className="flex h-[15px]">
-                          {t("Name")}
+                          {t("Operation Description")}
                         </FormLabel>
                         <TooltipTrigger asChild>
                           <SquarePen size={15} />
                         </TooltipTrigger>
                       </div>
                       <TooltipContent className="max-w-sm">
-                        {t(toolDb.Name)}
+                        {t(toolDb.Description)}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 ) : (
-                  <FormLabel className="flex h-[15px]">{t("Name")}</FormLabel>
+                  <FormLabel className="flex h-[15px]">
+                    {t("Operation Description")}
+                  </FormLabel>
                 )}
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.Description = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["tool", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="ToolClass"
+          render={({ field }) => (
+            <FormItem>
+              {tool && tool.ToolClass?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("ToolClass")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {toolDb.ToolClass &&
+                        t("TC_" + String(toolDb.ToolClass) + "_ToolClassName")}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("ToolClass")}
+                </FormLabel>
+              )}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.ToolClass = value;
+
+                  if (value == "none" || value == "") {
+                    json.ToolType = value;
+                    setObserver((prev) => prev + 1);
+                  }
+
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["tool", entityId],
+                  });
+                }}
+              >
                 <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      const json = JSON.parse(
-                        localStorage.getItem(entityId) ?? "{}"
-                      );
-                      json.Name = e.target.value;
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      queryClient.invalidateQueries({
-                        queryKey: ["tool", entityId],
-                      });
-                    }}
-                  />
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("ToolClass Placeholder")} />
+                  </SelectTrigger>
                 </FormControl>
-              </FormItem>
+                <SelectContent>
+                  <SelectItem value="none">-</SelectItem>
+                  {data.ToolClasses.map((toolclass) => {
+                    let skip = true;
+                    toolclass.toolTypeIds.every((tt) => {
+                      if (
+                        !form.getValues().ToolType ||
+                        form.getValues().ToolType == "none"
+                      ) {
+                        skip = false;
+                        return false;
+                      } else if (form.getValues().ToolType == tt) {
+                        skip = false;
+                        return false;
+                      }
+                      return true;
+                    });
+
+                    return (
+                      !skip && (
+                        <SelectItem
+                          key={"TC_" + toolclass.id}
+                          value={toolclass.id}
+                        >
+                          {t("TC_" + String(toolclass.id) + "_ToolClassName")}
+                        </SelectItem>
+                      )
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="ToolType"
+          render={({ field }) => (
+            <FormItem>
+              {tool && tool.ToolType?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("ToolType")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {toolDb.ToolType &&
+                        t(
+                          "TT_" +
+                            String(toolDb.ToolType) +
+                            "_" +
+                            String(toolDb.ToolClass) +
+                            "_Description"
+                        )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">{t("ToolType")}</FormLabel>
+              )}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.ToolType = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["tool", entityId],
+                  });
+                }}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("ToolType Placeholder")} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">-</SelectItem>
+                  {data.ToolTypes.map(
+                    (tooltype) =>
+                      form.getValues().ToolClass == tooltype.toolClassId && (
+                        <TooltipProvider key={"TT_" + tooltype.id}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SelectItem
+                                key={"TT_" + tooltype.id}
+                                value={tooltype.id}
+                              >
+                                {t(
+                                  "TT_" +
+                                    String(tooltype.id) +
+                                    "_" +
+                                    String(tooltype.toolClassId) +
+                                    "_Description"
+                                )}
+                              </SelectItem>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-sm">
+                              {t(
+                                "TT_" +
+                                  String(tooltype.id) +
+                                  "_" +
+                                  String(tooltype.toolClassId) +
+                                  "_HelpText"
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )
+                  )}
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="IpAddressDevice"
+          render={({ field }) => (
+            <FormItem>
+              {tool && tool.IpAddressDevice?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("IpAddressDevice")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {t(toolDb.IpAddressDevice)}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("IpAddressDevice")}
+                </FormLabel>
+              )}
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.IpAddressDevice = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["tool", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex flex-row items-center gap-2 rounded-md pl-4 border h-10">
+          <Checkbox
+            checked={!!spsChecked}
+            onClick={async () => (
+              spsChecked && resetSps(), setSpsChecked((checked) => !checked)
             )}
           />
-
-          <FormField
-            control={form.control}
-            name="Description"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex gap-3">
-                  {tool && tool.Description?.draft ? (
+          <FormLabel
+            className="hover:cursor-pointer"
+            onClick={async () => (
+              spsChecked && resetSps(), setSpsChecked((checked) => !checked)
+            )}
+          >
+            {t("ToolWithSPS")}
+          </FormLabel>
+        </div>
+        {spsChecked && (
+          <>
+            <FormField
+              control={form.control}
+              name="SPSPLCNameSPAService"
+              render={({ field }) => (
+                <FormItem>
+                  {tool && tool.SPSPLCNameSPAService?.draft ? (
                     <TooltipProvider>
                       <Tooltip>
                         <div className="flex gap-3">
                           <FormLabel className="flex h-[15px]">
-                            {t("Operation Description")}
+                            {t("SPSPLCNameSPAService")}
                           </FormLabel>
                           <TooltipTrigger asChild>
                             <SquarePen size={15} />
                           </TooltipTrigger>
                         </div>
                         <TooltipContent className="max-w-sm">
-                          {t(toolDb.Description)}
+                          {t(toolDb.SPSPLCNameSPAService)}
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   ) : (
                     <FormLabel className="flex h-[15px]">
-                      {t("Operation Description")}
+                      {t("SPSPLCNameSPAService")}
                     </FormLabel>
                   )}
-                </div>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      const json = JSON.parse(
-                        localStorage.getItem(entityId) ?? "{}"
-                      );
-                      json.Description = e.target.value;
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      queryClient.invalidateQueries({
-                        queryKey: ["tool", entityId],
-                      });
-                    }}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="ToolClass"
-            render={({ field }) => (
-              <FormItem>
-                {tool && tool.ToolClass?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("ToolClass")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {toolDb.ToolClass &&
-                          t(
-                            "TC_" + String(toolDb.ToolClass) + "_ToolClassName"
-                          )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("ToolClass")}
-                  </FormLabel>
-                )}
-                <Select
-                  value={field.value ?? ""}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    const json = JSON.parse(
-                      localStorage.getItem(entityId) ?? "{}"
-                    );
-                    json.ToolClass = value;
-
-                    if (value == "none" || value == "") {
-                      json.ToolType = value;
-                      setObserver((prev) => prev + 1);
-                    }
-
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    queryClient.invalidateQueries({
-                      queryKey: ["tool", entityId],
-                    });
-                  }}
-                >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("ToolClass Placeholder")} />
-                    </SelectTrigger>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.SPSPLCNameSPAService = e.target.value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["tool", entityId],
+                        });
+                      }}
+                    />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {data.ToolClasses.map((toolclass) => {
-                      let skip = true;
-                      toolclass.toolTypeIds.every((tt) => {
-                        if (
-                          !form.getValues().ToolType ||
-                          form.getValues().ToolType == "none"
-                        ) {
-                          skip = false;
-                          return false;
-                        } else if (form.getValues().ToolType == tt) {
-                          skip = false;
-                          return false;
-                        }
-                        return true;
-                      });
-
-                      return (
-                        !skip && (
-                          <SelectItem
-                            key={"TC_" + toolclass.id}
-                            value={toolclass.id}
-                          >
-                            {t("TC_" + String(toolclass.id) + "_ToolClassName")}
-                          </SelectItem>
-                        )
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="ToolType"
-            render={({ field }) => (
-              <FormItem>
-                {tool && tool.ToolType?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("ToolType")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {toolDb.ToolType &&
-                          t(
-                            "TT_" +
-                              String(toolDb.ToolType) +
-                              "_" +
-                              String(toolDb.ToolClass) +
-                              "_Description"
-                          )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("ToolType")}
-                  </FormLabel>
-                )}
-                <Select
-                  value={field.value ?? ""}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    const json = JSON.parse(
-                      localStorage.getItem(entityId) ?? "{}"
-                    );
-                    json.ToolType = value;
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    queryClient.invalidateQueries({
-                      queryKey: ["tool", entityId],
-                    });
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("ToolType Placeholder")} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {data.ToolTypes.map(
-                      (tooltype) =>
-                        form.getValues().ToolClass == tooltype.toolClassId && (
-                          <TooltipProvider key={"TT_" + tooltype.id}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <SelectItem
-                                  key={"TT_" + tooltype.id}
-                                  value={tooltype.id}
-                                >
-                                  {t(
-                                    "TT_" +
-                                      String(tooltype.id) +
-                                      "_" +
-                                      String(tooltype.toolClassId) +
-                                      "_Description"
-                                  )}
-                                </SelectItem>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-sm">
-                                {t(
-                                  "TT_" +
-                                    String(tooltype.id) +
-                                    "_" +
-                                    String(tooltype.toolClassId) +
-                                    "_HelpText"
-                                )}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )
-                    )}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="IpAddressDevice"
-            render={({ field }) => (
-              <FormItem>
-                {tool && tool.IpAddressDevice?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("IpAddressDevice")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {t(toolDb.IpAddressDevice)}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("IpAddressDevice")}
-                  </FormLabel>
-                )}
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      const json = JSON.parse(
-                        localStorage.getItem(entityId) ?? "{}"
-                      );
-                      json.IpAddressDevice = e.target.value;
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      queryClient.invalidateQueries({
-                        queryKey: ["tool", entityId],
-                      });
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="flex flex-row items-center gap-2 rounded-md pl-4 border h-10">
-            <Checkbox
-              checked={!!spsChecked}
-              onClick={async () => (
-                spsChecked && resetSps(), setSpsChecked((checked) => !checked)
+                </FormItem>
               )}
             />
-            <FormLabel
-              className="hover:cursor-pointer"
-              onClick={async () => (
-                spsChecked && resetSps(), setSpsChecked((checked) => !checked)
+
+            <FormField
+              control={form.control}
+              name="SPSDBNoSend"
+              render={({ field }) => (
+                <FormItem>
+                  {tool && tool.SPSDBNoSend?.draft ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <div className="flex gap-3">
+                          <FormLabel className="flex h-[15px]">
+                            {t("SPSDBNoSend")}
+                          </FormLabel>
+                          <TooltipTrigger asChild>
+                            <SquarePen size={15} />
+                          </TooltipTrigger>
+                        </div>
+                        <TooltipContent className="max-w-sm">
+                          {t(toolDb.SPSDBNoSend)}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <FormLabel className="flex h-[15px]">
+                      {t("SPSDBNoSend")}
+                    </FormLabel>
+                  )}
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.SPSDBNoSend = e.target.value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["tool", entityId],
+                        });
+                      }}
+                    />
+                  </FormControl>
+                </FormItem>
               )}
+            />
+
+            <FormField
+              control={form.control}
+              name="SPSDBNoReceive"
+              render={({ field }) => (
+                <FormItem>
+                  {tool && tool.SPSDBNoReceive?.draft ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <div className="flex gap-3">
+                          <FormLabel className="flex h-[15px]">
+                            {t("SPSDBNoReceive")}
+                          </FormLabel>
+                          <TooltipTrigger asChild>
+                            <SquarePen size={15} />
+                          </TooltipTrigger>
+                        </div>
+                        <TooltipContent className="max-w-sm">
+                          {t(toolDb.SPSDBNoReceive)}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <FormLabel className="flex h-[15px]">
+                      {t("SPSDBNoReceive")}
+                    </FormLabel>
+                  )}
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.SPSDBNoReceive = e.target.value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["tool", entityId],
+                        });
+                      }}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="SPSPreCheck"
+              render={({ field }) => (
+                <FormItem>
+                  {tool && tool.SPSPreCheck?.draft ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <div className="flex gap-3">
+                          <FormLabel className="flex h-[15px]">
+                            {t("SPSPreCheck")}
+                          </FormLabel>
+                          <TooltipTrigger asChild>
+                            <SquarePen size={15} />
+                          </TooltipTrigger>
+                        </div>
+                        <TooltipContent className="max-w-sm">
+                          {t(toolDb.SPSPreCheck)}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <FormLabel className="flex h-[15px]">
+                      {t("SPSPreCheck")}
+                    </FormLabel>
+                  )}
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.SPSPreCheck = e.target.value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["tool", entityId],
+                        });
+                      }}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="SPSAddressInSendDB"
+              render={({ field }) => (
+                <FormItem>
+                  {tool && tool.SPSAddressInSendDB?.draft ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <div className="flex gap-3">
+                          <FormLabel className="flex h-[15px]">
+                            {t("SPSAddressInSendDB")}
+                          </FormLabel>
+                          <TooltipTrigger asChild>
+                            <SquarePen size={15} />
+                          </TooltipTrigger>
+                        </div>
+                        <TooltipContent className="max-w-sm">
+                          {t(toolDb.SPSAddressInSendDB)}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <FormLabel className="flex h-[15px]">
+                      {t("SPSAddressInSendDB")}
+                    </FormLabel>
+                  )}
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.SPSAddressInSendDB = e.target.value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["tool", entityId],
+                        });
+                      }}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="SPSAddressInReceiveDB"
+              render={({ field }) => (
+                <FormItem>
+                  {tool && tool.SPSAddressInReceiveDB?.draft ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <div className="flex gap-3">
+                          <FormLabel className="flex h-[15px]">
+                            {t("SPSAddressInReceiveDB")}
+                          </FormLabel>
+                          <TooltipTrigger asChild>
+                            <SquarePen size={15} />
+                          </TooltipTrigger>
+                        </div>
+                        <TooltipContent className="max-w-sm">
+                          {t(toolDb.SPSAddressInReceiveDB)}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <FormLabel className="flex h-[15px]">
+                      {t("SPSAddressInReceiveDB")}
+                    </FormLabel>
+                  )}
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.SPSAddressInReceiveDB = e.target.value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["tool", entityId],
+                        });
+                      }}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </>
+        )}
+        {draftAvailable && (
+          <div className="flex gap-5 justify-center">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={async () => discardDrafts()}
+              className="w-full"
             >
-              {t("ToolWithSPS")}
-            </FormLabel>
+              {t("Discard")}
+            </Button>
+            <Button variant="outline" type="submit" className="w-full">
+              {t("Submit")}
+            </Button>
           </div>
-          {spsChecked && (
-            <>
-              <FormField
-                control={form.control}
-                name="SPSPLCNameSPAService"
-                render={({ field }) => (
-                  <FormItem>
-                    {tool && tool.SPSPLCNameSPAService?.draft ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <div className="flex gap-3">
-                            <FormLabel className="flex h-[15px]">
-                              {t("SPSPLCNameSPAService")}
-                            </FormLabel>
-                            <TooltipTrigger asChild>
-                              <SquarePen size={15} />
-                            </TooltipTrigger>
-                          </div>
-                          <TooltipContent className="max-w-sm">
-                            {t(toolDb.SPSPLCNameSPAService)}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <FormLabel className="flex h-[15px]">
-                        {t("SPSPLCNameSPAService")}
-                      </FormLabel>
-                    )}
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.SPSPLCNameSPAService = e.target.value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["tool", entityId],
-                          });
-                        }}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="SPSDBNoSend"
-                render={({ field }) => (
-                  <FormItem>
-                    {tool && tool.SPSDBNoSend?.draft ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <div className="flex gap-3">
-                            <FormLabel className="flex h-[15px]">
-                              {t("SPSDBNoSend")}
-                            </FormLabel>
-                            <TooltipTrigger asChild>
-                              <SquarePen size={15} />
-                            </TooltipTrigger>
-                          </div>
-                          <TooltipContent className="max-w-sm">
-                            {t(toolDb.SPSDBNoSend)}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <FormLabel className="flex h-[15px]">
-                        {t("SPSDBNoSend")}
-                      </FormLabel>
-                    )}
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.SPSDBNoSend = e.target.value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["tool", entityId],
-                          });
-                        }}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="SPSDBNoReceive"
-                render={({ field }) => (
-                  <FormItem>
-                    {tool && tool.SPSDBNoReceive?.draft ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <div className="flex gap-3">
-                            <FormLabel className="flex h-[15px]">
-                              {t("SPSDBNoReceive")}
-                            </FormLabel>
-                            <TooltipTrigger asChild>
-                              <SquarePen size={15} />
-                            </TooltipTrigger>
-                          </div>
-                          <TooltipContent className="max-w-sm">
-                            {t(toolDb.SPSDBNoReceive)}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <FormLabel className="flex h-[15px]">
-                        {t("SPSDBNoReceive")}
-                      </FormLabel>
-                    )}
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.SPSDBNoReceive = e.target.value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["tool", entityId],
-                          });
-                        }}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="SPSPreCheck"
-                render={({ field }) => (
-                  <FormItem>
-                    {tool && tool.SPSPreCheck?.draft ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <div className="flex gap-3">
-                            <FormLabel className="flex h-[15px]">
-                              {t("SPSPreCheck")}
-                            </FormLabel>
-                            <TooltipTrigger asChild>
-                              <SquarePen size={15} />
-                            </TooltipTrigger>
-                          </div>
-                          <TooltipContent className="max-w-sm">
-                            {t(toolDb.SPSPreCheck)}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <FormLabel className="flex h-[15px]">
-                        {t("SPSPreCheck")}
-                      </FormLabel>
-                    )}
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.SPSPreCheck = e.target.value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["tool", entityId],
-                          });
-                        }}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="SPSAddressInSendDB"
-                render={({ field }) => (
-                  <FormItem>
-                    {tool && tool.SPSAddressInSendDB?.draft ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <div className="flex gap-3">
-                            <FormLabel className="flex h-[15px]">
-                              {t("SPSAddressInSendDB")}
-                            </FormLabel>
-                            <TooltipTrigger asChild>
-                              <SquarePen size={15} />
-                            </TooltipTrigger>
-                          </div>
-                          <TooltipContent className="max-w-sm">
-                            {t(toolDb.SPSAddressInSendDB)}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <FormLabel className="flex h-[15px]">
-                        {t("SPSAddressInSendDB")}
-                      </FormLabel>
-                    )}
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.SPSAddressInSendDB = e.target.value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["tool", entityId],
-                          });
-                        }}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="SPSAddressInReceiveDB"
-                render={({ field }) => (
-                  <FormItem>
-                    {tool && tool.SPSAddressInReceiveDB?.draft ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <div className="flex gap-3">
-                            <FormLabel className="flex h-[15px]">
-                              {t("SPSAddressInReceiveDB")}
-                            </FormLabel>
-                            <TooltipTrigger asChild>
-                              <SquarePen size={15} />
-                            </TooltipTrigger>
-                          </div>
-                          <TooltipContent className="max-w-sm">
-                            {t(toolDb.SPSAddressInReceiveDB)}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <FormLabel className="flex h-[15px]">
-                        {t("SPSAddressInReceiveDB")}
-                      </FormLabel>
-                    )}
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.SPSAddressInReceiveDB = e.target.value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["tool", entityId],
-                          });
-                        }}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </>
-          )}
-          {draftAvailable && (
-            <div className="flex gap-5 justify-center">
-              <Button
-                variant="outline"
-                type="button"
-                onClick={async () => discardDrafts()}
-                className="w-full"
-              >
-                {t("Discard")}
-              </Button>
-              <Button variant="outline" type="submit" className="w-full">
-                {t("Submit")}
-              </Button>
-            </div>
-          )}
-          <div className="flex justify-center items-center">
-            <div className="max-w-80 text-left italic text-sm">
-              {t("EntityMetaData", {
-                name: meta?.UpdatedBy,
-                date: formatTimestamp(meta.UpdatedAt ?? "")[0],
-                time: formatTimestamp(meta.UpdatedAt ?? "")[1],
-              })}
-            </div>
+        )}
+        <div className="flex justify-center items-center">
+          <div className="max-w-80 text-left italic text-sm">
+            {t("EntityMetaData", {
+              name: meta?.UpdatedBy,
+              date: formatTimestamp(meta.UpdatedAt ?? "")[0],
+              time: formatTimestamp(meta.UpdatedAt ?? "")[1],
+            })}
           </div>
-        </form>
-      </Form>
-    )
+        </div>
+      </form>
+    </Form>
+  ) : (
+    <div className="flex flex-col gap-5 py-5">
+      {Array.from({ length: 8 }, (_, index) => (
+        <Skeleton className="w-full h-10" />
+      ))}
+    </div>
   );
 }
 
@@ -2345,7 +2344,11 @@ export function OperationForm({
         DecisionCriteria:
           jsonDecisionCriteria ?? operationDecisionCriteria ?? [],
       });
-
+      await (async (ms: number) => {
+        return await new Promise((resolve) => {
+          setTimeout(resolve, ms);
+        });
+      })(1000);
       setFormReady(true);
       setVersions(await GetEntityVersions("operation", entityId));
       queryClient.invalidateQueries({
@@ -2464,1187 +2467,1164 @@ export function OperationForm({
   const [selectedVersion, setSelectedVersion] = useState<any>(null);
   const [versionDialogOpen, setVersionDialogOpen] = useState(false);
 
-  return (
-    formReady && (
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(() => submitForm())}
-          className="py-3  flex flex-col gap-5"
-        >
-          <div>
-            {versions.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="flex gap-3 items-center w-fit px-2.5"
-                  >
-                    <History />
-                    <span className="font-semibold">{t("VersionHistory")}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="p-0">
-                  <DropdownMenuItem className="p-0 m-0">
-                    <ScrollArea className="p-1">
-                      <div className="max-h-[30vh]">
-                        {versions.map((version) => (
-                          <div key={version.EntityID + version.Version}>
-                            <Button
-                              variant="ghost"
-                              className="w-full h-fit justify-start"
-                              onClick={() => {
-                                setSelectedVersion(version);
-                                setVersionDialogOpen(true);
-                              }}
-                            >
-                              <span className="max-w-sm text-wrap break-words text-left">
-                                {`${version.Version} ${t("by")} ${
-                                  version.UpdatedBy
-                                } 
+  return formReady ? (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(() => submitForm())}
+        className="py-3  flex flex-col gap-5"
+      >
+        <div>
+          {versions.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="flex gap-3 items-center w-fit px-2.5"
+                >
+                  <History />
+                  <span className="font-semibold">{t("VersionHistory")}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="p-0">
+                <DropdownMenuItem className="p-0 m-0">
+                  <ScrollArea className="p-1">
+                    <div className="max-h-[30vh]">
+                      {versions.map((version) => (
+                        <div key={version.EntityID + version.Version}>
+                          <Button
+                            variant="ghost"
+                            className="w-full h-fit justify-start"
+                            onClick={() => {
+                              setSelectedVersion(version);
+                              setVersionDialogOpen(true);
+                            }}
+                          >
+                            <span className="max-w-sm text-wrap break-words text-left">
+                              {`${version.Version} ${t("by")} ${
+                                version.UpdatedBy
+                              } 
                     ${t("on")} ${formatTimestamp(version.UpdatedAt)[0]} 
                     ${t("at")} ${formatTimestamp(version.UpdatedAt)[1]}`}
-                              </span>
-                            </Button>
-                            {version.Version != 1 && (
-                              <DropdownMenuSeparator className="bg-accent h-px my-1" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            <Dialog
-              open={versionDialogOpen}
-              onOpenChange={setVersionDialogOpen}
-            >
-              <DialogContent className="py-10 grid grid-cols-1 gap-5 w-1/2">
-                <DialogTitle>{t("VersionHistory DialogTitle")}</DialogTitle>
-                <DialogDescription>
-                  {t("VersionHistory DialogDescription", {
-                    Version: selectedVersion?.Version,
-                    UpdatedBy: selectedVersion?.UpdatedBy,
-                    UpdatedAtDate: formatTimestamp(
-                      selectedVersion?.UpdatedAt
-                    )[0],
-                    UpdatedAtTime: formatTimestamp(
-                      selectedVersion?.UpdatedAt
-                    )[1],
-                  })}
-                </DialogDescription>
-                <ScrollArea className="pr-4">
-                  <div className="flex flex-col gap-3 font-semibold max-h-[50vh] break-words">
-                    <span>{`${t("StatusColor")} → ${t(
-                      selectedVersion?.StatusColor
-                    )}`}</span>
-                    <span>{`${t("Comment")} → ${
-                      selectedVersion?.Comment ? selectedVersion?.Comment : ""
-                    }`}</span>
-                    <span>{`${t("Name")} → ${
-                      selectedVersion?.Name ? selectedVersion?.Name : ""
-                    }`}</span>
-                    <span>{`${t("Description")} → ${
-                      selectedVersion?.Description
-                        ? selectedVersion?.Description
-                        : ""
-                    }`}</span>
-                    <span>{`${t("SerialOrParallel")} → ${
-                      selectedVersion?.SerialOrParallel &&
-                      selectedVersion?.SerialOrParallel != "none"
-                        ? t(
-                            "SOP_" + selectedVersion?.SerialOrParallel + "_name"
-                          )
-                        : ""
-                    }`}</span>
-                    <span>{`${t("AlwaysPerform")} → ${t(
-                      selectedVersion?.AlwaysPerform
-                    )}`}</span>
-                    <span>{`${t("QGateRelevant")} → ${
-                      selectedVersion?.QGateRelevant &&
-                      selectedVersion?.QGateRelevant != "none"
-                        ? t("QR_" + selectedVersion?.QGateRelevant + "_name")
-                        : ""
-                    }`}</span>
-                    <span>{`${t("Template")} → ${
-                      selectedVersion?.Template &&
-                      selectedVersion?.Template != "none"
-                        ? t("T_" + selectedVersion?.Template + "_Description")
-                        : ""
-                    }`}</span>
-                    <span>{`${t("DecisionClass")} → ${
-                      selectedVersion?.DecisionClass &&
-                      selectedVersion?.DecisionClass != "none"
-                        ? t(
-                            "OC_DECISION_" +
-                              selectedVersion?.DecisionClass +
-                              "_ClassDescription"
-                          )
-                        : ""
-                    }`}</span>
-                    <span>{`${t("VerificationClass")} → ${
-                      selectedVersion?.VerificationClass &&
-                      selectedVersion?.VerificationClass != "none"
-                        ? t(
-                            "OC_VERIFICATION_" +
-                              selectedVersion?.VerificationClass +
-                              "_" +
-                              selectedVersion?.Template +
-                              "_ClassDescription"
-                          )
-                        : ""
-                    }`}</span>
-                    <span>{`${t("GenerationClass")} → ${
-                      selectedVersion?.GenerationClass &&
-                      selectedVersion?.GenerationClass != "none"
-                        ? t(
-                            "OC_GENERATION_" +
-                              selectedVersion?.GenerationClass +
-                              "_" +
-                              selectedVersion?.Template +
-                              "_ClassDescription"
-                          )
-                        : ""
-                    }`}</span>
-                    <span>{`${t("SavingClass")} → ${
-                      selectedVersion?.SavingClass &&
-                      selectedVersion?.SavingClass != "none"
-                        ? t(
-                            "OC_SAVING_" +
-                              selectedVersion?.SavingClass +
-                              "_" +
-                              selectedVersion?.Template +
-                              "_ClassDescription"
-                          )
-                        : ""
-                    }`}</span>
-                    <span>{`${t("DecisionCriteria")} → ${
-                      selectedVersion?.DecisionCriteria
-                        ? String(selectedVersion?.DecisionCriteria)
-                            .split("<|||>")
-                            .join("; ")
-                        : ""
-                    }`}</span>
-                  </div>
-                </ScrollArea>
-                <Button
-                  variant="outline"
-                  className="w-1/2 mx-auto"
-                  onClick={() => {
-                    const json = JSON.parse(
-                      localStorage.getItem(entityId) ?? "{}"
-                    );
-                    json.StatusColor = selectedVersion.StatusColor ?? "";
-                    json.Comment = selectedVersion.Comment ?? "";
-                    json.Name = selectedVersion.Name ?? "";
-                    json.Description = selectedVersion.Description ?? "";
-                    json.SerialOrParallel =
-                      selectedVersion.SerialOrParallel ?? "";
-                    json.AlwaysPerform = selectedVersion.AlwaysPerform ?? "";
-                    json.QGateRelevant = selectedVersion.QGateRelevant ?? "";
-                    json.Template = selectedVersion.Template ?? "";
-                    json.DecisionClass = selectedVersion.DecisionClass ?? "";
-                    json.SavingClass = selectedVersion.SavingClass ?? "";
-                    json.VerificationClass =
-                      selectedVersion.VerificationClass ?? "";
-                    json.GenerationClass =
-                      selectedVersion.GenerationClass ?? "";
-                    json.DecisionCriteria = selectedVersion.DecisionCriteria
-                      ? selectedVersion.DecisionCriteria.split("<|||>")
-                      : [];
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    setObserver((prev) => prev + 1);
-                    toast.success(t("VersionHistory Toast"));
-                    setVersionDialogOpen(false);
-                  }}
-                >
-                  {t("Confirm")}
-                </Button>
-              </DialogContent>
-            </Dialog>
-          </div>
+                            </span>
+                          </Button>
+                          {version.Version != 1 && (
+                            <DropdownMenuSeparator className="bg-accent h-px my-1" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          <Dialog open={versionDialogOpen} onOpenChange={setVersionDialogOpen}>
+            <DialogContent className="py-10 grid grid-cols-1 gap-5 w-1/2">
+              <DialogTitle>{t("VersionHistory DialogTitle")}</DialogTitle>
+              <DialogDescription>
+                {t("VersionHistory DialogDescription", {
+                  Version: selectedVersion?.Version,
+                  UpdatedBy: selectedVersion?.UpdatedBy,
+                  UpdatedAtDate: formatTimestamp(selectedVersion?.UpdatedAt)[0],
+                  UpdatedAtTime: formatTimestamp(selectedVersion?.UpdatedAt)[1],
+                })}
+              </DialogDescription>
+              <ScrollArea className="pr-4">
+                <div className="flex flex-col gap-3 font-semibold max-h-[50vh] break-words">
+                  <span>{`${t("StatusColor")} → ${t(
+                    selectedVersion?.StatusColor
+                  )}`}</span>
+                  <span>{`${t("Comment")} → ${
+                    selectedVersion?.Comment ? selectedVersion?.Comment : ""
+                  }`}</span>
+                  <span>{`${t("Name")} → ${
+                    selectedVersion?.Name ? selectedVersion?.Name : ""
+                  }`}</span>
+                  <span>{`${t("Description")} → ${
+                    selectedVersion?.Description
+                      ? selectedVersion?.Description
+                      : ""
+                  }`}</span>
+                  <span>{`${t("SerialOrParallel")} → ${
+                    selectedVersion?.SerialOrParallel &&
+                    selectedVersion?.SerialOrParallel != "none"
+                      ? t("SOP_" + selectedVersion?.SerialOrParallel + "_name")
+                      : ""
+                  }`}</span>
+                  <span>{`${t("AlwaysPerform")} → ${t(
+                    selectedVersion?.AlwaysPerform
+                  )}`}</span>
+                  <span>{`${t("QGateRelevant")} → ${
+                    selectedVersion?.QGateRelevant &&
+                    selectedVersion?.QGateRelevant != "none"
+                      ? t("QR_" + selectedVersion?.QGateRelevant + "_name")
+                      : ""
+                  }`}</span>
+                  <span>{`${t("Template")} → ${
+                    selectedVersion?.Template &&
+                    selectedVersion?.Template != "none"
+                      ? t("T_" + selectedVersion?.Template + "_Description")
+                      : ""
+                  }`}</span>
+                  <span>{`${t("DecisionClass")} → ${
+                    selectedVersion?.DecisionClass &&
+                    selectedVersion?.DecisionClass != "none"
+                      ? t(
+                          "OC_DECISION_" +
+                            selectedVersion?.DecisionClass +
+                            "_ClassDescription"
+                        )
+                      : ""
+                  }`}</span>
+                  <span>{`${t("VerificationClass")} → ${
+                    selectedVersion?.VerificationClass &&
+                    selectedVersion?.VerificationClass != "none"
+                      ? t(
+                          "OC_VERIFICATION_" +
+                            selectedVersion?.VerificationClass +
+                            "_" +
+                            selectedVersion?.Template +
+                            "_ClassDescription"
+                        )
+                      : ""
+                  }`}</span>
+                  <span>{`${t("GenerationClass")} → ${
+                    selectedVersion?.GenerationClass &&
+                    selectedVersion?.GenerationClass != "none"
+                      ? t(
+                          "OC_GENERATION_" +
+                            selectedVersion?.GenerationClass +
+                            "_" +
+                            selectedVersion?.Template +
+                            "_ClassDescription"
+                        )
+                      : ""
+                  }`}</span>
+                  <span>{`${t("SavingClass")} → ${
+                    selectedVersion?.SavingClass &&
+                    selectedVersion?.SavingClass != "none"
+                      ? t(
+                          "OC_SAVING_" +
+                            selectedVersion?.SavingClass +
+                            "_" +
+                            selectedVersion?.Template +
+                            "_ClassDescription"
+                        )
+                      : ""
+                  }`}</span>
+                  <span>{`${t("DecisionCriteria")} → ${
+                    selectedVersion?.DecisionCriteria
+                      ? String(selectedVersion?.DecisionCriteria)
+                          .split("<|||>")
+                          .join("; ")
+                      : ""
+                  }`}</span>
+                </div>
+              </ScrollArea>
+              <Button
+                variant="outline"
+                className="w-1/2 mx-auto"
+                onClick={() => {
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.StatusColor = selectedVersion.StatusColor ?? "";
+                  json.Comment = selectedVersion.Comment ?? "";
+                  json.Name = selectedVersion.Name ?? "";
+                  json.Description = selectedVersion.Description ?? "";
+                  json.SerialOrParallel =
+                    selectedVersion.SerialOrParallel ?? "";
+                  json.AlwaysPerform = selectedVersion.AlwaysPerform ?? "";
+                  json.QGateRelevant = selectedVersion.QGateRelevant ?? "";
+                  json.Template = selectedVersion.Template ?? "";
+                  json.DecisionClass = selectedVersion.DecisionClass ?? "";
+                  json.SavingClass = selectedVersion.SavingClass ?? "";
+                  json.VerificationClass =
+                    selectedVersion.VerificationClass ?? "";
+                  json.GenerationClass = selectedVersion.GenerationClass ?? "";
+                  json.DecisionCriteria = selectedVersion.DecisionCriteria
+                    ? selectedVersion.DecisionCriteria.split("<|||>")
+                    : [];
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  setObserver((prev) => prev + 1);
+                  toast.success(t("VersionHistory Toast"));
+                  setVersionDialogOpen(false);
+                }}
+              >
+                {t("Confirm")}
+              </Button>
+            </DialogContent>
+          </Dialog>
+        </div>
 
-          <div className="flex gap-3 items-center justify-between">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCommentOpen(commentOpen ? false : true)}
-              type="button"
-            >
-              {commentOpen ? <ChevronUp /> : <ChevronDown />}
-            </Button>
-            <div className="flex gap-3 items-center">
-              {operation && operation.StatusColor?.draft && (
-                <TooltipProvider>
-                  <Tooltip>
+        <div className="flex gap-3 items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCommentOpen(commentOpen ? false : true)}
+            type="button"
+          >
+            {commentOpen ? <ChevronUp /> : <ChevronDown />}
+          </Button>
+          <div className="flex gap-3 items-center">
+            {operation && operation.StatusColor?.draft && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SquarePen size={15} />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-sm">
+                    {t(operationDb.StatusColor)}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <FormField
+              control={form.control}
+              name="StatusColor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <RadioGroup
+                      className="flex gap-1.5"
+                      value={field.value ?? "empty"}
+                      onValueChange={(value: string) => {
+                        field.onChange(value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.StatusColor = value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["operation", entityId],
+                        });
+                      }}
+                    >
+                      <RadioGroupItem
+                        value="empty"
+                        aria-label="empty"
+                        className="size-6 border bg-background"
+                      />
+                      <RadioGroupItem
+                        value="red"
+                        aria-label="red"
+                        className="size-6 border bg-red-500"
+                      />
+                      <RadioGroupItem
+                        value="amber"
+                        aria-label="amber"
+                        className="size-6 border bg-amber-500"
+                      />
+                      <RadioGroupItem
+                        value="emerald"
+                        aria-label="emerald"
+                        className="size-6 border bg-emerald-500"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+        {commentOpen && (
+          <div className="flex flex-col gap-3">
+            {operation && operation.Comment?.draft ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <div className="flex gap-3">
+                    <FormLabel className="flex h-[15px]">
+                      {t("Comment")}
+                    </FormLabel>
                     <TooltipTrigger asChild>
                       <SquarePen size={15} />
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-sm">
-                      {t(operationDb.StatusColor)}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                  </div>
+                  <TooltipContent className="max-w-sm">
+                    {t(operationDb.Comment)}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <FormLabel className="flex h-[15px]">{t("Comment")}</FormLabel>
+            )}
+
+            <FormField
+              control={form.control}
+              name="Comment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        const json = JSON.parse(
+                          localStorage.getItem(entityId) ?? "{}"
+                        );
+                        json.Comment = e.target.value;
+                        localStorage.setItem(entityId, JSON.stringify(json));
+                        queryClient.invalidateQueries({
+                          queryKey: ["operation", entityId],
+                        });
+                      }}
+                      className="h-32 resize-none"
+                    />
+                  </FormControl>
+                </FormItem>
               )}
-              <FormField
-                control={form.control}
-                name="StatusColor"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <RadioGroup
-                        className="flex gap-1.5"
-                        value={field.value ?? "empty"}
-                        onValueChange={(value: string) => {
-                          field.onChange(value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.StatusColor = value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["operation", entityId],
-                          });
-                        }}
-                      >
-                        <RadioGroupItem
-                          value="empty"
-                          aria-label="empty"
-                          className="size-6 border bg-background"
-                        />
-                        <RadioGroupItem
-                          value="red"
-                          aria-label="red"
-                          className="size-6 border bg-red-500"
-                        />
-                        <RadioGroupItem
-                          value="amber"
-                          aria-label="amber"
-                          className="size-6 border bg-amber-500"
-                        />
-                        <RadioGroupItem
-                          value="emerald"
-                          aria-label="emerald"
-                          className="size-6 border bg-emerald-500"
-                        />
-                      </RadioGroup>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+            />
           </div>
-          {commentOpen && (
-            <div className="flex flex-col gap-3">
-              {operation && operation.Comment?.draft ? (
+        )}
+
+        <FormField
+          control={form.control}
+          name="Name"
+          render={({ field }) => (
+            <FormItem>
+              {operation && operation.Name?.draft ? (
                 <TooltipProvider>
                   <Tooltip>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
-                        {t("Comment")}
+                        {t("Name")}
                       </FormLabel>
                       <TooltipTrigger asChild>
                         <SquarePen size={15} />
                       </TooltipTrigger>
                     </div>
                     <TooltipContent className="max-w-sm">
-                      {t(operationDb.Comment)}
+                      {t(operationDb.Name)}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               ) : (
-                <FormLabel className="flex h-[15px]">{t("Comment")}</FormLabel>
+                <FormLabel className="flex h-[15px]">{t("Name")}</FormLabel>
               )}
-
-              <FormField
-                control={form.control}
-                name="Comment"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          const json = JSON.parse(
-                            localStorage.getItem(entityId) ?? "{}"
-                          );
-                          json.Comment = e.target.value;
-                          localStorage.setItem(entityId, JSON.stringify(json));
-                          queryClient.invalidateQueries({
-                            queryKey: ["operation", entityId],
-                          });
-                        }}
-                        className="h-32 resize-none"
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.Name = e.target.value;
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["operation", entityId],
+                    });
+                  }}
+                />
+              </FormControl>
+            </FormItem>
           )}
+        />
 
-          <FormField
-            control={form.control}
-            name="Name"
-            render={({ field }) => (
-              <FormItem>
-                {operation && operation.Name?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("Name")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {t(operationDb.Name)}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">{t("Name")}</FormLabel>
-                )}
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      const json = JSON.parse(
-                        localStorage.getItem(entityId) ?? "{}"
-                      );
-                      json.Name = e.target.value;
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      queryClient.invalidateQueries({
-                        queryKey: ["operation", entityId],
-                      });
-                    }}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="Description"
-            render={({ field }) => (
-              <FormItem>
-                {operation && operation.Description?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("Operation Description")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {t(operationDb.Description)}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("Operation Description")}
-                  </FormLabel>
-                )}
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      const json = JSON.parse(
-                        localStorage.getItem(entityId) ?? "{}"
-                      );
-                      json.Description = e.target.value;
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      queryClient.invalidateQueries({
-                        queryKey: ["operation", entityId],
-                      });
-                    }}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="StationType"
-            render={({ field }) => (
-              <FormItem className="hidden">
-                <FormControl>
-                  <Input {...field} disabled />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="SerialOrParallel"
-            render={({ field }) => (
-              <FormItem>
-                {operation && operation.SerialOrParallel?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("SerialOrParallel")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {operationDb.SerialOrParallel &&
-                          t(
-                            "SOP_" +
-                              String(operationDb.SerialOrParallel) +
-                              "_name"
-                          )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("SerialOrParallel")}
-                  </FormLabel>
-                )}
-                <Select
+        <FormField
+          control={form.control}
+          name="Description"
+          render={({ field }) => (
+            <FormItem>
+              {operation && operation.Description?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("Operation Description")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {t(operationDb.Description)}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("Operation Description")}
+                </FormLabel>
+              )}
+              <FormControl>
+                <Input
+                  {...field}
                   value={field.value ?? ""}
-                  onValueChange={(value) => {
-                    field.onChange(value);
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
                     const json = JSON.parse(
                       localStorage.getItem(entityId) ?? "{}"
                     );
-                    json.SerialOrParallel = value;
+                    json.Description = e.target.value;
                     localStorage.setItem(entityId, JSON.stringify(json));
                     queryClient.invalidateQueries({
                       queryKey: ["operation", entityId],
                     });
                   }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("SOP Placeholder")} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {data.SerialOrParallel.map((serialorparallel) => {
-                      let skip = true;
-                      serialorparallel.stationTypes.every((st) => {
-                        if (form.getValues().StationType == st) {
-                          skip = false;
-                          return false;
-                        }
-                        return true;
-                      });
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
 
-                      return (
-                        !skip && (
-                          <SelectItem
-                            key={"SOP_" + serialorparallel.id}
-                            value={serialorparallel.id}
-                          >
-                            {t("SOP_" + String(serialorparallel.id) + "_name")}
-                          </SelectItem>
-                        )
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="StationType"
+          render={({ field }) => (
+            <FormItem className="hidden">
+              <FormControl>
+                <Input {...field} disabled />
+              </FormControl>
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="AlwaysPerform"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center gap-2 rounded-md pl-4 border h-10 space-y-0">
+        <FormField
+          control={form.control}
+          name="SerialOrParallel"
+          render={({ field }) => (
+            <FormItem>
+              {operation && operation.SerialOrParallel?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("SerialOrParallel")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {operationDb.SerialOrParallel &&
+                        t(
+                          "SOP_" +
+                            String(operationDb.SerialOrParallel) +
+                            "_name"
+                        )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("SerialOrParallel")}
+                </FormLabel>
+              )}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.SerialOrParallel = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["operation", entityId],
+                  });
+                }}
+              >
                 <FormControl>
-                  <Checkbox
-                    checked={stringToBoolean(field.value)}
-                    onCheckedChange={(checked) => {
-                      field.onChange(booleanToString(checked as boolean));
-                      const json = JSON.parse(
-                        localStorage.getItem(entityId) ?? "{}"
-                      );
-                      json.AlwaysPerform = booleanToString(checked as boolean);
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      queryClient.invalidateQueries({
-                        queryKey: ["operation", entityId],
-                      });
-                    }}
-                  />
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("SOP Placeholder")} />
+                  </SelectTrigger>
                 </FormControl>
-                {operation && operation.AlwaysPerform?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("AlwaysPerform")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {t(operationDb.AlwaysPerform)}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("AlwaysPerform")}
-                  </FormLabel>
-                )}
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="QGateRelevant"
-            render={({ field }) => (
-              <FormItem>
-                {operation && operation.QGateRelevant?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("QGateRelevant")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {operationDb.QGateRelevant &&
-                          t(
-                            "QR_" + String(operationDb.QGateRelevant) + "_name"
-                          )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("QGateRelevant")}
-                  </FormLabel>
-                )}
-                <Select
-                  value={field.value ?? ""}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    const json = JSON.parse(
-                      localStorage.getItem(entityId) ?? "{}"
-                    );
-                    json.QGateRelevant = value;
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    queryClient.invalidateQueries({
-                      queryKey: ["operation", entityId],
+                <SelectContent>
+                  <SelectItem value="none">-</SelectItem>
+                  {data.SerialOrParallel.map((serialorparallel) => {
+                    let skip = true;
+                    serialorparallel.stationTypes.every((st) => {
+                      if (form.getValues().StationType == st) {
+                        skip = false;
+                        return false;
+                      }
+                      return true;
                     });
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={t("QGateRelevant Placeholder")}
-                      />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {data.QGateRelevant.map((qgaterelevant) => {
-                      return (
+
+                    return (
+                      !skip && (
                         <SelectItem
-                          key={"QR" + qgaterelevant.id}
-                          value={qgaterelevant.id}
+                          key={"SOP_" + serialorparallel.id}
+                          value={serialorparallel.id}
                         >
-                          {t("QR_" + String(qgaterelevant.id) + "_name")}
+                          {t("SOP_" + String(serialorparallel.id) + "_name")}
                         </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
+                      )
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="Template"
-            render={({ field }) => (
-              <FormItem>
-                {operation && operation.Template?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("Template")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {operationDb.Template &&
-                          t(
-                            "T_" + String(operationDb.Template) + "_Description"
-                          )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("Template")}
-                  </FormLabel>
-                )}
-                <Select
-                  value={field.value ?? ""}
-                  onValueChange={(value) => {
-                    field.onChange(value);
+        <FormField
+          control={form.control}
+          name="AlwaysPerform"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center gap-2 rounded-md pl-4 border h-10 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={stringToBoolean(field.value)}
+                  onCheckedChange={(checked) => {
+                    field.onChange(booleanToString(checked as boolean));
                     const json = JSON.parse(
                       localStorage.getItem(entityId) ?? "{}"
                     );
-                    json.Template = value;
-                    if (value == "none" || value == "") {
-                      json.DecisionClass = value;
-                      json.VerificationClass = value;
-                      json.GenerationClass = value;
-                      json.SavingClass = value;
-                      setObserver((prev) => prev + 1);
-                    }
+                    json.AlwaysPerform = booleanToString(checked as boolean);
                     localStorage.setItem(entityId, JSON.stringify(json));
                     queryClient.invalidateQueries({
                       queryKey: ["operation", entityId],
                     });
                   }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("Template Placeholder")} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {data.Templates.map((template) => {
-                      let skip = true;
-                      template.toolClassesIds.every((tc) => {
-                        if (!parentTool?.ToolClass) return false;
-                        else if (parentTool?.ToolClass == tc) {
-                          skip = false;
-                          return false;
-                        }
-                        return true;
-                      });
+                />
+              </FormControl>
+              {operation && operation.AlwaysPerform?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("AlwaysPerform")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {t(operationDb.AlwaysPerform)}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("AlwaysPerform")}
+                </FormLabel>
+              )}
+            </FormItem>
+          )}
+        />
 
-                      return (
-                        !skip && (
-                          <SelectItem
-                            key={"T_" + template.id}
-                            value={template.id}
-                          >
-                            {t("T_" + String(template.id) + "_Description")}
-                          </SelectItem>
-                        )
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="DecisionClass"
-            render={({ field }) => (
-              <FormItem>
-                {operation && operation.DecisionClass?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("DecisionClass")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {operationDb.DecisionClass &&
-                          t(
-                            "OC_DECISION_" +
-                              String(operationDb.DecisionClass) +
-                              "_ClassDescription"
-                          )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("DecisionClass")}
-                  </FormLabel>
-                )}
-                <Select
-                  value={field.value ?? ""}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    const json = JSON.parse(
-                      localStorage.getItem(entityId) ?? "{}"
+        <FormField
+          control={form.control}
+          name="QGateRelevant"
+          render={({ field }) => (
+            <FormItem>
+              {operation && operation.QGateRelevant?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("QGateRelevant")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {operationDb.QGateRelevant &&
+                        t("QR_" + String(operationDb.QGateRelevant) + "_name")}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("QGateRelevant")}
+                </FormLabel>
+              )}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.QGateRelevant = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["operation", entityId],
+                  });
+                }}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("QGateRelevant Placeholder")} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">-</SelectItem>
+                  {data.QGateRelevant.map((qgaterelevant) => {
+                    return (
+                      <SelectItem
+                        key={"QR" + qgaterelevant.id}
+                        value={qgaterelevant.id}
+                      >
+                        {t("QR_" + String(qgaterelevant.id) + "_name")}
+                      </SelectItem>
                     );
+                  })}
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="Template"
+          render={({ field }) => (
+            <FormItem>
+              {operation && operation.Template?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("Template")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {operationDb.Template &&
+                        t("T_" + String(operationDb.Template) + "_Description")}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">{t("Template")}</FormLabel>
+              )}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.Template = value;
+                  if (value == "none" || value == "") {
                     json.DecisionClass = value;
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    queryClient.invalidateQueries({
-                      queryKey: ["operation", entityId],
+                    json.VerificationClass = value;
+                    json.GenerationClass = value;
+                    json.SavingClass = value;
+                    setObserver((prev) => prev + 1);
+                  }
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["operation", entityId],
+                  });
+                }}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("Template Placeholder")} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">-</SelectItem>
+                  {data.Templates.map((template) => {
+                    let skip = true;
+                    template.toolClassesIds.every((tc) => {
+                      if (!parentTool?.ToolClass) return false;
+                      else if (parentTool?.ToolClass == tc) {
+                        skip = false;
+                        return false;
+                      }
+                      return true;
                     });
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("Decision Placeholder")} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {data.DecisionClasses.map((decisionclass) => {
-                      let skip = true;
 
-                      decisionclass.templateIds.every((t) => {
-                        if (form.getValues().Template == t) {
-                          skip = false;
-                          return false;
-                        }
-                        return true;
-                      });
+                    return (
+                      !skip && (
+                        <SelectItem
+                          key={"T_" + template.id}
+                          value={template.id}
+                        >
+                          {t("T_" + String(template.id) + "_Description")}
+                        </SelectItem>
+                      )
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
 
-                      return (
-                        !skip && (
-                          <TooltipProvider
-                            key={"OC_DECISION_" + decisionclass.id}
-                          >
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <SelectItem
-                                  key={"OC_DECISION_" + decisionclass.id}
-                                  value={decisionclass.id}
-                                >
-                                  {t(
-                                    "OC_DECISION_" +
-                                      String(decisionclass.id) +
-                                      "_ClassDescription"
-                                  )}
-                                </SelectItem>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-sm">
+        <FormField
+          control={form.control}
+          name="DecisionClass"
+          render={({ field }) => (
+            <FormItem>
+              {operation && operation.DecisionClass?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("DecisionClass")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {operationDb.DecisionClass &&
+                        t(
+                          "OC_DECISION_" +
+                            String(operationDb.DecisionClass) +
+                            "_ClassDescription"
+                        )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("DecisionClass")}
+                </FormLabel>
+              )}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.DecisionClass = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["operation", entityId],
+                  });
+                }}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("Decision Placeholder")} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">-</SelectItem>
+                  {data.DecisionClasses.map((decisionclass) => {
+                    let skip = true;
+
+                    decisionclass.templateIds.every((t) => {
+                      if (form.getValues().Template == t) {
+                        skip = false;
+                        return false;
+                      }
+                      return true;
+                    });
+
+                    return (
+                      !skip && (
+                        <TooltipProvider
+                          key={"OC_DECISION_" + decisionclass.id}
+                        >
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SelectItem
+                                key={"OC_DECISION_" + decisionclass.id}
+                                value={decisionclass.id}
+                              >
                                 {t(
                                   "OC_DECISION_" +
                                     String(decisionclass.id) +
-                                    "_HelpText"
+                                    "_ClassDescription"
                                 )}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="VerificationClass"
-            render={({ field }) => (
-              <FormItem>
-                {operation && operation.VerificationClass?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("VerificationClass")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {operationDb.VerificationClass &&
-                          t(
-                            "OC_VERIFICATION_" +
-                              String(operationDb.VerificationClass) +
-                              "_" +
-                              String(operationDb.Template) +
-                              "_ClassDescription"
-                          )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("VerificationClass")}
-                  </FormLabel>
-                )}
-                <Select
-                  value={field.value ?? ""}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    const json = JSON.parse(
-                      localStorage.getItem(entityId) ?? "{}"
-                    );
-                    json.VerificationClass = value;
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    queryClient.invalidateQueries({
-                      queryKey: ["operation", entityId],
-                    });
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={t("Verification Placeholder")}
-                      />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {data.VerificationClasses.map((verificationclass) => {
-                      let skip = true;
-                      if (
-                        form.getValues().Template ==
-                        verificationclass.templateId
+                              </SelectItem>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-sm">
+                              {t(
+                                "OC_DECISION_" +
+                                  String(decisionclass.id) +
+                                  "_HelpText"
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       )
-                        skip = false;
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
 
-                      return (
-                        !skip && (
-                          <TooltipProvider
-                            key={"OC_VERIFICATION_" + verificationclass.id}
-                          >
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <SelectItem
-                                  key={
-                                    "OC_VERIFICATION_" + verificationclass.id
-                                  }
-                                  value={verificationclass.id}
-                                >
-                                  {t(
-                                    "OC_VERIFICATION_" +
-                                      String(verificationclass.id) +
-                                      "_" +
-                                      String(verificationclass.templateId) +
-                                      "_ClassDescription"
-                                  )}
-                                </SelectItem>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-sm">
+        <FormField
+          control={form.control}
+          name="VerificationClass"
+          render={({ field }) => (
+            <FormItem>
+              {operation && operation.VerificationClass?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("VerificationClass")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {operationDb.VerificationClass &&
+                        t(
+                          "OC_VERIFICATION_" +
+                            String(operationDb.VerificationClass) +
+                            "_" +
+                            String(operationDb.Template) +
+                            "_ClassDescription"
+                        )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("VerificationClass")}
+                </FormLabel>
+              )}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.VerificationClass = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["operation", entityId],
+                  });
+                }}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("Verification Placeholder")} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">-</SelectItem>
+                  {data.VerificationClasses.map((verificationclass) => {
+                    let skip = true;
+                    if (
+                      form.getValues().Template == verificationclass.templateId
+                    )
+                      skip = false;
+
+                    return (
+                      !skip && (
+                        <TooltipProvider
+                          key={"OC_VERIFICATION_" + verificationclass.id}
+                        >
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SelectItem
+                                key={"OC_VERIFICATION_" + verificationclass.id}
+                                value={verificationclass.id}
+                              >
                                 {t(
                                   "OC_VERIFICATION_" +
                                     String(verificationclass.id) +
                                     "_" +
                                     String(verificationclass.templateId) +
-                                    "_HelpText"
+                                    "_ClassDescription"
                                 )}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="GenerationClass"
-            render={({ field }) => (
-              <FormItem>
-                {operation && operation.GenerationClass?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("GenerationClass")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {operationDb.GenerationClass &&
-                          t(
-                            "OC_GENERATION_" +
-                              String(operationDb.GenerationClass) +
-                              "_" +
-                              String(operationDb.Template) +
-                              "_ClassDescription"
-                          )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("GenerationClass")}
-                  </FormLabel>
-                )}
-                <Select
-                  value={field.value ?? ""}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    const json = JSON.parse(
-                      localStorage.getItem(entityId) ?? "{}"
-                    );
-                    json.GenerationClass = value;
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    queryClient.invalidateQueries({
-                      queryKey: ["operation", entityId],
-                    });
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("Generation Placeholder")} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {data.GenerationClasses.map((generationclass) => {
-                      let skip = true;
-                      if (
-                        form.getValues().Template == generationclass.templateId
+                              </SelectItem>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-sm">
+                              {t(
+                                "OC_VERIFICATION_" +
+                                  String(verificationclass.id) +
+                                  "_" +
+                                  String(verificationclass.templateId) +
+                                  "_HelpText"
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       )
-                        skip = false;
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
 
-                      return (
-                        !skip && (
-                          <TooltipProvider
-                            key={"OC_GENERATION_" + generationclass.id}
-                          >
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <SelectItem
-                                  key={"OC_GENERATION_" + generationclass.id}
-                                  value={generationclass.id}
-                                >
-                                  {t(
-                                    "OC_GENERATION_" +
-                                      String(generationclass.id) +
-                                      "_" +
-                                      String(generationclass.templateId) +
-                                      "_ClassDescription"
-                                  )}
-                                </SelectItem>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-sm">
+        <FormField
+          control={form.control}
+          name="GenerationClass"
+          render={({ field }) => (
+            <FormItem>
+              {operation && operation.GenerationClass?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("GenerationClass")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {operationDb.GenerationClass &&
+                        t(
+                          "OC_GENERATION_" +
+                            String(operationDb.GenerationClass) +
+                            "_" +
+                            String(operationDb.Template) +
+                            "_ClassDescription"
+                        )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("GenerationClass")}
+                </FormLabel>
+              )}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.GenerationClass = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["operation", entityId],
+                  });
+                }}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("Generation Placeholder")} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">-</SelectItem>
+                  {data.GenerationClasses.map((generationclass) => {
+                    let skip = true;
+                    if (form.getValues().Template == generationclass.templateId)
+                      skip = false;
+
+                    return (
+                      !skip && (
+                        <TooltipProvider
+                          key={"OC_GENERATION_" + generationclass.id}
+                        >
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SelectItem
+                                key={"OC_GENERATION_" + generationclass.id}
+                                value={generationclass.id}
+                              >
                                 {t(
                                   "OC_GENERATION_" +
                                     String(generationclass.id) +
                                     "_" +
                                     String(generationclass.templateId) +
-                                    "_HelpText"
+                                    "_ClassDescription"
                                 )}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="SavingClass"
-            render={({ field }) => (
-              <FormItem>
-                {operation && operation.SavingClass?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("SavingClass")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {operation.SavingClass &&
-                          t(
-                            "OC_SAVING_" +
-                              String(operationDb.SavingClass) +
-                              "_" +
-                              String(operationDb.Template) +
-                              "_ClassDescription"
-                          )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("SavingClass")}
-                  </FormLabel>
-                )}
-                <Select
-                  value={field.value ?? ""}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    const json = JSON.parse(
-                      localStorage.getItem(entityId) ?? "{}"
+                              </SelectItem>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-sm">
+                              {t(
+                                "OC_GENERATION_" +
+                                  String(generationclass.id) +
+                                  "_" +
+                                  String(generationclass.templateId) +
+                                  "_HelpText"
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )
                     );
-                    json.SavingClass = value;
-                    localStorage.setItem(entityId, JSON.stringify(json));
-                    queryClient.invalidateQueries({
-                      queryKey: ["operation", entityId],
-                    });
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("Saving Placeholder")} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">-</SelectItem>
-                    {data.SavingClasses.map((savingclass) => {
-                      let skip = true;
-                      if (form.getValues().Template == savingclass.templateId)
-                        skip = false;
+                  })}
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
 
-                      return (
-                        !skip && (
-                          <TooltipProvider key={"OC_SAVING_" + savingclass.id}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <SelectItem
-                                  key={"OC_SAVING_" + savingclass.id}
-                                  value={savingclass.id}
-                                >
-                                  {t(
-                                    "OC_SAVING_" +
-                                      String(savingclass.id) +
-                                      "_" +
-                                      String(savingclass.templateId) +
-                                      "_ClassDescription"
-                                  )}
-                                </SelectItem>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-sm">
+        <FormField
+          control={form.control}
+          name="SavingClass"
+          render={({ field }) => (
+            <FormItem>
+              {operation && operation.SavingClass?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("SavingClass")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {operation.SavingClass &&
+                        t(
+                          "OC_SAVING_" +
+                            String(operationDb.SavingClass) +
+                            "_" +
+                            String(operationDb.Template) +
+                            "_ClassDescription"
+                        )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("SavingClass")}
+                </FormLabel>
+              )}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const json = JSON.parse(
+                    localStorage.getItem(entityId) ?? "{}"
+                  );
+                  json.SavingClass = value;
+                  localStorage.setItem(entityId, JSON.stringify(json));
+                  queryClient.invalidateQueries({
+                    queryKey: ["operation", entityId],
+                  });
+                }}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("Saving Placeholder")} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">-</SelectItem>
+                  {data.SavingClasses.map((savingclass) => {
+                    let skip = true;
+                    if (form.getValues().Template == savingclass.templateId)
+                      skip = false;
+
+                    return (
+                      !skip && (
+                        <TooltipProvider key={"OC_SAVING_" + savingclass.id}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SelectItem
+                                key={"OC_SAVING_" + savingclass.id}
+                                value={savingclass.id}
+                              >
                                 {t(
                                   "OC_SAVING_" +
                                     String(savingclass.id) +
                                     "_" +
                                     String(savingclass.templateId) +
-                                    "_HelpText"
+                                    "_ClassDescription"
                                 )}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="DecisionCriteria"
-            render={({ field }) => (
-              <FormItem className="col-span-2">
-                {operation && operation.DecisionCriteria?.draft ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <div className="flex gap-3">
-                        <FormLabel className="flex h-[15px]">
-                          {t("DecisionCriteria")}
-                        </FormLabel>
-                        <TooltipTrigger asChild>
-                          <SquarePen size={15} />
-                        </TooltipTrigger>
-                      </div>
-                      <TooltipContent className="max-w-sm">
-                        {operationDb.DecisionCriteria?.split("<|||>").join(
-                          "; "
-                        )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <FormLabel className="flex h-[15px]">
-                    {t("DecisionCriteria")}
-                  </FormLabel>
-                )}
-                <FormControl>
-                  <TagsInput
-                    value={field.value ?? []}
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      const json = JSON.parse(
-                        localStorage.getItem(entityId) ?? "{}"
-                      );
-                      json.DecisionCriteria = value.join("<|||>");
-                      localStorage.setItem(entityId, JSON.stringify(json));
-                      queryClient.invalidateQueries({
-                        queryKey: ["operation", entityId],
-                      });
-                    }}
-                    placeholder={t("Enter")}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          {draftAvailable && (
-            <div className="flex gap-5 justify-center">
-              <Button
-                variant="outline"
-                type="button"
-                onClick={async () => discardDrafts()}
-                className="w-full"
-              >
-                {t("Discard")}
-              </Button>
-              <Button variant="outline" type="submit" className="w-full">
-                {t("Submit")}
-              </Button>
-            </div>
+                              </SelectItem>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-sm">
+                              {t(
+                                "OC_SAVING_" +
+                                  String(savingclass.id) +
+                                  "_" +
+                                  String(savingclass.templateId) +
+                                  "_HelpText"
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </FormItem>
           )}
-          <div className="flex justify-center items-center">
-            <div className="max-w-80 text-left italic text-sm">
-              {t("EntityMetaData", {
-                name: meta?.UpdatedBy,
-                date: formatTimestamp(meta.UpdatedAt ?? "")[0],
-                time: formatTimestamp(meta.UpdatedAt ?? "")[1],
-              })}
-            </div>
+        />
+        <FormField
+          control={form.control}
+          name="DecisionCriteria"
+          render={({ field }) => (
+            <FormItem className="col-span-2">
+              {operation && operation.DecisionCriteria?.draft ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <div className="flex gap-3">
+                      <FormLabel className="flex h-[15px]">
+                        {t("DecisionCriteria")}
+                      </FormLabel>
+                      <TooltipTrigger asChild>
+                        <SquarePen size={15} />
+                      </TooltipTrigger>
+                    </div>
+                    <TooltipContent className="max-w-sm">
+                      {operationDb.DecisionCriteria?.split("<|||>").join("; ")}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <FormLabel className="flex h-[15px]">
+                  {t("DecisionCriteria")}
+                </FormLabel>
+              )}
+              <FormControl>
+                <TagsInput
+                  value={field.value ?? []}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    const json = JSON.parse(
+                      localStorage.getItem(entityId) ?? "{}"
+                    );
+                    json.DecisionCriteria = value.join("<|||>");
+                    localStorage.setItem(entityId, JSON.stringify(json));
+                    queryClient.invalidateQueries({
+                      queryKey: ["operation", entityId],
+                    });
+                  }}
+                  placeholder={t("Enter")}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        {draftAvailable && (
+          <div className="flex gap-5 justify-center">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={async () => discardDrafts()}
+              className="w-full"
+            >
+              {t("Discard")}
+            </Button>
+            <Button variant="outline" type="submit" className="w-full">
+              {t("Submit")}
+            </Button>
           </div>
-        </form>
-      </Form>
-    )
+        )}
+        <div className="flex justify-center items-center">
+          <div className="max-w-80 text-left italic text-sm">
+            {t("EntityMetaData", {
+              name: meta?.UpdatedBy,
+              date: formatTimestamp(meta.UpdatedAt ?? "")[0],
+              time: formatTimestamp(meta.UpdatedAt ?? "")[1],
+            })}
+          </div>
+        </div>
+      </form>
+    </Form>
+  ) : (
+    <div className="flex flex-col gap-5 py-5">
+      {Array.from({ length: 8 }, (_, index) => (
+        <Skeleton className="w-full h-10" />
+      ))}
+    </div>
   );
 }

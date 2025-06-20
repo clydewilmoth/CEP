@@ -178,10 +178,10 @@ export function EntityCollection({
             </SelectItem>
           </SelectContent>
         </Select>
-      </div>{" "}
+      </div>
       {isFetching ? (
         <div className="flex flex-wrap gap-7">
-          {Array.from({ length: 5 }, (_, index) => (
+          {Array.from({ length: 8 }, (_, index) => (
             <Skeleton key={index} className="h-24 w-44 rounded-xl" />
           ))}
         </div>
