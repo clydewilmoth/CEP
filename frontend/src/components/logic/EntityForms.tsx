@@ -192,23 +192,19 @@ export function LineForm({ entityId }: { entityId: string }) {
           className="py-3 flex flex-col gap-5"
         >
           <div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="flex gap-3 items-center w-fit px-2.5"
-                >
-                  <History />
-                  <span className="font-semibold">{t("VersionHistory")}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="p-0">
-                {versions.length == 0 ? (
-                  <div className="flex justify-center items-center text-sm p-3">
-                    {t("VersionHistory NoVersions")}
-                  </div>
-                ) : (
+            {versions.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex gap-3 items-center w-fit px-2.5"
+                  >
+                    <History />
+                    <span className="font-semibold">{t("VersionHistory")}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="p-0">
                   <DropdownMenuItem className="p-0 m-0">
                     <ScrollArea className="p-1">
                       <div className="max-h-[30vh]">
@@ -238,9 +234,9 @@ export function LineForm({ entityId }: { entityId: string }) {
                       </div>
                     </ScrollArea>
                   </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <Dialog
               open={versionDialogOpen}
               onOpenChange={setVersionDialogOpen}
@@ -708,23 +704,19 @@ export function StationForm({ entityId }: { entityId: string }) {
           className="py-3  flex flex-col gap-5"
         >
           <div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="flex gap-3 items-center w-fit px-2.5"
-                >
-                  <History />
-                  <span className="font-semibold">{t("VersionHistory")}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="p-0">
-                {versions.length == 0 ? (
-                  <div className="flex justify-center items-center text-sm p-3">
-                    {t("VersionHistory NoVersions")}
-                  </div>
-                ) : (
+            {versions.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex gap-3 items-center w-fit px-2.5"
+                  >
+                    <History />
+                    <span className="font-semibold">{t("VersionHistory")}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="p-0">
                   <DropdownMenuItem className="p-0 m-0">
                     <ScrollArea className="p-1">
                       <div className="max-h-[30vh]">
@@ -754,9 +746,9 @@ export function StationForm({ entityId }: { entityId: string }) {
                       </div>
                     </ScrollArea>
                   </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <Dialog
               open={versionDialogOpen}
               onOpenChange={setVersionDialogOpen}
@@ -1348,23 +1340,19 @@ export function ToolForm({ entityId }: { entityId: string }) {
           className="py-3  flex flex-col gap-5"
         >
           <div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="flex gap-3 items-center w-fit px-2.5"
-                >
-                  <History />
-                  <span className="font-semibold">{t("VersionHistory")}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="p-0">
-                {versions.length == 0 ? (
-                  <div className="flex justify-center items-center text-sm p-3">
-                    {t("VersionHistory NoVersions")}
-                  </div>
-                ) : (
+            {versions.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex gap-3 items-center w-fit px-2.5"
+                  >
+                    <History />
+                    <span className="font-semibold">{t("VersionHistory")}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="p-0">
                   <DropdownMenuItem className="p-0 m-0">
                     <ScrollArea className="p-1">
                       <div className="max-h-[30vh]">
@@ -1394,9 +1382,9 @@ export function ToolForm({ entityId }: { entityId: string }) {
                       </div>
                     </ScrollArea>
                   </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <Dialog
               open={versionDialogOpen}
               onOpenChange={setVersionDialogOpen}
@@ -2484,23 +2472,19 @@ export function OperationForm({
           className="py-3  flex flex-col gap-5"
         >
           <div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="flex gap-3 items-center w-fit px-2.5"
-                >
-                  <History />
-                  <span className="font-semibold">{t("VersionHistory")}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="p-0">
-                {versions.length == 0 ? (
-                  <div className="flex justify-center items-center text-sm p-3">
-                    {t("VersionHistory NoVersions")}
-                  </div>
-                ) : (
+            {versions.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex gap-3 items-center w-fit px-2.5"
+                  >
+                    <History />
+                    <span className="font-semibold">{t("VersionHistory")}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="p-0">
                   <DropdownMenuItem className="p-0 m-0">
                     <ScrollArea className="p-1">
                       <div className="max-h-[30vh]">
@@ -2530,9 +2514,9 @@ export function OperationForm({
                       </div>
                     </ScrollArea>
                   </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <Dialog
               open={versionDialogOpen}
               onOpenChange={setVersionDialogOpen}
