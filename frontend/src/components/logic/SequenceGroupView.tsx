@@ -518,7 +518,7 @@ export function SequenceGroupView({
   }, []);
 
   if (!processedData) {
-    return <div>{t("loading")}...</div>;
+    return <Loader />;
   }
 
   return (

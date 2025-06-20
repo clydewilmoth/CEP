@@ -64,6 +64,7 @@ import {
 } from "../ui/select";
 import { StringNullToBlank } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
+import { Skeleton } from "../ui/skeleton";
 
 export function EntityCollection({
   entityType,
@@ -74,9 +75,16 @@ export function EntityCollection({
   parentId: string;
   link: string;
 }) {
-  const { data: entities } = useQuery({
+  const { data: entities, isFetching } = useQuery({
     queryKey: ["entities", entityType, parentId],
-    queryFn: async () => await GetAllEntities(entityType, String(parentId)),
+    queryFn: async () => {
+      await (async (ms: number) => {
+        return await new Promise((resolve) => {
+          setTimeout(resolve, ms);
+        });
+      })(1000);
+      return await GetAllEntities(entityType, String(parentId));
+    },
   });
   const { t } = useTranslation();
   const [searchFilter, setSeachFilter] = useState("");
@@ -170,54 +178,62 @@ export function EntityCollection({
             </SelectItem>
           </SelectContent>
         </Select>
-      </div>
-      <ScrollArea className="h-[78vh]">
+      </div>{" "}
+      {isFetching ? (
         <div className="flex flex-wrap gap-7">
-          {entities?.map((entity, index) => {
-            let filterCondition = true;
-            switch (filter) {
-              case "none":
-                filterCondition = true;
-                break;
-              case "red":
-                filterCondition = entity.StatusColor == "red";
-                break;
-              case "amber":
-                filterCondition = entity.StatusColor == "amber";
-                break;
-              case "emerald":
-                filterCondition = entity.StatusColor == "emerald";
-                break;
-              case "draft":
-                filterCondition = Boolean(localStorage.getItem(entity.ID));
-                break;
-              default:
-                filterCondition = true;
-            }
-            return (
-              StringNullToBlank(entity.Name).includes(searchFilter) &&
-              filterCondition && (
-                <EntityCard
-                  entityType={entityType}
-                  entityId={entity.ID}
-                  entityName={entity.Name}
-                  entityComment={entity.Comment}
-                  entityStatusColor={
-                    entity.StatusColor != "empty" ? entity.StatusColor : null
-                  }
-                  link={link}
-                  key={index}
-                />
-              )
-            );
-          })}
-          <CreateEntityCard
-            entityType={entityType}
-            parentId={parentId}
-            link={link}
-          />
+          {Array.from({ length: 5 }, (_, index) => (
+            <Skeleton key={index} className="h-24 w-44 rounded-xl" />
+          ))}
         </div>
-      </ScrollArea>
+      ) : (
+        <ScrollArea className="h-[78vh]">
+          <div className="flex flex-wrap gap-7">
+            {entities?.map((entity, index) => {
+              let filterCondition = true;
+              switch (filter) {
+                case "none":
+                  filterCondition = true;
+                  break;
+                case "red":
+                  filterCondition = entity.StatusColor == "red";
+                  break;
+                case "amber":
+                  filterCondition = entity.StatusColor == "amber";
+                  break;
+                case "emerald":
+                  filterCondition = entity.StatusColor == "emerald";
+                  break;
+                case "draft":
+                  filterCondition = Boolean(localStorage.getItem(entity.ID));
+                  break;
+                default:
+                  filterCondition = true;
+              }
+              return (
+                StringNullToBlank(entity.Name).includes(searchFilter) &&
+                filterCondition && (
+                  <EntityCard
+                    entityType={entityType}
+                    entityId={entity.ID}
+                    entityName={entity.Name}
+                    entityComment={entity.Comment}
+                    entityStatusColor={
+                      entity.StatusColor != "empty" ? entity.StatusColor : null
+                    }
+                    link={link}
+                    key={index}
+                  />
+                )
+              );
+            })}
+            <CreateEntityCard
+              entityType={entityType}
+              parentId={parentId}
+              link={link}
+            />
+          </div>
+        </ScrollArea>
+      )}
     </div>
   );
 }
