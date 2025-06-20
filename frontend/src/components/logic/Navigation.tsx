@@ -42,11 +42,7 @@ export function BreadcrumbNavigation({
       const tDetails = tuuid && (await GetEntityDetails("tool", tuuid ?? ""));
       const oDetails =
         ouuid && (await GetEntityDetails("operation", ouuid ?? ""));
-      await (async (ms: number) => {
-        return await new Promise((resolve) => {
-          setTimeout(resolve, ms);
-        });
-      })(1000);
+
       setLName(lDetails?.Name ?? "");
       setSName(sDetails?.Name ?? "");
       setTName(tDetails?.Name ?? "");

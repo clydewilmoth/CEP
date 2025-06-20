@@ -83,11 +83,7 @@ export function LineForm({ entityId }: { entityId: string }) {
         StatusColor: json.StatusColor ?? line.StatusColor ?? "empty",
         AssemblyArea: json.AssemblyArea ?? line.AssemblyArea ?? "",
       });
-      await (async (ms: number) => {
-        return await new Promise((resolve) => {
-          setTimeout(resolve, ms);
-        });
-      })(1000);
+
       setFormReady(true);
       setVersions(await GetEntityVersions("line", entityId));
       queryClient.invalidateQueries({
@@ -565,11 +561,7 @@ export function StationForm({ entityId }: { entityId: string }) {
         Description: json.Description ?? station.Description ?? "",
         StationType: json.StationType ?? station.StationType ?? "",
       });
-      await (async (ms: number) => {
-        return await new Promise((resolve) => {
-          setTimeout(resolve, ms);
-        });
-      })(1000);
+
       setFormReady(true);
       setVersions(await GetEntityVersions("station", entityId));
       queryClient.invalidateQueries({
@@ -1175,11 +1167,6 @@ export function ToolForm({ entityId }: { entityId: string }) {
           tool.SPSAddressInSendDB
       );
 
-      await (async (ms: number) => {
-        return await new Promise((resolve) => {
-          setTimeout(resolve, ms);
-        });
-      })(1000);
       setFormReady(true);
       setVersions(await GetEntityVersions("tool", entityId));
       queryClient.invalidateQueries({
@@ -2344,11 +2331,7 @@ export function OperationForm({
         DecisionCriteria:
           jsonDecisionCriteria ?? operationDecisionCriteria ?? [],
       });
-      await (async (ms: number) => {
-        return await new Promise((resolve) => {
-          setTimeout(resolve, ms);
-        });
-      })(1000);
+
       setFormReady(true);
       setVersions(await GetEntityVersions("operation", entityId));
       queryClient.invalidateQueries({

@@ -162,7 +162,7 @@ export function DraftConflictDialog() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {t("DraftConflicts Description")}
-            </AlertDialogDescription>{" "}
+            </AlertDialogDescription>
             <div className="pb-5 flex flex-col gap-2">
               {Object.entries(draftConflicts).map(([key, value]) => {
                 const keyWithoutCounter = key.split("<|||>")[1];

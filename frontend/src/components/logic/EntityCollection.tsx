@@ -78,11 +78,6 @@ export function EntityCollection({
   const { data: entities, isFetching } = useQuery({
     queryKey: ["entities", entityType, parentId],
     queryFn: async () => {
-      await (async (ms: number) => {
-        return await new Promise((resolve) => {
-          setTimeout(resolve, ms);
-        });
-      })(1000);
       return await GetAllEntities(entityType, String(parentId));
     },
   });
