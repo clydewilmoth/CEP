@@ -60,6 +60,7 @@ import {
   DialogDescription,
 } from "../ui/dialog";
 import { Skeleton } from "../ui/skeleton";
+import { useDelayedLoading } from "@/lib/hooks";
 
 export function LineForm({ entityId }: { entityId: string }) {
   const [meta, setMeta] = useState<{ UpdatedAt?: string; UpdatedBy?: string }>(
@@ -70,6 +71,9 @@ export function LineForm({ entityId }: { entityId: string }) {
   const { dbState, lastUpdate } = useContext();
   const { t, i18n } = useTranslation();
   const [draftAvailable, setDraftAvailable] = useState(false);
+
+  // Use delayed loading to prevent skeleton flickering
+  const showSkeletons = useDelayedLoading(!formReady);
 
   useEffect(() => {
     (async () => {
@@ -529,13 +533,13 @@ export function LineForm({ entityId }: { entityId: string }) {
         </div>
       </form>
     </Form>
-  ) : (
+  ) : showSkeletons ? (
     <div className="flex flex-col gap-5 py-5">
       {Array.from({ length: 8 }, (_, index) => (
-        <Skeleton className="w-full h-10" />
+        <Skeleton key={index} className="w-full h-10" />
       ))}
     </div>
-  );
+  ) : null;
 }
 
 export function StationForm({ entityId }: { entityId: string }) {
@@ -547,6 +551,9 @@ export function StationForm({ entityId }: { entityId: string }) {
   const { dbState, lastUpdate } = useContext();
   const { t, i18n } = useTranslation();
   const [draftAvailable, setDraftAvailable] = useState(false);
+
+  // Use delayed loading to prevent skeleton flickering
+  const showSkeletons = useDelayedLoading(!formReady);
 
   useEffect(() => {
     (async () => {
@@ -1105,17 +1112,17 @@ export function StationForm({ entityId }: { entityId: string }) {
               date: formatTimestamp(meta.UpdatedAt ?? "")[0],
               time: formatTimestamp(meta.UpdatedAt ?? "")[1],
             })}
-          </div>
+          </div>{" "}
         </div>
       </form>
     </Form>
-  ) : (
+  ) : showSkeletons ? (
     <div className="flex flex-col gap-5 py-5">
       {Array.from({ length: 8 }, (_, index) => (
-        <Skeleton className="w-full h-10" />
+        <Skeleton key={index} className="w-full h-10" />
       ))}
     </div>
-  );
+  ) : null;
 }
 
 export function ToolForm({ entityId }: { entityId: string }) {
@@ -1127,6 +1134,9 @@ export function ToolForm({ entityId }: { entityId: string }) {
   const { dbState, lastUpdate } = useContext();
   const { t, i18n } = useTranslation();
   const [draftAvailable, setDraftAvailable] = useState(false);
+
+  // Use delayed loading to prevent skeleton flickering
+  const showSkeletons = useDelayedLoading(!formReady);
 
   useEffect(() => {
     (async () => {
@@ -2264,13 +2274,13 @@ export function ToolForm({ entityId }: { entityId: string }) {
         </div>
       </form>
     </Form>
-  ) : (
+  ) : showSkeletons ? (
     <div className="flex flex-col gap-5 py-5">
       {Array.from({ length: 8 }, (_, index) => (
-        <Skeleton className="w-full h-10" />
+        <Skeleton key={index} className="w-full h-10" />
       ))}
     </div>
-  );
+  ) : null;
 }
 
 export function OperationForm({
@@ -2289,6 +2299,9 @@ export function OperationForm({
   const { t, i18n } = useTranslation();
   const [draftAvailable, setDraftAvailable] = useState(false);
   const [parentTool, setParentTool] = useState<any>();
+
+  // Use delayed loading to prevent skeleton flickering
+  const showSkeletons = useDelayedLoading(!formReady);
 
   useEffect(() => {
     (async () => {
@@ -3601,13 +3614,13 @@ export function OperationForm({
             })}
           </div>
         </div>
-      </form>
+      </form>{" "}
     </Form>
-  ) : (
+  ) : showSkeletons ? (
     <div className="flex flex-col gap-5 py-5">
       {Array.from({ length: 8 }, (_, index) => (
-        <Skeleton className="w-full h-10" />
+        <Skeleton key={index} className="w-full h-10" />
       ))}
     </div>
-  );
+  ) : null;
 }

@@ -13,6 +13,7 @@ import { GetEntityDetails } from "../../../wailsjs/go/main/Core";
 import { useEffect, useState } from "react";
 import { useContext } from "../../store";
 import { Skeleton } from "../ui/skeleton";
+import { useDelayedLoading } from "@/lib/hooks";
 
 export function BreadcrumbNavigation({
   luuid,
@@ -33,6 +34,9 @@ export function BreadcrumbNavigation({
   const [tName, setTName] = useState("");
   const [oName, setOName] = useState("");
   const [navReady, setNavReady] = useState(false);
+
+  // Use delayed loading to prevent skeleton flickering
+  const showSkeletons = useDelayedLoading(!navReady);
 
   useEffect(() => {
     (async () => {
@@ -77,8 +81,9 @@ export function BreadcrumbNavigation({
                   disabled={suuid ? false : true}
                   className="text-base text-foreground opacity-50 disabled:opacity-100 px-2"
                 >
+                  {" "}
                   {`${t("line")} ${lName}`}
-                  {!navReady && <Skeleton className="w-24 h-8" />}
+                  {showSkeletons && <Skeleton className="w-24 h-8" />}
                 </Button>
               </BreadcrumbItem>
               {suuid && <BreadcrumbSeparator />}
@@ -98,8 +103,9 @@ export function BreadcrumbNavigation({
                     disabled={tuuid ? false : true}
                     className="text-base text-foreground opacity-50 disabled:opacity-100 px-2"
                   >
+                    {" "}
                     {`${t("station")} ${sName}`}
-                    {!navReady && <Skeleton className="w-24 h-8" />}
+                    {showSkeletons && <Skeleton className="w-24 h-8" />}
                   </Button>
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -123,8 +129,9 @@ export function BreadcrumbNavigation({
                     disabled={ouuid ? false : true}
                     className="text-base text-foreground opacity-50 disabled:opacity-100 px-2"
                   >
+                    {" "}
                     {`${t("tool")} ${tName}`}
-                    {!navReady && <Skeleton className="w-24 h-8" />}
+                    {showSkeletons && <Skeleton className="w-24 h-8" />}
                   </Button>
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -140,8 +147,9 @@ export function BreadcrumbNavigation({
                     disabled
                     className="text-base text-foreground opacity-50 disabled:opacity-100 px-2"
                   >
+                    {" "}
                     {`${t("operation")} ${oName}`}
-                    {!navReady && <Skeleton className="w-24 h-8" />}
+                    {showSkeletons && <Skeleton className="w-24 h-8" />}
                   </Button>
                 </BreadcrumbLink>
               </BreadcrumbItem>

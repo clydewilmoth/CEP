@@ -65,6 +65,7 @@ import {
 import { StringNullToBlank } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
 import { Skeleton } from "../ui/skeleton";
+import { useDelayedLoading } from "@/lib/hooks";
 
 export function EntityCollection({
   entityType,
@@ -84,6 +85,9 @@ export function EntityCollection({
   const { t } = useTranslation();
   const [searchFilter, setSeachFilter] = useState("");
   const [filter, setFilter] = useState("none");
+
+  // Use delayed loading to prevent skeleton flickering
+  const showSkeletons = useDelayedLoading(isFetching);
 
   return (
     <div className="flex flex-col gap-7 w-full">
@@ -173,8 +177,8 @@ export function EntityCollection({
             </SelectItem>
           </SelectContent>
         </Select>
-      </div>
-      {isFetching ? (
+      </div>{" "}
+      {showSkeletons ? (
         <div className="flex flex-wrap gap-7">
           {Array.from({ length: 8 }, (_, index) => (
             <Skeleton key={index} className="h-24 w-44 rounded-xl" />

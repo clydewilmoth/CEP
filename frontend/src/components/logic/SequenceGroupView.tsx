@@ -19,6 +19,7 @@ import React, { useEffect, useState } from "react";
 import { ChevronUp, ChevronDown, Info, Plus } from "lucide-react"; // Added for up/down buttons
 import { Loader } from "../ui/loader";
 import { Skeleton } from "../ui/skeleton";
+import { useDelayedLoading } from "@/lib/hooks";
 
 type Group = {
   ID: string;
@@ -507,9 +508,12 @@ export function SequenceGroupView({
       deleteGroupMutation.mutate({ groupId, sourceData: processedData });
     }
   };
-
   const [stationType, setStationType] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Use delayed loading to prevent skeleton flickering
+  const showDataLoader = useDelayedLoading(!processedData);
+  const showStationLoader = useDelayedLoading(loading);
 
   useEffect(() => {
     (async () => {
@@ -519,13 +523,13 @@ export function SequenceGroupView({
     })();
   }, []);
 
-  if (!processedData) {
+  if (showDataLoader || !processedData) {
     return <Loader />;
   }
 
   return (
     <>
-      {loading ? (
+      {showStationLoader ? (
         <Loader />
       ) : stationType == "" || stationType == "none" ? (
         <div className="text-sm font-semibold max-w-lg bg-card border p-4 flex flex-col gap-3 rounded-lg">
