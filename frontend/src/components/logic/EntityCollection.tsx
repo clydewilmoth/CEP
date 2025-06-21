@@ -646,7 +646,7 @@ export function DeleteEntityDialog({
           disabled={isDeleting}
           className="w-1/2 mx-auto"
         >
-          {isDeleting ? t("Deleting...") : t("Confirm")}
+          {isDeleting ? "..." : t("Confirm")}
         </Button>
       </DialogContent>
     </Dialog>
