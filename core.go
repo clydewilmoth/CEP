@@ -1464,6 +1464,10 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 		}
 		root = &op
 
+		if err := c.checkCompatibility(op, parentIDStrOptional); err != nil {
+			return err
+		}
+
 	default:
 		return fmt.Errorf("unknown expected entity type: '%s'", expectedEntityType)
 	}
@@ -1505,6 +1509,99 @@ func (c *Core) PasteEntityHierarchyFromClipboard(userName string, expectedEntity
 	}
 
 	return tx.Model(&AppMetadata{}).Where("config_key = ?", GlobalMetadataKey).Update("last_update", time.Now()).Error
+}
+
+type ToolClass struct {
+	ID          string   `json:"id"`
+	TemplateIDs []string `json:"templateIds"`
+	ToolTypeIDs []string `json:"toolTypeIds"`
+	Name        string   `json:"name"`
+}
+
+type StationType struct {
+	ID   string   `json:"id"`
+	Name string   `json:"name"`
+	SOP  []string `json:"serialOrParallel"`
+}
+
+type Data struct {
+	ToolClasses  []ToolClass   `json:"ToolClasses"`
+	StationTypes []StationType `json:"StationTypes"`
+}
+
+func (c *Core) checkCompatibility(op Operation, parentIDStrOptional string) error {
+
+	var data Data
+	jsonData, err := os.ReadFile("frontend/src/assets/dependency.json")
+	if err != nil {
+		return fmt.Errorf("error reading file: %v", err)
+	}
+
+	var toolDetails, errTwo = c.GetEntityDetails("tool", parentIDStrOptional)
+	if errTwo != nil {
+		return fmt.Errorf("failed to get entity details: %w", errTwo)
+	}
+
+	if errThree := json.Unmarshal(jsonData, &data); errThree != nil {
+		return fmt.Errorf("error unmarshaling dependency JSON: %w", errThree)
+	}
+
+	if !(op.Template == nil || *op.Template == "none") {
+		var parentToolClass = toolDetails.(*Tool).ToolClass
+		var toolClassTemplateIDs []string
+		var foundToolClass bool = false
+		var compatibleWithToolClass bool = false
+		for _, toolClass := range data.ToolClasses {
+			if toolClass.ID == *parentToolClass {
+				foundToolClass = true
+				toolClassTemplateIDs = toolClass.TemplateIDs
+				break
+			}
+		}
+		if !foundToolClass {
+			return fmt.Errorf("tool class '%s' not found in dependency data", *parentToolClass)
+		}
+		for _, templateID := range toolClassTemplateIDs {
+			if *op.Template == templateID {
+				compatibleWithToolClass = true
+				break
+			}
+		}
+		if !compatibleWithToolClass {
+			return fmt.Errorf("operation template id '%s' is not compatible with tool class '%s'", *op.Template, *parentToolClass)
+		}
+	}
+	if !(op.SerialOrParallel == nil || *op.SerialOrParallel == "none") {
+		var stationDetails, errTwo = c.GetEntityDetails("station", toolDetails.(*Tool).ParentID.String())
+		if errTwo != nil {
+			return fmt.Errorf("failed to get entity details: %w", errTwo)
+		}
+
+		var grandParentStationType = stationDetails.(*Station).StationType
+		var stationTypeSOPs []string
+		var foundStationType bool = false
+		var compatibleWithSOP bool = false
+		for _, stationType := range data.StationTypes {
+			if stationType.ID == *grandParentStationType {
+				foundStationType = true
+				stationTypeSOPs = stationType.SOP
+				break
+			}
+		}
+		if !foundStationType {
+			return fmt.Errorf("station type id '%s' not found in dependency data", *grandParentStationType)
+		}
+		for _, SOP := range stationTypeSOPs {
+			if *op.SerialOrParallel == SOP {
+				compatibleWithSOP = true
+				break
+			}
+		}
+		if !compatibleWithSOP {
+			return fmt.Errorf("operation serial or parallel id '%s' is not compatible with tool class '%s'", *op.SerialOrParallel, *grandParentStationType)
+		}
+	}
+	return nil
 }
 
 func detectEntityTypeFromClipboard(clipboardData string) (string, error) {
