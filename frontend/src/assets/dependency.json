@@ -365,7 +365,7 @@
     {
       "id": "0",
       "name": "Datapump",
-      "serialOrParallel": []
+      "serialOrParallel": ["0"]
     },
     {
       "id": "1",
@@ -382,7 +382,7 @@
     {
       "id": "0",
       "name": "seriell",
-      "stationTypes": ["1"]
+      "stationTypes": ["0","1"]
     },
     {
       "id": "1",

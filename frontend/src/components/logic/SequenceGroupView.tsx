@@ -534,10 +534,6 @@ export function SequenceGroupView({
         <div className="text-sm font-semibold max-w-lg bg-card border p-4 flex flex-col gap-3 rounded-lg">
           {t("StationType Unassigned")}
         </div>
-      ) : stationType == "0" ? (
-        <div className="text-sm font-semibold max-w-lg bg-card border p-4 flex flex-col gap-3 rounded-lg">
-          {t("StationType Datapump")}
-        </div>
       ) : (
         <div className="grid grid-cols-2 gap-5">
           <div className="flex flex-col gap-5 w-[95%]">
@@ -583,10 +579,11 @@ export function SequenceGroupView({
                     }
                   }}
                 >
+                  {" "}
                   <div className="flex flex-col gap-4">
-                    {/* Serial Operations Section - nur anzeigen wenn Operationen vorhanden und stationType nicht "10" */}
+                    {/* Serial Operations Section - nur anzeigen wenn Operationen vorhanden und stationType == "0" oder == "1" */}
                     {processedData.unassignedSerialOperations.length > 0 &&
-                      stationType !== "10" && (
+                      (stationType === "0" || stationType === "1") && (
                         <div>
                           <h4 className="text-sm font-medium mb-2 border-b pb-1">
                             {t("SOP_0_name")}
@@ -614,41 +611,42 @@ export function SequenceGroupView({
                                 </Reorder.Item>
                               )
                             )}
+                          </Reorder.Group>{" "}
+                        </div>
+                      )}
+                    {/* Parallel Operations Section - nur anzeigen wenn Operationen vorhanden und stationType == "1" oder == "10" */}
+                    {processedData.unassignedParallelOperations.length > 0 &&
+                      (stationType === "1" || stationType === "10") && (
+                        <div>
+                          <h4 className="text-sm font-medium mb-2 border-b pb-1">
+                            {t("SOP_1_name")}
+                          </h4>
+                          <Reorder.Group
+                            axis="y"
+                            values={processedData.unassignedParallelOperations}
+                            onReorder={(newOrder) =>
+                              handleReorderUnassigned(newOrder, "parallel")
+                            }
+                            className="flex flex-wrap gap-2"
+                          >
+                            {processedData.unassignedParallelOperations.map(
+                              (entity) => (
+                                <Reorder.Item
+                                  value={entity}
+                                  key={entity.ID}
+                                  dragListener={false}
+                                  className="cursor-grab hover:cursor-grab active:cursor-grabbing"
+                                >
+                                  <OperationCard
+                                    operation={entity}
+                                    currentGroupId=""
+                                  />
+                                </Reorder.Item>
+                              )
+                            )}
                           </Reorder.Group>
                         </div>
                       )}
-                    {/* Parallel Operations Section - nur anzeigen wenn Operationen vorhanden */}
-                    {processedData.unassignedParallelOperations.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-medium mb-2 border-b pb-1">
-                          {t("SOP_1_name")}
-                        </h4>
-                        <Reorder.Group
-                          axis="y"
-                          values={processedData.unassignedParallelOperations}
-                          onReorder={(newOrder) =>
-                            handleReorderUnassigned(newOrder, "parallel")
-                          }
-                          className="flex flex-wrap gap-2"
-                        >
-                          {processedData.unassignedParallelOperations.map(
-                            (entity) => (
-                              <Reorder.Item
-                                value={entity}
-                                key={entity.ID}
-                                dragListener={false}
-                                className="cursor-grab hover:cursor-grab active:cursor-grabbing"
-                              >
-                                <OperationCard
-                                  operation={entity}
-                                  currentGroupId=""
-                                />
-                              </Reorder.Item>
-                            )
-                          )}
-                        </Reorder.Group>
-                      </div>
-                    )}
                     {/* "none" Operations Section - nur anzeigen wenn Operationen vorhanden */}
                     {processedData.unassignedNoneOperations.length > 0 && (
                       <div>
@@ -1162,15 +1160,14 @@ function SequenceGroupCard({
             {entityName || t("unnamed_group")}
           </CardTitle>
         </div>
-
         <DeleteEntityDialog
           entityType={"sequencegroup"}
           entityId={group.ID}
           onClose={() => onDelete(group.ID)}
-        />
+        />{" "}
       </div>
-      {/* Serial Operations - nur anzeigen wenn stationType nicht "10" */}
-      {stationType !== "10" && (
+      {/* Serial Operations - nur anzeigen wenn stationType == "0" oder == "1" */}
+      {(stationType === "0" || stationType === "1") && (
         <div className="mb-6">
           <div className="text-sm font-medium mb-2 border-b pb-1">
             {t("SOP_0_name")} ({group.SerialOperations.length})
@@ -1243,51 +1240,54 @@ function SequenceGroupCard({
                 <span className="text-sm">{t("drop_operation_here")}</span>
               )}
             </div>
+          )}{" "}
+        </div>
+      )}
+      {/* Parallel Operations - nur anzeigen wenn stationType == "1" oder == "10" */}
+      {(stationType === "1" || stationType === "10") && (
+        <div className={stationType === "10" ? "" : ""}>
+          <div className="text-sm font-medium mb-2 border-b pb-1">
+            {t("SOP_1_name")} ({group.ParallelOperations.length})
+          </div>
+          {group.ParallelOperations.length > 0 ? (
+            <Reorder.Group
+              axis="y"
+              values={group.ParallelOperations}
+              onReorder={(newOperations) =>
+                onReorderOperations(group.ID, newOperations, "parallel")
+              }
+              className="flex flex-wrap gap-2 pl-2"
+            >
+              {group.ParallelOperations.map((operation) => (
+                <Reorder.Item
+                  value={operation}
+                  key={operation.ID}
+                  dragListener={true}
+                  className="cursor-grab hover:cursor-grab active:cursor-grabbing"
+                >
+                  <OperationCard
+                    operation={operation}
+                    currentGroupId={group.ID}
+                  />
+                </Reorder.Item>
+              ))}
+            </Reorder.Group>
+          ) : (
+            <div
+              className={`text-center py-6 border-2 border-dashed rounded transition-all ${
+                isDragOver && !group.ParallelOperations.length
+                  ? "border-accent bg-accent/20 text-accent-foreground"
+                  : "border-muted text-muted-foreground"
+              }`}
+            >
+              {" "}
+              {isDragOver && !group.ParallelOperations.length && (
+                <span className="text-sm">{t("drop_operation_here")}</span>
+              )}
+            </div>
           )}
         </div>
       )}
-      {/* Parallel Operations */}
-      <div className={stationType === "10" ? "" : ""}>
-        <div className="text-sm font-medium mb-2 border-b pb-1">
-          {t("SOP_1_name")} ({group.ParallelOperations.length})
-        </div>
-        {group.ParallelOperations.length > 0 ? (
-          <Reorder.Group
-            axis="y"
-            values={group.ParallelOperations}
-            onReorder={(newOperations) =>
-              onReorderOperations(group.ID, newOperations, "parallel")
-            }
-            className="flex flex-wrap gap-2 pl-2"
-          >
-            {group.ParallelOperations.map((operation) => (
-              <Reorder.Item
-                value={operation}
-                key={operation.ID}
-                dragListener={true}
-                className="cursor-grab hover:cursor-grab active:cursor-grabbing"
-              >
-                <OperationCard
-                  operation={operation}
-                  currentGroupId={group.ID}
-                />
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
-        ) : (
-          <div
-            className={`text-center py-6 border-2 border-dashed rounded transition-all ${
-              isDragOver && !group.ParallelOperations.length
-                ? "border-accent bg-accent/20 text-accent-foreground"
-                : "border-muted text-muted-foreground"
-            }`}
-          >
-            {isDragOver && !group.ParallelOperations.length && (
-              <span className="text-sm">{t("drop_operation_here")}</span>
-            )}
-          </div>
-        )}
-      </div>
     </Card>
   );
 }
