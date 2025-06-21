@@ -40,7 +40,7 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "../ui/dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import {
@@ -328,6 +328,78 @@ function EntityCard({
 }) {
   const [key, setKey] = useState(0);
   const [, navigate] = useLocation();
+  const [red, setRed] = useState(0);
+  const [amber, setAmber] = useState(0);
+  const [emerald, setEmerald] = useState(0);
+
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    (async () => {
+      setRed(0);
+      setAmber(0);
+      setEmerald(0);
+      if (entityType == "tool") {
+        const operations = await GetAllEntities("operation", entityId);
+        operations.forEach((operation) => {
+          operation.StatusColor == "red"
+            ? setRed((prev) => prev + 1)
+            : operation.StatusColor == "amber"
+            ? setAmber((prev) => prev + 1)
+            : operation.StatusColor == "emerald" &&
+              setEmerald((prev) => prev + 1);
+        });
+      } else if (entityType == "station") {
+        const tools = await GetAllEntities("tool", entityId);
+        tools.forEach(async (tool) => {
+          tool.StatusColor == "red"
+            ? setRed((prev) => prev + 1)
+            : tool.StatusColor == "amber"
+            ? setAmber((prev) => prev + 1)
+            : tool.StatusColor == "emerald" && setEmerald((prev) => prev + 1);
+
+          const operations = await GetAllEntities("operation", tool.ID);
+          operations.forEach((operation) => {
+            operation.StatusColor == "red"
+              ? setRed((prev) => prev + 1)
+              : operation.StatusColor == "amber"
+              ? setAmber((prev) => prev + 1)
+              : operation.StatusColor == "emerald" &&
+                setEmerald((prev) => prev + 1);
+          });
+        });
+      } else if (entityType == "line") {
+        const stations = await GetAllEntities("station", entityId);
+        stations.forEach(async (station) => {
+          station.StatusColor == "red"
+            ? setRed((prev) => prev + 1)
+            : station.StatusColor == "amber"
+            ? setAmber((prev) => prev + 1)
+            : station.StatusColor == "emerald" &&
+              setEmerald((prev) => prev + 1);
+
+          const tools = await GetAllEntities("tool", station.ID);
+          tools.forEach(async (tool) => {
+            tool.StatusColor == "red"
+              ? setRed((prev) => prev + 1)
+              : tool.StatusColor == "amber"
+              ? setAmber((prev) => prev + 1)
+              : tool.StatusColor == "emerald" && setEmerald((prev) => prev + 1);
+
+            const operations = await GetAllEntities("operation", tool.ID);
+            operations.forEach((operation) => {
+              operation.StatusColor == "red"
+                ? setRed((prev) => prev + 1)
+                : operation.StatusColor == "amber"
+                ? setAmber((prev) => prev + 1)
+                : operation.StatusColor == "emerald" &&
+                  setEmerald((prev) => prev + 1);
+            });
+          });
+        });
+      }
+    })();
+  }, []);
 
   return (
     <TooltipProvider>
@@ -419,8 +491,72 @@ function EntityCard({
           </Card>
         </TooltipTrigger>
 
-        {typeof entityComment == "string" && entityComment != "" && (
-          <TooltipContent>{entityComment}</TooltipContent>
+        {((typeof entityComment == "string" && entityComment != "") ||
+          red > 0 ||
+          amber > 0 ||
+          emerald > 0) && (
+          <TooltipContent>
+            <div className="flex flex-col gap-3 text-sm">
+              {typeof entityComment == "string" && entityComment != "" && (
+                <div className="max-w-60 break-words">{entityComment}</div>
+              )}
+              {(red > 0 || amber > 0 || emerald > 0) && (
+                <div>
+                  {red > 0 && (
+                    <div className="flex gap-3 items-center">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 6 6"
+                        fill="rgb(239, 68, 68)"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="border rounded-full"
+                      >
+                        <circle cx="3" cy="3" r="3" />
+                      </svg>
+                      <div className="text-sm">{`${t(
+                        "Pending"
+                      )}  x${red}`}</div>
+                    </div>
+                  )}
+                  {amber > 0 && (
+                    <div className="flex gap-3 items-center">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 6 6"
+                        fill="rgb(245, 158, 11)"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="border rounded-full"
+                      >
+                        <circle cx="3" cy="3" r="3" />
+                      </svg>
+                      <div className="text-sm">{`${t(
+                        "InProgress"
+                      )} x${amber}`}</div>
+                    </div>
+                  )}
+                  {emerald > 0 && (
+                    <div className="flex gap-3 items-center">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 6 6"
+                        fill="rgb(16, 185, 129)"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="border rounded-full"
+                      >
+                        <circle cx="3" cy="3" r="3" />
+                      </svg>
+                      <div className="text-sm">{`${t(
+                        "Ready"
+                      )} x${emerald}`}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </TooltipContent>
         )}
       </Tooltip>
     </TooltipProvider>
