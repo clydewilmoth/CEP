@@ -2315,6 +2315,7 @@ export function OperationForm({
   const { t, i18n } = useTranslation();
   const [draftAvailable, setDraftAvailable] = useState(false);
   const [parentTool, setParentTool] = useState<any>();
+  const [parentStation, setParentStation] = useState<any>();
 
   // Use delayed loading to prevent skeleton flickering
   const showSkeletons = useDelayedLoading(!formReady);
@@ -2323,6 +2324,7 @@ export function OperationForm({
     (async () => {
       const operation = await GetEntityDetails("operation", entityId);
       const station = await GetEntityDetails("station", suuid);
+      setParentStation(station);
       const parentId = operation.ParentID;
       setParentTool(await GetEntityDetails("tool", parentId));
 
@@ -2651,16 +2653,32 @@ export function OperationForm({
                   json.Comment = selectedVersion.Comment ?? "";
                   json.Name = selectedVersion.Name ?? "";
                   json.Description = selectedVersion.Description ?? "";
-                  json.SerialOrParallel =
-                    selectedVersion.SerialOrParallel ?? "";
+                  let skipSerialOrParallel = false;
+                  data.SerialOrParallel.forEach((sop) => {
+                    skipSerialOrParallel =
+                      parentStation.StationType &&
+                      sop.stationTypes.includes(parentStation.StationType);
+                  });
+                  if (skipSerialOrParallel)
+                    json.SerialOrParallel =
+                      selectedVersion.SerialOrParallel ?? "";
                   json.AlwaysPerform = selectedVersion.AlwaysPerform ?? "";
                   json.QGateRelevant = selectedVersion.QGateRelevant ?? "";
-                  json.Template = selectedVersion.Template ?? "";
-                  json.DecisionClass = selectedVersion.DecisionClass ?? "";
-                  json.SavingClass = selectedVersion.SavingClass ?? "";
-                  json.VerificationClass =
-                    selectedVersion.VerificationClass ?? "";
-                  json.GenerationClass = selectedVersion.GenerationClass ?? "";
+                  let skipTemplateAndRelated = false;
+                  data.Templates.forEach((t) => {
+                    skipTemplateAndRelated =
+                      parentTool.ToolClass &&
+                      t.toolClassesIds.includes(parentTool.ToolClass);
+                  });
+                  if (skipTemplateAndRelated) {
+                    json.Template = selectedVersion.Template ?? "";
+                    json.DecisionClass = selectedVersion.DecisionClass ?? "";
+                    json.SavingClass = selectedVersion.SavingClass ?? "";
+                    json.VerificationClass =
+                      selectedVersion.VerificationClass ?? "";
+                    json.GenerationClass =
+                      selectedVersion.GenerationClass ?? "";
+                  }
                   json.DecisionCriteria = selectedVersion.DecisionCriteria
                     ? selectedVersion.DecisionCriteria.split("<|||>")
                     : [];
