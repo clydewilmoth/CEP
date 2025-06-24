@@ -97,7 +97,10 @@ export function LineForm({ entityId }: { entityId: string }) {
   }, [observer, dbState, i18n.language]);
 
   const formSchema = z.object({
-    Name: z.string().optional(),
+    Name: z
+      .string()
+      .max(10, { message: t("LineName ValidationFailed") })
+      .optional(),
     Comment: z.string().optional(),
     StatusColor: z.string().optional(),
     AssemblyArea: z
@@ -456,6 +459,7 @@ export function LineForm({ entityId }: { entityId: string }) {
                   }}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -578,7 +582,10 @@ export function StationForm({ entityId }: { entityId: string }) {
   }, [observer, dbState, i18n.language]);
 
   const formSchema = z.object({
-    Name: z.string().optional(),
+    Name: z
+      .string()
+      .max(50, { message: t("StationName ValidationFailed") })
+      .optional(),
     Comment: z.string().optional(),
     StatusColor: z.string().optional(),
     Description: z.string().optional(),
@@ -976,6 +983,7 @@ export function StationForm({ entityId }: { entityId: string }) {
                   }}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -1198,10 +1206,16 @@ export function ToolForm({ entityId }: { entityId: string }) {
   }
 
   const formSchema = z.object({
-    Name: z.string().optional(),
+    Name: z
+      .string()
+      .max(16, { message: t("ToolName ValidationFailed") })
+      .optional(),
     Comment: z.string().optional(),
     StatusColor: z.string().optional(),
-    Description: z.string().optional(),
+    Description: z
+      .string()
+      .max(50, { message: t("ToolDescription ValidationFailed") })
+      .optional(),
     IpAddressDevice: z
       .string()
       .optional()
@@ -1669,6 +1683,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                   }}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -1718,6 +1733,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
                   }}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -2354,10 +2370,16 @@ export function OperationForm({
   }, [observer, dbState, i18n]);
 
   const formSchema = z.object({
-    Name: z.string().optional(),
+    Name: z
+      .string()
+      .max(16, { message: t("OperationName ValidationFailed") })
+      .optional(),
     Comment: z.string().optional(),
     StatusColor: z.string().optional(),
-    Description: z.string().optional(),
+    Description: z
+      .string()
+      .max(100, { message: t("OperationDescription ValidationFailed") })
+      .optional(),
     StationType: z.string().optional(),
     SerialOrParallel: z.string().optional(),
     AlwaysPerform: z.string().optional(),
@@ -2816,6 +2838,7 @@ export function OperationForm({
                   }}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -2863,6 +2886,7 @@ export function OperationForm({
                   }}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
