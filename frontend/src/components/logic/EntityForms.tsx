@@ -1052,6 +1052,8 @@ export function StationForm({ entityId }: { entityId: string }) {
                     </div>
                     <TooltipContent className="max-w-sm">
                       {stationDb.StationType &&
+                        stationDb.StationType != "none" &&
+                        stationDb.StationType != "" &&
                         t("ST_" + String(stationDb.StationType) + "_Name")}
                     </TooltipContent>
                   </Tooltip>
@@ -1756,6 +1758,8 @@ export function ToolForm({ entityId }: { entityId: string }) {
                     </div>
                     <TooltipContent className="max-w-sm">
                       {toolDb.ToolClass &&
+                        toolDb.ToolClass != "none" &&
+                        toolDb.ToolClass != "" &&
                         t("TC_" + String(toolDb.ToolClass) + "_ToolClassName")}
                     </TooltipContent>
                   </Tooltip>
@@ -1843,6 +1847,8 @@ export function ToolForm({ entityId }: { entityId: string }) {
                     </div>
                     <TooltipContent className="max-w-sm">
                       {toolDb.ToolType &&
+                        toolDb.ToolType != "none" &&
+                        toolDb.ToolType != "" &&
                         t(
                           "TT_" +
                             String(toolDb.ToolType) +
@@ -2939,6 +2945,8 @@ export function OperationForm({
                     </div>
                     <TooltipContent className="max-w-sm">
                       {operationDb.SerialOrParallel &&
+                        operationDb.SerialOrParallel != "none" &&
+                        operationDb.SerialOrParallel != "" &&
                         t(
                           "SOP_" +
                             String(operationDb.SerialOrParallel) +
@@ -3064,6 +3072,8 @@ export function OperationForm({
                     </div>
                     <TooltipContent className="max-w-sm">
                       {operationDb.QGateRelevant &&
+                        operationDb.QGateRelevant != "none" &&
+                        operationDb.QGateRelevant != "" &&
                         t("QR_" + String(operationDb.QGateRelevant) + "_name")}
                     </TooltipContent>
                   </Tooltip>
@@ -3128,6 +3138,8 @@ export function OperationForm({
                     </div>
                     <TooltipContent className="max-w-sm">
                       {operationDb.Template &&
+                        operationDb.Template != "none" &&
+                        operationDb.Template != "" &&
                         t("T_" + String(operationDb.Template) + "_Description")}
                     </TooltipContent>
                   </Tooltip>
@@ -3209,6 +3221,8 @@ export function OperationForm({
                     </div>
                     <TooltipContent className="max-w-sm">
                       {operationDb.DecisionClass &&
+                        operationDb.DecisionClass != "none" &&
+                        operationDb.DecisionClass != "" &&
                         t(
                           "OC_DECISION_" +
                             String(operationDb.DecisionClass) +
@@ -3308,6 +3322,8 @@ export function OperationForm({
                     </div>
                     <TooltipContent className="max-w-sm">
                       {operationDb.VerificationClass &&
+                        operationDb.VerificationClass != "none" &&
+                        operationDb.VerificationClass != "" &&
                         t(
                           "OC_VERIFICATION_" +
                             String(operationDb.VerificationClass) +
@@ -3409,6 +3425,8 @@ export function OperationForm({
                     </div>
                     <TooltipContent className="max-w-sm">
                       {operationDb.GenerationClass &&
+                        operationDb.GenerationClass != "none" &&
+                        operationDb.GenerationClass != "" &&
                         t(
                           "OC_GENERATION_" +
                             String(operationDb.GenerationClass) +
@@ -3508,6 +3526,8 @@ export function OperationForm({
                     </div>
                     <TooltipContent className="max-w-sm">
                       {operation.SavingClass &&
+                        operation.SavingClass != "none" &&
+                        operation.SavingClass != "" &&
                         t(
                           "OC_SAVING_" +
                             String(operationDb.SavingClass) +
