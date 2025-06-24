@@ -122,6 +122,11 @@ export function LangDialog({
             <SelectItem value="en">English</SelectItem>
             <SelectItem value="de">Deutsch</SelectItem>
             <SelectItem value="tr">Türkçe</SelectItem>
+            <SelectItem value="es">Español</SelectItem>
+            <SelectItem value="pt">Português</SelectItem>
+            <SelectItem value="fr">Français</SelectItem>
+            <SelectItem value="jp">日本語</SelectItem>
+            <SelectItem value="zh">中国人</SelectItem>
           </SelectContent>
         </Select>
       </DialogContent>
