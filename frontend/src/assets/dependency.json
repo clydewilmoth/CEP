@@ -2443,12 +2443,6 @@
     },
     {
       "id": "1",
-      "description": "01 - Keine Prüfung",
-      "templateId": "15",
-      "helpText": "Nichts vergleichen, liefert immer ok"
-    },
-    {
-      "id": "1",
       "description": "01 - Standard",
       "templateId": "16",
       "helpText": "Default"
