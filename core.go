@@ -1546,7 +1546,7 @@ func (c *Core) checkCompatibility(op Operation, parentIDStrOptional string) erro
 		return fmt.Errorf("error unmarshaling dependency JSON: %w", errThree)
 	}
 
-	if !(op.Template == nil || *op.Template == "none") {
+	if !(op.Template == nil || *op.Template == "none" || *op.Template == "") {
 		var parentToolClass = toolDetails.(*Tool).ToolClass
 		var toolClassTemplateIDs []string
 		var foundToolClass bool = false
@@ -1571,7 +1571,7 @@ func (c *Core) checkCompatibility(op Operation, parentIDStrOptional string) erro
 			return fmt.Errorf("operation template id '%s' is not compatible with tool class '%s'", *op.Template, *parentToolClass)
 		}
 	}
-	if !(op.SerialOrParallel == nil || *op.SerialOrParallel == "none") {
+	if !(op.SerialOrParallel == nil || *op.SerialOrParallel == "none" || *op.SerialOrParallel == "") {
 		var stationDetails, errTwo = c.GetEntityDetails("station", toolDetails.(*Tool).ParentID.String())
 		if errTwo != nil {
 			return fmt.Errorf("failed to get entity details: %w", errTwo)
