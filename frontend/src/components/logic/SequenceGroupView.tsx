@@ -20,6 +20,7 @@ import { ChevronUp, ChevronDown, Info, Plus } from "lucide-react"; // Added for 
 import { Loader } from "../ui/loader";
 import { Skeleton } from "../ui/skeleton";
 import { useDelayedLoading } from "@/lib/hooks";
+import { useContext } from "@/store";
 
 type Group = {
   ID: string;
@@ -510,6 +511,7 @@ export function SequenceGroupView({
   };
   const [stationType, setStationType] = useState("");
   const [loading, setLoading] = useState(true);
+  const { dbState } = useContext();
 
   // Use delayed loading to prevent skeleton flickering
   const dataLoading = useDelayedLoading(isFetching);
@@ -520,7 +522,7 @@ export function SequenceGroupView({
       setStationType(StationType ?? "");
       setLoading(false);
     })();
-  }, []);
+  }, [dbState]);
 
   if (!processedData) {
     return <Loader />;
