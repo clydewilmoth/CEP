@@ -10,12 +10,17 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+//go:embed frontend/src/assets/dependency.json
+var dependencyJSON []byte
+
 //go:embed build/appicon.png
 var icon []byte
 
 func main() {
 
 	core := NewCore()
+	// Make dependency JSON available to core
+	core.SetDependencyJSON(dependencyJSON)
 
 	// Create application with options
 	err := wails.Run(&options.App{

@@ -49,10 +49,16 @@ type Core struct {
 	DB             *gorm.DB
 	queueName      string
 	serviceName    string
+	dependencyJSON []byte
 }
 
 func NewCore() *Core {
 	return &Core{}
+}
+
+// SetDependencyJSON sets the embedded dependency JSON data
+func (c *Core) SetDependencyJSON(data []byte) {
+	c.dependencyJSON = data
 }
 
 func (c *Core) startup(ctx context.Context) {
@@ -1532,9 +1538,18 @@ type Data struct {
 func (c *Core) checkCompatibility(op Operation, parentIDStrOptional string) error {
 
 	var data Data
-	jsonData, err := os.ReadFile("frontend/src/assets/dependency.json")
-	if err != nil {
-		return fmt.Errorf("error reading file: %v", err)
+	var jsonData []byte
+	var err error
+
+	// Try to use embedded dependency JSON first (production mode)
+	if len(c.dependencyJSON) > 0 {
+		jsonData = c.dependencyJSON
+	} else {
+		// Fallback to reading from file system (development mode)
+		jsonData, err = os.ReadFile("frontend/src/assets/dependency.json")
+		if err != nil {
+			return fmt.Errorf("error reading dependency.json file: %v", err)
+		}
 	}
 
 	var toolDetails, errTwo = c.GetEntityDetails("tool", parentIDStrOptional)
