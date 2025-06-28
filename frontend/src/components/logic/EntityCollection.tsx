@@ -355,65 +355,67 @@ function EntityCard({
       setRed(0);
       setAmber(0);
       setEmerald(0);
+      let redCounter = 0;
+      let amberCounter = 0;
+      let emeraldCounter = 0;
       if (entityType == "tool") {
         const operations = await GetAllEntities("operation", entityId);
         operations?.forEach((operation) => {
           operation.StatusColor == "red"
-            ? setRed((prev) => prev + 1)
+            ? redCounter++
             : operation.StatusColor == "amber"
-            ? setAmber((prev) => prev + 1)
-            : operation.StatusColor == "emerald" &&
-              setEmerald((prev) => prev + 1);
+            ? amberCounter++
+            : operation.StatusColor == "emerald" && emeraldCounter++;
         });
       } else if (entityType == "station") {
         const tools = await GetAllEntities("tool", entityId);
         tools?.forEach(async (tool) => {
           tool.StatusColor == "red"
-            ? setRed((prev) => prev + 1)
+            ? redCounter++
             : tool.StatusColor == "amber"
-            ? setAmber((prev) => prev + 1)
-            : tool.StatusColor == "emerald" && setEmerald((prev) => prev + 1);
+            ? amberCounter++
+            : tool.StatusColor == "emerald" && emeraldCounter++;
 
           const operations = await GetAllEntities("operation", tool.ID);
           operations?.forEach((operation) => {
             operation.StatusColor == "red"
-              ? setRed((prev) => prev + 1)
+              ? redCounter++
               : operation.StatusColor == "amber"
-              ? setAmber((prev) => prev + 1)
-              : operation.StatusColor == "emerald" &&
-                setEmerald((prev) => prev + 1);
+              ? amberCounter++
+              : operation.StatusColor == "emerald" && emeraldCounter++;
           });
         });
       } else if (entityType == "line") {
         const stations = await GetAllEntities("station", entityId);
         stations?.forEach(async (station) => {
           station.StatusColor == "red"
-            ? setRed((prev) => prev + 1)
+            ? redCounter++
             : station.StatusColor == "amber"
-            ? setAmber((prev) => prev + 1)
-            : station.StatusColor == "emerald" &&
-              setEmerald((prev) => prev + 1);
+            ? amberCounter++
+            : station.StatusColor == "emerald" && emeraldCounter++;
 
           const tools = await GetAllEntities("tool", station.ID);
           tools?.forEach(async (tool) => {
             tool.StatusColor == "red"
-              ? setRed((prev) => prev + 1)
+              ? redCounter++
               : tool.StatusColor == "amber"
-              ? setAmber((prev) => prev + 1)
-              : tool.StatusColor == "emerald" && setEmerald((prev) => prev + 1);
+              ? amberCounter++
+              : tool.StatusColor == "emerald" && emeraldCounter++;
 
             const operations = await GetAllEntities("operation", tool.ID);
             operations?.forEach((operation) => {
               operation.StatusColor == "red"
-                ? setRed((prev) => prev + 1)
+                ? redCounter++
                 : operation.StatusColor == "amber"
-                ? setAmber((prev) => prev + 1)
-                : operation.StatusColor == "emerald" &&
-                  setEmerald((prev) => prev + 1);
+                ? amberCounter++
+                : operation.StatusColor == "emerald" && emeraldCounter++;
             });
           });
         });
       }
+      setRed(redCounter);
+      setAmber(amberCounter);
+      setEmerald(emeraldCounter);
     })();
   }, [dbState]);
 
