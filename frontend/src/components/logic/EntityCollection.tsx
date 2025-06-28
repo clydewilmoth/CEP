@@ -83,6 +83,7 @@ export function EntityCollection({
 
   // Use delayed loading to prevent skeleton flickering
   const showSkeletons = useDelayedLoading(isFetching);
+  const noEntities = useDelayedLoading((entities?.length ?? 0) <= 0, 50);
 
   return (
     <div className="flex flex-col gap-7 w-full">
@@ -217,7 +218,7 @@ export function EntityCollection({
         </div>
       ) : (
         <ScrollArea className="h-[78vh] pr-5">
-          {!entities && (
+          {noEntities && (
             <div className="text-sm font-semibold max-w-[23rem] max-h-fit bg-card border p-4 flex flex-col gap-3 rounded-lg">
               {t("NoEntityAvailable", { entityType: t(`${entityType}s`) })}
             </div>
