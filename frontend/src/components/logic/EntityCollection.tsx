@@ -225,8 +225,8 @@ export function EntityCollection({
           <div
             className={
               entityType == "line"
-                ? "grid gap-7 xl:grid-cols-4 lg:grid-cols-3"
-                : "grid gap-7 xl:grid-cols-3 lg:grid-cols-2"
+                ? "grid gap-7 2xl:grid-cols-4 xl:grid-cols-3 md:grid-cols-2"
+                : "grid gap-7 2xl:grid-cols-3 xl:grid-cols-2 lg:grid-cols-2"
             }
           >
             {entities?.map((entity, index) => {
@@ -501,15 +501,21 @@ function EntityCard({
         </div>
       </div>
       <div className="flex justify-between h-1/2 w-full px-2 py-2">
-        <div className="break-words text-sm pr-1 text-muted-foreground">
+        <div
+          className={
+            entityType != "operation"
+              ? "break-words w-1/2 text-sm pr-1 text-muted-foreground"
+              : "break-words text-sm pr-1 text-muted-foreground"
+          }
+        >
           {maxCrop(
             entityComment ? entityComment : "",
             entityType == "operation" ? 100 : 50
           )}
         </div>
         {entityType != "operation" && (
-          <div className="flex gap-3 items-start text-sm text-muted-foreground">
-            <div className="flex gap-2 items-center">
+          <div className="flex gap-3 items-start justify-end w-1/2 text-sm text-muted-foreground">
+            <div className="flex gap-1 items-center">
               <svg
                 width="14"
                 height="14"
@@ -522,7 +528,7 @@ function EntityCard({
               </svg>
               <div>{red}</div>
             </div>
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-1 items-center">
               <svg
                 width="14"
                 height="14"
@@ -535,7 +541,7 @@ function EntityCard({
               </svg>
               <div>{amber}</div>
             </div>
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-1 items-center">
               <svg
                 width="14"
                 height="14"
