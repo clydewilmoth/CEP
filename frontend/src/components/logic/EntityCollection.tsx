@@ -55,7 +55,7 @@ import {
   SelectContent,
   SelectItem,
 } from "../ui/select";
-import { max50Crop, StringNullToBlank } from "@/lib/utils";
+import { maxCrop, StringNullToBlank } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
 import { Skeleton } from "../ui/skeleton";
 import { useDelayedLoading } from "@/lib/hooks";
@@ -199,7 +199,7 @@ export function EntityCollection({
                 parentId={parentId}
                 onClick={() => setKey((k) => k + 1)}
               />
-              {entityType == "line" && (
+              {useDelayedLoading(entityType == "line") && (
                 <>
                   <DropdownMenuSeparator className="bg-accent" />
                   <ImportJSON onClick={() => setKey((k) => k + 1)} />
@@ -501,50 +501,55 @@ function EntityCard({
         </div>
       </div>
       <div className="flex justify-between h-1/2 w-full px-2 py-2">
-        <div className="w-1/2 break-words text-sm pr-1 text-muted-foreground">
-          {max50Crop(entityComment ? entityComment : "")}
+        <div className="break-words text-sm pr-1 text-muted-foreground">
+          {maxCrop(
+            entityComment ? entityComment : "",
+            entityType == "operation" ? 100 : 50
+          )}
         </div>
-        <div className="flex gap-3 items-start text-sm text-muted-foreground">
-          <div className="flex gap-2 items-center">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 6 6"
-              fill="rgb(239, 68, 68)"
-              xmlns="http://www.w3.org/2000/svg"
-              className="border rounded-full"
-            >
-              <circle cx="3" cy="3" r="3" />
-            </svg>
-            <div>{red}</div>
+        {entityType != "operation" && (
+          <div className="flex gap-3 items-start text-sm text-muted-foreground">
+            <div className="flex gap-2 items-center">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 6 6"
+                fill="rgb(239, 68, 68)"
+                xmlns="http://www.w3.org/2000/svg"
+                className="border rounded-full"
+              >
+                <circle cx="3" cy="3" r="3" />
+              </svg>
+              <div>{red}</div>
+            </div>
+            <div className="flex gap-2 items-center">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 6 6"
+                fill="rgb(245, 158, 11)"
+                xmlns="http://www.w3.org/2000/svg"
+                className="border rounded-full"
+              >
+                <circle cx="3" cy="3" r="3" />
+              </svg>
+              <div>{amber}</div>
+            </div>
+            <div className="flex gap-2 items-center">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 6 6"
+                fill="rgb(16, 185, 129)"
+                xmlns="http://www.w3.org/2000/svg"
+                className="border rounded-full"
+              >
+                <circle cx="3" cy="3" r="3" />
+              </svg>
+              <div>{emerald}</div>
+            </div>
           </div>
-          <div className="flex gap-2 items-center">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 6 6"
-              fill="rgb(245, 158, 11)"
-              xmlns="http://www.w3.org/2000/svg"
-              className="border rounded-full"
-            >
-              <circle cx="3" cy="3" r="3" />
-            </svg>
-            <div>{amber}</div>
-          </div>
-          <div className="flex gap-2 items-center">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 6 6"
-              fill="rgb(16, 185, 129)"
-              xmlns="http://www.w3.org/2000/svg"
-              className="border rounded-full"
-            >
-              <circle cx="3" cy="3" r="3" />
-            </svg>
-            <div>{emerald}</div>
-          </div>
-        </div>
+        )}
       </div>
     </Card>
   );

@@ -40,6 +40,6 @@ export function booleanToString(value: boolean): string {
   return value ? "true" : "false";
 }
 
-export function max50Crop (string: string){
-  return string.length > 50 ? string.substring(0, 50) + "..." : string;
+export function maxCrop (string: string, max: number){
+  return string.length > max ? string.substring(0, max) + "..." : string;
 };
