@@ -39,3 +39,7 @@ export function stringToBoolean(value: string | undefined | null): boolean {
 export function booleanToString(value: boolean): string {
   return value ? "true" : "false";
 }
+
+export function max50Crop (string: string){
+  return string.length > 50 ? string.substring(0, 50) + "..." : string;
+};

@@ -7,13 +7,11 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useTranslation } from "react-i18next";
 import { useParams } from "wouter";
 
 export default function Operations() {
   const params = useParams<{ luuid: string; suuid: string; tuuid: string }>();
   const { luuid, suuid, tuuid } = params;
-  const { t } = useTranslation();
 
   return (
     <ResizablePanelGroup
@@ -38,8 +36,7 @@ export default function Operations() {
       </ResizablePanel>
       <ResizableHandle disabled />
       <ResizablePanel defaultSize={80}>
-        <div className="p-8 bg-muted h-screen flex flex-col gap-5">
-          <h1 className="text-xl font-bold">{t("operations")}</h1>
+        <div className="p-8 bg-muted h-screen">
           <EntityCollection
             entityType="operation"
             parentId={tuuid}

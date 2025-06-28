@@ -1,6 +1,8 @@
 {
     "en": {
         "translation": {
+            "CreateEntity" : "Create",
+            "NoEntityAvailable": "No {{entityType}} available. Open the three dots menu to create a new {{entityType}}.",            
             "Database": "Database",
             "Language": "Language",
             "Theme": "Theme",
@@ -999,6 +1001,8 @@
     },
     "de": {
         "translation": {
+            "CreateEntity": "Erstellen",
+            "NoEntityAvailable": "Keine {{entityType}} verfügbar. Öffnen Sie das Drei-Punkte-Menü, um eine neue {{entityType}} zu erstellen.",
             "Database": "Datenbank",
             "Language": "Sprache",
             "Theme": "Design",
@@ -1996,6 +2000,8 @@
     },
     "tr": {
         "translation": {
+            "CreateEntity": "Oluştur",
+            "NoEntityAvailable": "Hiç {{entityType}} yok. Yeni bir {{entityType}} oluşturmak için üç nokta menüsünü açın.",
             "Database": "Veritabanı",
             "Language": "Dil",
             "Theme": "Tema",
@@ -2992,6 +2998,8 @@
     },
     "es": {
         "translation": {
+            "CreateEntity": "Crear",
+            "NoEntityAvailable": "No hay {{entityType}} disponible. Abra el menú de tres puntos para crear un(a) nuevo(a) {{entityType}}.",
             "Database": "Base de datos",
             "Language": "Idioma",
             "Theme": "Tema",
@@ -3989,6 +3997,8 @@
     },
     "zh": {
         "translation": {
+            "CreateEntity": "创建",
+            "NoEntityAvailable": "没有可用的{{entityType}}。请打开三个点菜单以创建新的{{entityType}}。",
             "Database": "数据库",
             "Language": "语言",
             "Theme": "主题",
@@ -4985,6 +4995,8 @@
     },
     "pt": {
         "translation": {
+            "CreateEntity": "Criar",
+            "NoEntityAvailable": "Nenhum(a) {{entityType}} disponível. Abra o menu de três pontos para criar um(a) novo(a) {{entityType}}.",
             "Database": "Base de Dados",
             "Language": "Idioma",
             "Theme": "Tema",
@@ -5981,6 +5993,8 @@
     },
     "jp": {
         "translation": {
+            "CreateEntity": "作成",
+            "NoEntityAvailable": "{{entityType}}がありません。新しい{{entityType}}を作成するには、三点メニューを開いてください。",
             "Database": "データベース",
             "Language": "言語",
             "Theme": "テーマ",
@@ -6977,6 +6991,8 @@
     },
     "fr": {
         "translation": {
+            "CreateEntity": "Créer",
+            "NoEntityAvailable": "Aucun(e) {{entityType}} disponible. Ouvrez le menu à trois points pour créer un(e) nouveau/nouvelle {{entityType}}.",
             "Database": "Base de données",
             "Language": "Langue",
             "Theme": "Thème",

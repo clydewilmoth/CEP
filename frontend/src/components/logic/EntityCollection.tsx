@@ -1,11 +1,4 @@
 import { Card, CardTitle } from "@/components/ui/card";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import {
   GetAllEntities,
@@ -62,10 +55,11 @@ import {
   SelectContent,
   SelectItem,
 } from "../ui/select";
-import { StringNullToBlank } from "@/lib/utils";
+import { max50Crop, StringNullToBlank } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
 import { Skeleton } from "../ui/skeleton";
 import { useDelayedLoading } from "@/lib/hooks";
+import { useContext } from "@/store";
 
 export function EntityCollection({
   entityType,
@@ -85,99 +79,136 @@ export function EntityCollection({
   const { t } = useTranslation();
   const [searchFilter, setSeachFilter] = useState("");
   const [filter, setFilter] = useState("none");
+  const [key, setKey] = useState(0);
 
   // Use delayed loading to prevent skeleton flickering
   const showSkeletons = useDelayedLoading(isFetching);
 
   return (
     <div className="flex flex-col gap-7 w-full">
-      <div className="flex gap-5 items-center">
-        <SearchField
-          className="max-w-72 rounded-3xl"
-          aria-labelledby="search-field"
-        >
-          <FieldGroup>
-            <SearchIcon aria-hidden className="size-4 text-muted-foreground" />
-            <SearchFieldInput
-              placeholder={t("Search for Name")}
-              value={searchFilter}
-              onChange={(e) => setSeachFilter(e.target.value)}
-              className="outline-none shadow-none"
-            />
-            <SearchFieldClear>
-              <XIcon
+      <div className="flex flex-col gap-5">
+        <h1 className="text-xl font-bold">{t(`${entityType}s`)}</h1>
+        <div className="flex gap-5 items-center">
+          <SearchField
+            className="max-w-72 rounded-3xl"
+            aria-labelledby="search-field"
+          >
+            <FieldGroup>
+              <SearchIcon
                 aria-hidden
-                className="size-4"
-                onClick={() => setSeachFilter("")}
+                className="size-4 text-muted-foreground"
               />
-            </SearchFieldClear>
-          </FieldGroup>
-        </SearchField>
-        <Select onValueChange={(value) => setFilter(value)}>
-          <SelectTrigger className="w-fit bg-card h-10">
-            <SelectValue placeholder={<Funnel size={14} />} />
-          </SelectTrigger>
-          <SelectContent className="min-w-0 w-fit">
-            <SelectItem value="none">
-              <div className="flex gap-3 items-center">
-                <X size={14} className="opacity-80" />
-                <p>{t("NoFilter")}</p>
-              </div>
-            </SelectItem>
-            <SelectItem value="red">
-              <div className="flex gap-3 items-center">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 6 6"
-                  fill="rgb(239, 68, 68)"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="border rounded-full"
-                >
-                  <circle cx="3" cy="3" r="3" />
-                </svg>
-                <p>{t("Pending")}</p>
-              </div>
-            </SelectItem>
-            <SelectItem value="amber">
-              <div className="flex gap-3 items-center">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 6 6"
-                  fill="rgb(245, 158, 11)"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="border rounded-full"
-                >
-                  <circle cx="3" cy="3" r="3" />
-                </svg>
-                <p>{t("InProgress")}</p>
-              </div>
-            </SelectItem>
-            <SelectItem value="emerald">
-              <div className="flex gap-3 items-center">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 6 6"
-                  fill="rgb(16, 185, 129)"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="border rounded-full"
-                >
-                  <circle cx="3" cy="3" r="3" />
-                </svg>
-                <p>{t("Ready")}</p>
-              </div>
-            </SelectItem>
-            <SelectItem value="draft">
-              <div className="flex gap-3 items-center">
-                <SquarePen size={14} className="opacity-80" />
-                <p>{t("Draft")}</p>
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>{" "}
+              <SearchFieldInput
+                placeholder={t("Search for Name")}
+                value={searchFilter}
+                onChange={(e) => setSeachFilter(e.target.value)}
+                className="outline-none shadow-none"
+              />
+              <SearchFieldClear>
+                <XIcon
+                  aria-hidden
+                  className="size-4"
+                  onClick={() => setSeachFilter("")}
+                />
+              </SearchFieldClear>
+            </FieldGroup>
+          </SearchField>
+          <Select onValueChange={(value) => setFilter(value)}>
+            <SelectTrigger className="w-fit bg-card h-10">
+              <SelectValue placeholder={<Funnel size={14} />} />
+            </SelectTrigger>
+            <SelectContent className="min-w-0 w-fit">
+              <SelectItem value="none">
+                <div className="flex gap-3 items-center">
+                  <X size={14} className="opacity-80" />
+                  <p>{t("NoFilter")}</p>
+                </div>
+              </SelectItem>
+              <SelectItem value="red">
+                <div className="flex gap-3 items-center">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 6 6"
+                    fill="rgb(239, 68, 68)"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="border rounded-full"
+                  >
+                    <circle cx="3" cy="3" r="3" />
+                  </svg>
+                  <p>{t("Pending")}</p>
+                </div>
+              </SelectItem>
+              <SelectItem value="amber">
+                <div className="flex gap-3 items-center">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 6 6"
+                    fill="rgb(245, 158, 11)"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="border rounded-full"
+                  >
+                    <circle cx="3" cy="3" r="3" />
+                  </svg>
+                  <p>{t("InProgress")}</p>
+                </div>
+              </SelectItem>
+              <SelectItem value="emerald">
+                <div className="flex gap-3 items-center">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 6 6"
+                    fill="rgb(16, 185, 129)"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="border rounded-full"
+                  >
+                    <circle cx="3" cy="3" r="3" />
+                  </svg>
+                  <p>{t("Ready")}</p>
+                </div>
+              </SelectItem>
+              <SelectItem value="draft">
+                <div className="flex gap-3 items-center">
+                  <SquarePen size={14} className="opacity-80" />
+                  <p>{t("Draft")}</p>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <DropdownMenu key={key}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="text-muted-foreground"
+              >
+                <Ellipsis />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+              <CreateEntityButton
+                entityType={entityType}
+                parentId={parentId}
+                link={link}
+              />
+              <DropdownMenuSeparator className="bg-accent" />
+              <PasteEntityHierarchyFromClipboard
+                entityType={entityType}
+                parentId={parentId}
+                onClick={() => setKey((k) => k + 1)}
+              />
+              {entityType == "line" && (
+                <>
+                  <DropdownMenuSeparator className="bg-accent" />
+                  <ImportJSON onClick={() => setKey((k) => k + 1)} />
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
       {showSkeletons ? (
         <div className="flex flex-wrap gap-7">
           {Array.from({ length: 8 }, (_, index) => (
@@ -185,8 +216,19 @@ export function EntityCollection({
           ))}
         </div>
       ) : (
-        <ScrollArea className="h-[78vh]">
-          <div className="flex flex-wrap gap-7">
+        <ScrollArea className="h-[78vh] pr-5">
+          <div
+            className={
+              entityType == "line"
+                ? "grid gap-7 xl:grid-cols-4 lg:grid-cols-3"
+                : "grid gap-7 xl:grid-cols-3 lg:grid-cols-2"
+            }
+          >
+            {!entities && (
+              <div className="text-sm font-semibold max-w-[23rem] max-h-fit bg-card border p-4 flex flex-col gap-3 rounded-lg">
+                {t("NoEntityAvailable", { entityType: t(`${entityType}s`) })}
+              </div>
+            )}
             {entities?.map((entity, index) => {
               let filterCondition = true;
               switch (filter) {
@@ -225,11 +267,6 @@ export function EntityCollection({
                 )
               );
             })}
-            <CreateEntityCard
-              entityType={entityType}
-              parentId={parentId}
-              link={link}
-            />
           </div>
         </ScrollArea>
       )}
@@ -237,7 +274,7 @@ export function EntityCollection({
   );
 }
 
-export function CreateEntityCard({
+export function CreateEntityButton({
   entityType,
   parentId,
   link,
@@ -268,46 +305,25 @@ export function CreateEntityCard({
     ),
   });
 
-  const [key, setKey] = useState(0);
   const [, navigate] = useLocation();
 
   return (
-    <Card
-      className="w-36 h-fit flex relative justify-center items-center hover:cursor-pointer hover:translate-y-1 transition-all"
-      onClick={async () =>
-        await createEntity({
-          name: String(localStorage.getItem("name")),
-          entityType: entityType,
-          parentId: parentId,
-        })
-      }
-    >
-      <div className="absolute top-0 left-0">
-        <DropdownMenu key={key}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Ellipsis />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-            <PasteEntityHierarchyFromClipboard
-              entityType={entityType}
-              parentId={parentId}
-              onClick={() => setKey((k) => k + 1)}
-            />
-            {entityType == "line" && (
-              <>
-                <DropdownMenuSeparator className="bg-accent" />
-                <ImportJSON onClick={() => setKey((k) => k + 1)} />
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      <Button variant="ghost" size="icon" className="hover:bg-card">
+    <div className="flex gap-1 items-center">
+      <Button
+        className="w-full justify-start flex items-center gap-2 px-3 py-2"
+        variant="ghost"
+        onClick={async () =>
+          await createEntity({
+            name: String(localStorage.getItem("name")),
+            entityType: entityType,
+            parentId: parentId,
+          })
+        }
+      >
         <Plus />
+        <span className="text-sm ">{t("CreateEntity")}</span>
       </Button>
-    </Card>
+    </div>
   );
 }
 
@@ -331,8 +347,7 @@ function EntityCard({
   const [red, setRed] = useState(0);
   const [amber, setAmber] = useState(0);
   const [emerald, setEmerald] = useState(0);
-
-  const { t } = useTranslation();
+  const { dbState } = useContext();
 
   useEffect(() => {
     (async () => {
@@ -341,7 +356,7 @@ function EntityCard({
       setEmerald(0);
       if (entityType == "tool") {
         const operations = await GetAllEntities("operation", entityId);
-        operations.forEach((operation) => {
+        operations?.forEach((operation) => {
           operation.StatusColor == "red"
             ? setRed((prev) => prev + 1)
             : operation.StatusColor == "amber"
@@ -351,7 +366,7 @@ function EntityCard({
         });
       } else if (entityType == "station") {
         const tools = await GetAllEntities("tool", entityId);
-        tools.forEach(async (tool) => {
+        tools?.forEach(async (tool) => {
           tool.StatusColor == "red"
             ? setRed((prev) => prev + 1)
             : tool.StatusColor == "amber"
@@ -359,7 +374,7 @@ function EntityCard({
             : tool.StatusColor == "emerald" && setEmerald((prev) => prev + 1);
 
           const operations = await GetAllEntities("operation", tool.ID);
-          operations.forEach((operation) => {
+          operations?.forEach((operation) => {
             operation.StatusColor == "red"
               ? setRed((prev) => prev + 1)
               : operation.StatusColor == "amber"
@@ -370,7 +385,7 @@ function EntityCard({
         });
       } else if (entityType == "line") {
         const stations = await GetAllEntities("station", entityId);
-        stations.forEach(async (station) => {
+        stations?.forEach(async (station) => {
           station.StatusColor == "red"
             ? setRed((prev) => prev + 1)
             : station.StatusColor == "amber"
@@ -379,7 +394,7 @@ function EntityCard({
               setEmerald((prev) => prev + 1);
 
           const tools = await GetAllEntities("tool", station.ID);
-          tools.forEach(async (tool) => {
+          tools?.forEach(async (tool) => {
             tool.StatusColor == "red"
               ? setRed((prev) => prev + 1)
               : tool.StatusColor == "amber"
@@ -387,7 +402,7 @@ function EntityCard({
               : tool.StatusColor == "emerald" && setEmerald((prev) => prev + 1);
 
             const operations = await GetAllEntities("operation", tool.ID);
-            operations.forEach((operation) => {
+            operations?.forEach((operation) => {
               operation.StatusColor == "red"
                 ? setRed((prev) => prev + 1)
                 : operation.StatusColor == "amber"
@@ -399,167 +414,139 @@ function EntityCard({
         });
       }
     })();
-  }, []);
+  }, [dbState]);
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Card
-            onClick={() => {
-              link != "" && navigate(`${link}${entityId}`);
-            }}
-            className="relative w-36 hover:cursor-pointer hover:translate-y-1 transition-all h-fit flex gap-3 justify-center items-center py-4"
-          >
-            <div className="absolute top-0 left-0">
-              <DropdownMenu key={key}>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Ellipsis />
-                  </Button>
-                </DropdownMenuTrigger>
+    <Card
+      onClick={() => {
+        link != "" && navigate(`${link}${entityId}`);
+      }}
+      className="h-fit relative hover:cursor-pointer hover:translate-y-1 transition-all flex-col gap-3 py-6 px-4"
+    >
+      <div className="flex justify-between border-b h-1/2 w-full items-center px-2">
+        <CardTitle className="break-words max-w-24 text-center">
+          {entityName}
+        </CardTitle>
+        <div className="flex">
+          {entityStatusColor && (
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled
+              className="disabled:opacity-100"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 6 6"
+                fill={
+                  entityStatusColor == "red"
+                    ? "rgb(239, 68, 68)"
+                    : entityStatusColor == "amber"
+                    ? "rgb(245, 158, 11)"
+                    : "rgb(16, 185, 129)"
+                }
+                xmlns="http://www.w3.org/2000/svg"
+                className="border rounded-full"
+              >
+                <circle cx="3" cy="3" r="3" />
+              </svg>
+            </Button>
+          )}
+          {localStorage.getItem(entityId) && (
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled
+              className="disabled:opacity-80"
+            >
+              <SquarePen size={15} />
+            </Button>
+          )}
+          <DropdownMenu key={key}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground"
+              >
+                <Ellipsis />
+              </Button>
+            </DropdownMenuTrigger>
 
-                <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-                  <DeleteEntityDialog
-                    entityType={entityType}
-                    entityId={entityId}
-                    onClose={() => setKey((k) => k + 1)}
-                  />
+            <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+              <DeleteEntityDialog
+                entityType={entityType}
+                entityId={entityId}
+                onClose={() => setKey((k) => k + 1)}
+              />
+              <DropdownMenuSeparator className="bg-accent" />
+              <ClipboardExportButton
+                entityType={entityType}
+                entityId={entityId}
+                onClick={() => setKey((k) => k + 1)}
+              />
+              {entityType == "line" && (
+                <>
                   <DropdownMenuSeparator className="bg-accent" />
-                  <ClipboardExportButton
+                  <ExportJSON
                     entityType={entityType}
                     entityId={entityId}
                     onClick={() => setKey((k) => k + 1)}
                   />
-                  {entityType == "line" && (
-                    <>
-                      <DropdownMenuSeparator className="bg-accent" />
-                      <ExportJSON
-                        entityType={entityType}
-                        entityId={entityId}
-                        onClick={() => setKey((k) => k + 1)}
-                      />
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            {(localStorage.getItem(entityId) || entityStatusColor) && (
-              <div className="flex flex-col items-center absolute top-0 right-0">
-                {entityStatusColor && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled
-                    className="disabled:opacity-100"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 6 6"
-                      fill={
-                        entityStatusColor == "red"
-                          ? "rgb(239, 68, 68)"
-                          : entityStatusColor == "amber"
-                          ? "rgb(245, 158, 11)"
-                          : "rgb(16, 185, 129)"
-                      }
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="border rounded-full"
-                    >
-                      <circle cx="3" cy="3" r="3" />
-                    </svg>
-                  </Button>
-                )}
-                {localStorage.getItem(entityId) && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled
-                    className="disabled:opacity-80"
-                  >
-                    <SquarePen size={15} />
-                  </Button>
-                )}
-              </div>
-            )}
-            {entityName && (
-              <CardTitle className="break-words max-w-24 text-center">
-                {entityName}
-              </CardTitle>
-            )}
-          </Card>
-        </TooltipTrigger>
-
-        {((typeof entityComment == "string" && entityComment != "") ||
-          red > 0 ||
-          amber > 0 ||
-          emerald > 0) && (
-          <TooltipContent>
-            <div className="flex flex-col gap-3 text-sm">
-              {typeof entityComment == "string" && entityComment != "" && (
-                <div className="max-w-60 break-words">{entityComment}</div>
+                </>
               )}
-              {(red > 0 || amber > 0 || emerald > 0) && (
-                <div>
-                  {red > 0 && (
-                    <div className="flex gap-3 items-center">
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 6 6"
-                        fill="rgb(239, 68, 68)"
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="border rounded-full"
-                      >
-                        <circle cx="3" cy="3" r="3" />
-                      </svg>
-                      <div className="text-sm">{`${t(
-                        "Pending"
-                      )}  x${red}`}</div>
-                    </div>
-                  )}
-                  {amber > 0 && (
-                    <div className="flex gap-3 items-center">
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 6 6"
-                        fill="rgb(245, 158, 11)"
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="border rounded-full"
-                      >
-                        <circle cx="3" cy="3" r="3" />
-                      </svg>
-                      <div className="text-sm">{`${t(
-                        "InProgress"
-                      )} x${amber}`}</div>
-                    </div>
-                  )}
-                  {emerald > 0 && (
-                    <div className="flex gap-3 items-center">
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 6 6"
-                        fill="rgb(16, 185, 129)"
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="border rounded-full"
-                      >
-                        <circle cx="3" cy="3" r="3" />
-                      </svg>
-                      <div className="text-sm">{`${t(
-                        "Ready"
-                      )} x${emerald}`}</div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </TooltipContent>
-        )}
-      </Tooltip>
-    </TooltipProvider>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+      <div className="flex justify-between h-1/2 w-full px-2 py-2">
+        <div className="w-1/2 break-words text-sm pr-1 text-muted-foreground">
+          {max50Crop(entityComment ? entityComment : "")}
+        </div>
+        <div className="flex gap-3 items-start text-sm text-muted-foreground">
+          <div className="flex gap-2 items-center">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 6 6"
+              fill="rgb(239, 68, 68)"
+              xmlns="http://www.w3.org/2000/svg"
+              className="border rounded-full"
+            >
+              <circle cx="3" cy="3" r="3" />
+            </svg>
+            <div>{red}</div>
+          </div>
+          <div className="flex gap-2 items-center">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 6 6"
+              fill="rgb(245, 158, 11)"
+              xmlns="http://www.w3.org/2000/svg"
+              className="border rounded-full"
+            >
+              <circle cx="3" cy="3" r="3" />
+            </svg>
+            <div>{amber}</div>
+          </div>
+          <div className="flex gap-2 items-center">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 6 6"
+              fill="rgb(16, 185, 129)"
+              xmlns="http://www.w3.org/2000/svg"
+              className="border rounded-full"
+            >
+              <circle cx="3" cy="3" r="3" />
+            </svg>
+            <div>{emerald}</div>
+          </div>
+        </div>
+      </div>
+    </Card>
   );
 }
 
@@ -631,7 +618,7 @@ export function DeleteEntityDialog({
             className="w-full justify-start flex items-center gap-2 px-3 py-2"
           >
             <Trash2 />
-            <span className="text-sm font-semibold">{t("DeleteEntity")}</span>
+            <span className="text-sm ">{t("DeleteEntity")}</span>
           </Button>
         </DialogTrigger>
       </div>
@@ -676,7 +663,7 @@ function ExportJSON({
         }}
       >
         <FileUp />
-        <span className="text-sm font-semibold">{t("ExportJSON")}</span>
+        <span className="text-sm ">{t("ExportJSON")}</span>
       </Button>
     </div>
   );
@@ -749,7 +736,7 @@ function ClipboardExportButton({
         }}
       >
         <ClipboardCopy className="w-4 h-4" />
-        <span className="text-sm font-semibold">{t("CopyToClipboard")}</span>
+        <span className="text-sm ">{t("CopyToClipboard")}</span>
       </Button>
     </div>
   );
@@ -775,7 +762,7 @@ function ImportJSON({ onClick }: { onClick?: () => void }) {
         onClick={() => (importEntity(), onClick && onClick())}
       >
         <FileDown />
-        <span className="text-sm font-semibold">{t("ImportJSON")}</span>
+        <span className="text-sm ">{t("ImportJSON")}</span>
       </Button>
     </div>
   );
@@ -819,7 +806,7 @@ function PasteEntityHierarchyFromClipboard({
         }}
       >
         <ClipboardPaste />
-        <span className="text-sm font-semibold">{t("PasteFromClipboard")}</span>
+        <span className="text-sm ">{t("PasteFromClipboard")}</span>
       </Button>
     </div>
   );
