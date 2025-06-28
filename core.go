@@ -1397,11 +1397,21 @@ func (c *Core) CopyEntityHierarchyToClipboard(entityTypeStr string, entityIDStr 
 		return fmt.Errorf("error loading entity with hierarchy: %w", err)
 	}
 
-	if entityTypeStr == "operation" {
+	switch entityTypeStr {
+	case "operation":
 		if op, ok := modelInstance.(*Operation); ok {
 			op.GroupID = nil
 			op.SequenceGroup = nil
 			op.Sequence = nil
+		}
+	case "tool":
+		if tool, ok := modelInstance.(*Tool); ok {
+			// Set GroupID, SequenceGroup, and Sequence to nil for all operations under this tool
+			for i := range tool.Operations {
+				tool.Operations[i].GroupID = nil
+				tool.Operations[i].SequenceGroup = nil
+				tool.Operations[i].Sequence = nil
+			}
 		}
 	}
 
