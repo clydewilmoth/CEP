@@ -217,6 +217,11 @@ export function EntityCollection({
         </div>
       ) : (
         <ScrollArea className="h-[78vh] pr-5">
+          {!entities && (
+            <div className="text-sm font-semibold max-w-[23rem] max-h-fit bg-card border p-4 flex flex-col gap-3 rounded-lg">
+              {t("NoEntityAvailable", { entityType: t(`${entityType}s`) })}
+            </div>
+          )}
           <div
             className={
               entityType == "line"
@@ -224,11 +229,6 @@ export function EntityCollection({
                 : "grid gap-7 xl:grid-cols-3 lg:grid-cols-2"
             }
           >
-            {!entities && (
-              <div className="text-sm font-semibold max-w-[23rem] max-h-fit bg-card border p-4 flex flex-col gap-3 rounded-lg">
-                {t("NoEntityAvailable", { entityType: t(`${entityType}s`) })}
-              </div>
-            )}
             {entities?.map((entity, index) => {
               let filterCondition = true;
               switch (filter) {
