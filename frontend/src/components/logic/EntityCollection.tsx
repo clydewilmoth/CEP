@@ -211,9 +211,15 @@ export function EntityCollection({
         </div>
       </div>
       {showSkeletons ? (
-        <div className="flex flex-wrap gap-7">
+        <div
+          className={
+            entityType == "line"
+              ? "grid gap-7 2xl:grid-cols-4 xl:grid-cols-3 md:grid-cols-2"
+              : "grid gap-7 2xl:grid-cols-3 xl:grid-cols-2 lg:grid-cols-2"
+          }
+        >
           {Array.from({ length: 8 }, (_, index) => (
-            <Skeleton key={index} className="h-24 w-44 rounded-xl" />
+            <Skeleton key={index} className="h-28 w-full rounded-xl" />
           ))}
         </div>
       ) : (
