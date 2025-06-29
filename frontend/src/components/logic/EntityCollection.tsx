@@ -433,9 +433,7 @@ export function EntityCard({
       className="h-fit relative hover:cursor-pointer hover:translate-y-1 transition-all flex-col gap-3 py-6 px-4"
     >
       <div className="flex justify-between border-b h-1/2 w-full items-center px-2">
-        <CardTitle className="break-words max-w-24 text-center">
-          {entityName}
-        </CardTitle>
+        <CardTitle>{entityName}</CardTitle>
         <div className="flex">
           {link ? (
             <>
