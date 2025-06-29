@@ -99,7 +99,7 @@ export function LineForm({ entityId }: { entityId: string }) {
   const formSchema = z.object({
     Name: z
       .string()
-      .max(10, { message: t("LineName ValidationFailed") })
+      .max(50, { message: t("LineName ValidationFailed") })
       .optional(),
     Comment: z.string().optional(),
     StatusColor: z.string().optional(),
@@ -584,7 +584,7 @@ export function StationForm({ entityId }: { entityId: string }) {
   const formSchema = z.object({
     Name: z
       .string()
-      .max(50, { message: t("StationName ValidationFailed") })
+      .max(10, { message: t("StationName ValidationFailed") })
       .optional(),
     Comment: z.string().optional(),
     StatusColor: z.string().optional(),
@@ -657,7 +657,10 @@ export function StationForm({ entityId }: { entityId: string }) {
       if (value.draft && stationDb.key != value.data) {
         if (
           key == "StationType" &&
-          (value.data == "" || value.data == "none" || value.data == "0" || value.data == "10")
+          (value.data == "" ||
+            value.data == "none" ||
+            value.data == "0" ||
+            value.data == "10")
         )
           resetChildTemplate = true;
         changesRecord[key] = value.data;
