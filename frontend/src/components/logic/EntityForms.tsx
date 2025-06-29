@@ -3541,9 +3541,9 @@ export function OperationForm({
                       </TooltipTrigger>
                     </div>
                     <TooltipContent className="max-w-sm">
-                      {operation.SavingClass &&
-                        operation.SavingClass != "none" &&
-                        operation.SavingClass != "" &&
+                      {operationDb.SavingClass &&
+                        operationDb.SavingClass != "none" &&
+                        operationDb.SavingClass != "" &&
                         t(
                           "OC_SAVING_" +
                             String(operationDb.SavingClass) +
