@@ -425,7 +425,7 @@ export function LineForm({ entityId }: { entityId: string }) {
             <FormItem>
               {line && line.Name?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("Name")}
@@ -471,7 +471,7 @@ export function LineForm({ entityId }: { entityId: string }) {
             <FormItem>
               {line && line.AssemblyArea?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("AssemblyArea")}
@@ -949,7 +949,7 @@ export function StationForm({ entityId }: { entityId: string }) {
             <FormItem>
               {station && station.Name?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("Name")}
@@ -995,7 +995,7 @@ export function StationForm({ entityId }: { entityId: string }) {
             <FormItem>
               {station && station.Description?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("Station Description")}
@@ -1041,7 +1041,7 @@ export function StationForm({ entityId }: { entityId: string }) {
             <FormItem>
               {station && station.StationType?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("Station Type")}
@@ -1651,7 +1651,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
             <FormItem>
               {tool && tool.Name?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("Name")}
@@ -1747,7 +1747,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
             <FormItem>
               {tool && tool.ToolClass?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("ToolClass")}
@@ -1836,7 +1836,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
             <FormItem>
               {tool && tool.ToolType?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("ToolType")}
@@ -1902,7 +1902,11 @@ export function ToolForm({ entityId }: { entityId: string }) {
                                 )}
                               </SelectItem>
                             </TooltipTrigger>
-                            <TooltipContent className="max-w-sm">
+                            <TooltipContent
+                              className="max-w-sm"
+                              side="right"
+                              sideOffset={10}
+                            >
                               {t(
                                 "TT_" +
                                   String(tooltype.id) +
@@ -1928,7 +1932,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
             <FormItem>
               {tool && tool.IpAddressDevice?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("IpAddressDevice")}
@@ -2828,7 +2832,7 @@ export function OperationForm({
             <FormItem>
               {operation && operation.Name?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("Name")}
@@ -2874,7 +2878,7 @@ export function OperationForm({
             <FormItem>
               {operation && operation.Description?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("Operation Description")}
@@ -2934,7 +2938,7 @@ export function OperationForm({
             <FormItem>
               {operation && operation.SerialOrParallel?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("SerialOrParallel")}
@@ -3031,7 +3035,7 @@ export function OperationForm({
               </FormControl>
               {operation && operation.AlwaysPerform?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("AlwaysPerform")}
@@ -3061,7 +3065,7 @@ export function OperationForm({
             <FormItem>
               {operation && operation.QGateRelevant?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("QGateRelevant")}
@@ -3127,7 +3131,7 @@ export function OperationForm({
             <FormItem>
               {operation && operation.Template?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("Template")}
@@ -3210,7 +3214,7 @@ export function OperationForm({
             <FormItem>
               {operation && operation.DecisionClass?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("DecisionClass")}
@@ -3286,7 +3290,11 @@ export function OperationForm({
                                 )}
                               </SelectItem>
                             </TooltipTrigger>
-                            <TooltipContent className="max-w-sm">
+                            <TooltipContent
+                              className="max-w-sm"
+                              side="right"
+                              sideOffset={10}
+                            >
                               {t(
                                 "OC_DECISION_" +
                                   String(decisionclass.id) +
@@ -3311,7 +3319,7 @@ export function OperationForm({
             <FormItem>
               {operation && operation.VerificationClass?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("VerificationClass")}
@@ -3387,7 +3395,11 @@ export function OperationForm({
                                 )}
                               </SelectItem>
                             </TooltipTrigger>
-                            <TooltipContent className="max-w-sm">
+                            <TooltipContent
+                              className="max-w-sm"
+                              side="right"
+                              sideOffset={10}
+                            >
                               {t(
                                 "OC_VERIFICATION_" +
                                   String(verificationclass.id) +
@@ -3414,7 +3426,7 @@ export function OperationForm({
             <FormItem>
               {operation && operation.GenerationClass?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("GenerationClass")}
@@ -3488,7 +3500,11 @@ export function OperationForm({
                                 )}
                               </SelectItem>
                             </TooltipTrigger>
-                            <TooltipContent className="max-w-sm">
+                            <TooltipContent
+                              className="max-w-sm"
+                              side="right"
+                              sideOffset={10}
+                            >
                               {t(
                                 "OC_GENERATION_" +
                                   String(generationclass.id) +
@@ -3515,7 +3531,7 @@ export function OperationForm({
             <FormItem>
               {operation && operation.SavingClass?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("SavingClass")}
@@ -3587,7 +3603,11 @@ export function OperationForm({
                                 )}
                               </SelectItem>
                             </TooltipTrigger>
-                            <TooltipContent className="max-w-sm">
+                            <TooltipContent
+                              className="max-w-sm"
+                              side="right"
+                              sideOffset={10}
+                            >
                               {t(
                                 "OC_SAVING_" +
                                   String(savingclass.id) +
@@ -3613,7 +3633,7 @@ export function OperationForm({
             <FormItem className="col-span-2">
               {operation && operation.DecisionCriteria?.draft ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <div className="flex gap-3">
                       <FormLabel className="flex h-[15px]">
                         {t("DecisionCriteria")}
