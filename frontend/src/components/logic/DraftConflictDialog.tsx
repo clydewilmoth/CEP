@@ -13,6 +13,7 @@ import {
 } from "../ui/alert-dialog";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
+import { useLocation } from "wouter";
 
 export function DraftConflictDialog() {
   const { t } = useTranslation();
@@ -21,6 +22,8 @@ export function DraftConflictDialog() {
   );
   const [open, setOpen] = useState(false);
   const { lastUpdate, setLastUpdate } = useContext();
+
+  const [location, navigate] = useLocation();
 
   useEffect(() => {
     (async () => {
@@ -38,6 +41,7 @@ export function DraftConflictDialog() {
             if (localStorage.getItem(`${id}`)) {
               localStorage.removeItem(`${id}`);
             }
+            location.includes(id) && navigate("/", { replace: true });
           });
         });
         for (const [entityType, entities] of Object.entries(updatedEntities)) {
