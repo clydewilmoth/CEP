@@ -334,7 +334,7 @@ export function CreateEntityButton({
   );
 }
 
-function EntityCard({
+export function EntityCard({
   entityType,
   entityId,
   entityName,
@@ -347,7 +347,7 @@ function EntityCard({
   entityName: string;
   entityComment: string;
   entityStatusColor?: string;
-  link: string;
+  link?: string;
 }) {
   const [key, setKey] = useState(0);
   const [, navigate] = useLocation();
@@ -428,7 +428,7 @@ function EntityCard({
   return (
     <Card
       onClick={() => {
-        link != "" && navigate(`${link}${entityId}`);
+        link && link != "" && navigate(`${link}${entityId}`);
       }}
       className="h-fit relative hover:cursor-pointer hover:translate-y-1 transition-all flex-col gap-3 py-6 px-4"
     >
@@ -437,76 +437,88 @@ function EntityCard({
           {entityName}
         </CardTitle>
         <div className="flex">
-          {entityStatusColor && (
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled
-              className="disabled:opacity-100"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 6 6"
-                fill={
-                  entityStatusColor == "red"
-                    ? "rgb(239, 68, 68)"
-                    : entityStatusColor == "amber"
-                    ? "rgb(245, 158, 11)"
-                    : "rgb(16, 185, 129)"
-                }
-                xmlns="http://www.w3.org/2000/svg"
-                className="border rounded-full"
-              >
-                <circle cx="3" cy="3" r="3" />
-              </svg>
-            </Button>
-          )}
-          {localStorage.getItem(entityId) && (
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled
-              className="disabled:opacity-80"
-            >
-              <SquarePen size={15} />
-            </Button>
-          )}
-          <DropdownMenu key={key}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-muted-foreground"
-              >
-                <Ellipsis />
-              </Button>
-            </DropdownMenuTrigger>
+          {link ? (
+            <>
+              <>
+                {entityStatusColor && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled
+                    className="disabled:opacity-100"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 6 6"
+                      fill={
+                        entityStatusColor == "red"
+                          ? "rgb(239, 68, 68)"
+                          : entityStatusColor == "amber"
+                          ? "rgb(245, 158, 11)"
+                          : "rgb(16, 185, 129)"
+                      }
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="border rounded-full"
+                    >
+                      <circle cx="3" cy="3" r="3" />
+                    </svg>
+                  </Button>
+                )}
+              </>
+              <>
+                {localStorage.getItem(entityId) && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled
+                    className="disabled:opacity-80"
+                  >
+                    <SquarePen size={15} />
+                  </Button>
+                )}
+              </>
+              <>
+                <DropdownMenu key={key}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground"
+                    >
+                      <Ellipsis />
+                    </Button>
+                  </DropdownMenuTrigger>
 
-            <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-              <DeleteEntityDialog
-                entityType={entityType}
-                entityId={entityId}
-                onClose={() => setKey((k) => k + 1)}
-              />
-              <DropdownMenuSeparator className="bg-accent" />
-              <ClipboardExportButton
-                entityType={entityType}
-                entityId={entityId}
-                onClick={() => setKey((k) => k + 1)}
-              />
-              {entityType == "line" && (
-                <>
-                  <DropdownMenuSeparator className="bg-accent" />
-                  <ExportJSON
-                    entityType={entityType}
-                    entityId={entityId}
-                    onClick={() => setKey((k) => k + 1)}
-                  />
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+                    <DeleteEntityDialog
+                      entityType={entityType}
+                      entityId={entityId}
+                      onClose={() => setKey((k) => k + 1)}
+                    />
+                    <DropdownMenuSeparator className="bg-accent" />
+                    <ClipboardExportButton
+                      entityType={entityType}
+                      entityId={entityId}
+                      onClick={() => setKey((k) => k + 1)}
+                    />
+                    {entityType == "line" && (
+                      <>
+                        <DropdownMenuSeparator className="bg-accent" />
+                        <ExportJSON
+                          entityType={entityType}
+                          entityId={entityId}
+                          onClick={() => setKey((k) => k + 1)}
+                        />
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            </>
+          ) : (
+            <Button variant="ghost" size="icon" disabled hidden></Button>
+          )}
         </div>
       </div>
       <div className="flex justify-between h-1/2 w-full px-2 py-2">
@@ -522,7 +534,7 @@ function EntityCard({
             entityType == "operation" ? 100 : 50
           )}
         </div>
-        {entityType != "operation" && (
+        {entityType != "operation" ? (
           <div className="flex gap-3 items-start justify-end w-1/2 text-sm text-muted-foreground">
             <div className="flex gap-1 items-center">
               <svg
@@ -564,6 +576,8 @@ function EntityCard({
               <div>{emerald}</div>
             </div>
           </div>
+        ) : (
+          <div className="h-[19px]"></div>
         )}
       </div>
     </Card>

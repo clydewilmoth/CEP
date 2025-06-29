@@ -21,6 +21,7 @@ import { Loader } from "../ui/loader";
 import { Skeleton } from "../ui/skeleton";
 import { useDelayedLoading } from "@/lib/hooks";
 import { useContext } from "@/store";
+import { EntityCard } from "./EntityCollection";
 
 type Group = {
   ID: string;
@@ -34,6 +35,8 @@ type Group = {
 type Operation = {
   ID: string;
   Name: string;
+  Comment?: string;
+  StatusColor?: string;
   SequenceGroup: string;
   Sequence: string;
   UpdatedAt: string;
@@ -87,6 +90,8 @@ export function SequenceGroupView({
             .map((op: any) => ({
               ID: op.ID,
               Name: op.Name,
+              Comment: op.Comment,
+              StatusColor: op.StatusColor,
               SequenceGroup: op.SequenceGroup || "",
               Sequence: op.Sequence,
               UpdatedAt: op.UpdatedAt,
@@ -115,6 +120,8 @@ export function SequenceGroupView({
         .map((op: any) => ({
           ID: op.ID,
           Name: op.Name,
+          Comment: op.Comment,
+          StatusColor: op.StatusColor,
           SequenceGroup: op.SequenceGroup || "",
           Sequence: op.Sequence || "",
           UpdatedAt: op.UpdatedAt || "",
@@ -128,6 +135,8 @@ export function SequenceGroupView({
         .map((op: any) => ({
           ID: op.ID,
           Name: op.Name,
+          Comment: op.Comment,
+          StatusColor: op.StatusColor,
           SequenceGroup: op.SequenceGroup || "",
           Sequence: op.Sequence || "",
           UpdatedAt: op.UpdatedAt || "",
@@ -144,6 +153,8 @@ export function SequenceGroupView({
         .map((op: any) => ({
           ID: op.ID,
           Name: op.Name,
+          Comment: op.Comment,
+          StatusColor: op.StatusColor,
           SequenceGroup: op.SequenceGroup || "",
           Sequence: op.Sequence || "",
           UpdatedAt: op.UpdatedAt || "",
@@ -537,15 +548,15 @@ export function SequenceGroupView({
           {t("StationType Unassigned")}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-5">
-          <div className="flex flex-col gap-5 w-[95%]">
+        <div className="flex flex-row-reverse gap-5 justify-end">
+          <div className="flex flex-col gap-5 w-full">
             <h1 className="text-lg font-bold">{t("Operations Unassigned")}</h1>
             {dataLoading ? (
               <Skeleton className="w-[95%] h-[50vh]" />
             ) : (
               <ScrollArea className="pr-4 h-[calc(100vh-11rem)]">
                 <div
-                  className="min-h-[100px] border-2 border-dashed rounded-lg p-4 mb-4 transition-all hover:border-accent/70 hover:bg-accent/10"
+                  className="min-h-[100px] w-full border-2 border-dashed rounded-lg p-4 mb-4 transition-all hover:border-accent/70 hover:bg-accent/10"
                   onDrop={(e) => {
                     e.preventDefault();
                     e.currentTarget.classList.remove(
@@ -596,7 +607,7 @@ export function SequenceGroupView({
                             onReorder={(newOrder) =>
                               handleReorderUnassigned(newOrder, "serial")
                             }
-                            className="flex flex-wrap gap-2"
+                            className="grid lg:grid-cols-1 xl:lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-7"
                           >
                             {processedData.unassignedSerialOperations.map(
                               (entity) => (
@@ -629,7 +640,7 @@ export function SequenceGroupView({
                             onReorder={(newOrder) =>
                               handleReorderUnassigned(newOrder, "parallel")
                             }
-                            className="flex flex-wrap gap-2"
+                            className="grid lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-7"
                           >
                             {processedData.unassignedParallelOperations.map(
                               (entity) => (
@@ -661,7 +672,7 @@ export function SequenceGroupView({
                           onReorder={(newOrder) =>
                             handleReorderUnassigned(newOrder, "parallel")
                           }
-                          className="flex flex-wrap gap-2"
+                          className="grid lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-7"
                           visibility="disabled"
                         >
                           {processedData.unassignedNoneOperations.map(
@@ -687,10 +698,10 @@ export function SequenceGroupView({
               </ScrollArea>
             )}
           </div>
-          <div className="flex flex-col gap-5 w-[95%]">
+          <div className="flex flex-col gap-5 min-w-[22rem]">
             <h1 className="text-lg font-bold">{t("SequenceGroups")}</h1>
             {dataLoading ? (
-              <Skeleton className="w-[95%] h-[50vh]" />
+              <Skeleton className="h-[50vh]" />
             ) : (
               <ScrollArea className="pr-4 h-[calc(100vh-11rem)]">
                 <div className="flex flex-col gap-5">
@@ -723,7 +734,7 @@ export function SequenceGroupView({
                     </Reorder.Group>
                   )}
 
-                  <div className="flex gap-2 w-[99%]">
+                  <div className="flex gap-2 w-[20.9rem]">
                     <Input
                       value={processedData.inputValue}
                       onChange={(e) => handleInputChange(e.target.value)}
@@ -747,7 +758,7 @@ export function SequenceGroupView({
             )}
           </div>
           {hasChanges && (
-            <div className="flex gap-5 mt-4 w-72">
+            <div className="flex gap-5 mt-4 w-[20.9rem] absolute bottom-6">
               <div className="w-1/2">
                 <DiscardChangesButton
                   entityType={entityType}
@@ -786,11 +797,8 @@ function OperationCard({
   operation: Operation;
   currentGroupId: string;
 }) {
-  const { t } = useTranslation();
-
   return (
-    <Card
-      className="relative w-36 transition-all h-fit flex gap-3 justify-center items-center py-4 hover:translate-y-1"
+    <div
       draggable
       onDragStart={(e) => {
         e.dataTransfer.setData("operationId", operation.ID);
@@ -798,10 +806,14 @@ function OperationCard({
         e.dataTransfer.effectAllowed = "move";
       }}
     >
-      <div className="font-semibold text-sm text-center truncate px-2">
-        {operation.Name || t("unnamed_entity")}
-      </div>
-    </Card>
+      <EntityCard
+        entityType="operation"
+        entityId={operation.ID}
+        entityName={operation.Name}
+        entityComment={operation.Comment ?? ""}
+        entityStatusColor={operation.StatusColor}
+      />
+    </div>
   );
 }
 
@@ -1147,7 +1159,7 @@ function SequenceGroupCard({
 
   return (
     <Card
-      className="bg-muted w-full h-fit flex flex-col relative p-4 transition-all border-2 border-dashed hover:border-accent/70 hover:bg-accent/10"
+      className="bg-muted max-w-sm h-fit flex flex-col relative p-4 transition-all border-2 border-dashed hover:border-accent/70 hover:bg-accent/10"
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
@@ -1181,7 +1193,7 @@ function SequenceGroupCard({
               onReorder={(newOperations) =>
                 onReorderOperations(group.ID, newOperations, "0")
               }
-              className="flex flex-col gap-2 pl-2"
+              className="grid grid-cols-1 gap-5"
             >
               {group.SerialOperations.map((operation, opIndex) => (
                 <Reorder.Item
@@ -1258,7 +1270,7 @@ function SequenceGroupCard({
               onReorder={(newOperations) =>
                 onReorderOperations(group.ID, newOperations, "parallel")
               }
-              className="flex flex-wrap gap-2 pl-2"
+              className="grid grid-cols-1 gap-5"
             >
               {group.ParallelOperations.map((operation) => (
                 <Reorder.Item
