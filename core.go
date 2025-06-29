@@ -1283,6 +1283,7 @@ func importEntityRecursive_UseOriginalData(currentTx *gorm.DB, originalEntityDat
 	var currentEntityID mssql.UniqueIdentifier
 	var currentEntityNamePtr *string
 	var childrenToProcess []interface{}
+	var groupsToProcess []interface{}
 	var childEntityTypeStr string
 	var emptyMsSQLID mssql.UniqueIdentifier
 	switch entity := originalEntityData.(type) {
@@ -1307,6 +1308,9 @@ func importEntityRecursive_UseOriginalData(currentTx *gorm.DB, originalEntityDat
 		for i := range entity.Tools {
 			childrenToProcess = append(childrenToProcess, &entity.Tools[i])
 		}
+		for i := range entity.SequenceGroups {
+			groupsToProcess = append(groupsToProcess, &entity.SequenceGroups[i])
+		}
 	case *Tool:
 		if entity.ID == emptyMsSQLID {
 			return fmt.Errorf("tool in JSON has no ID")
@@ -1325,10 +1329,6 @@ func importEntityRecursive_UseOriginalData(currentTx *gorm.DB, originalEntityDat
 		currentEntityID = entity.ID
 		currentEntityNamePtr = entity.Name
 		entity.ParentID = newParentActualID
-		childEntityTypeStr = "operation"
-		for i := range entity.Operations {
-			childrenToProcess = append(childrenToProcess, &entity.Operations[i])
-		}
 	case *Operation:
 		if entity.ID == emptyMsSQLID {
 			return fmt.Errorf("operation in JSON has no ID")
@@ -1353,6 +1353,13 @@ func importEntityRecursive_UseOriginalData(currentTx *gorm.DB, originalEntityDat
 	}
 	if err := currentTx.Omit(clause.Associations).Create(originalEntityData).Error; err != nil {
 		return fmt.Errorf("error creating imported entity %s '%s' (ID: %s): %w", entityTypeStr, logName, currentEntityID.String(), err)
+	}
+	if entityTypeStr == "station" {
+		for _, childData := range groupsToProcess {
+			if err := importEntityRecursive_UseOriginalData(currentTx, childData, "sequencegroup", currentEntityID); err != nil {
+				return err
+			}
+		}
 	}
 	for _, childData := range childrenToProcess {
 		if err := importEntityRecursive_UseOriginalData(currentTx, childData, childEntityTypeStr, currentEntityID); err != nil {
