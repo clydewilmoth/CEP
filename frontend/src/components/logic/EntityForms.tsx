@@ -309,7 +309,7 @@ export function LineForm({ entityId }: { entityId: string }) {
           <div className="flex gap-3 items-center">
             {line && line.StatusColor?.draft && (
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <SquarePen size={15} />
                   </TooltipTrigger>
@@ -371,7 +371,7 @@ export function LineForm({ entityId }: { entityId: string }) {
           <div className="flex flex-col gap-3">
             {line && line.Comment?.draft ? (
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={0}>
                   <div className="flex gap-3">
                     <FormLabel className="flex h-[15px]">
                       {t("Comment")}
@@ -833,7 +833,7 @@ export function StationForm({ entityId }: { entityId: string }) {
           <div className="flex gap-3 items-center">
             {station && station.StatusColor?.draft && (
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <SquarePen size={15} />
                   </TooltipTrigger>
@@ -895,7 +895,7 @@ export function StationForm({ entityId }: { entityId: string }) {
           <div className="flex flex-col gap-3">
             {station && station.Comment?.draft ? (
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={0}>
                   <div className="flex gap-3">
                     <FormLabel className="flex h-[15px]">
                       {t("Comment")}
@@ -1535,7 +1535,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
           <div className="flex gap-3 items-center">
             {tool && tool.StatusColor?.draft && (
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <SquarePen size={15} />
                   </TooltipTrigger>
@@ -1597,7 +1597,7 @@ export function ToolForm({ entityId }: { entityId: string }) {
           <div className="flex flex-col gap-3">
             {tool && tool.Comment?.draft ? (
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={0}>
                   <div className="flex gap-3">
                     <FormLabel className="flex h-[15px]">
                       {t("Comment")}
@@ -2716,7 +2716,7 @@ export function OperationForm({
           <div className="flex gap-3 items-center">
             {operation && operation.StatusColor?.draft && (
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <SquarePen size={15} />
                   </TooltipTrigger>
@@ -2778,7 +2778,7 @@ export function OperationForm({
           <div className="flex flex-col gap-3">
             {operation && operation.Comment?.draft ? (
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={0}>
                   <div className="flex gap-3">
                     <FormLabel className="flex h-[15px]">
                       {t("Comment")}
