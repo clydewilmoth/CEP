@@ -11,7 +11,7 @@
 
 ## Getting Started
 
-### Setup
+### Setup Database
 
 1. `git clone https://github.com/clydewilmoth/cep.git`
 2. `cd mssql`
