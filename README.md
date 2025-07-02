@@ -1,13 +1,16 @@
 # CEP
 
-## Requirements
+## Database Setup Requirements
 
 - Git
+- Docker
+
+## Build Requirements
+
 - Go 1.21+ (macOS 15+ requires Go 1.23.3+)
 - PNPM (Node 15+)
 - Wails CLI
 - GCC Compiler
-- Docker
 
 ## Getting Started
 
